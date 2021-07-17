@@ -1,14 +1,18 @@
-﻿<Page
-    x:Class="NicoVideoSnapshotSearchAssistanceTools.MainPage"
+﻿<UserControl
+    x:Class="NicoVideoSnapshotSearchAssistanceTools.AppCoreFrameHost"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:NicoVideoSnapshotSearchAssistanceTools"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    d:DesignHeight="300"
+    d:DesignWidth="400">
 
     <Grid>
 
-    </Grid>
-</Page>
+    <Frame x:Name="CoreFrame"
+           DataContext="{x:Null}"
+           />
+  </Grid>
+</UserControl>
