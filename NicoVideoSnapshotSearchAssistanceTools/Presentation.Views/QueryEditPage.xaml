@@ -1,0 +1,207 @@
+﻿<Page
+    x:Class="NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.QueryEditPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+  xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls" 
+  xmlns:viewModels="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels"
+  xmlns:winui="using:Microsoft.UI.Xaml.Controls" xmlns:niconicoToolkitSnapshot="using:NiconicoToolkit.SnapshotSearch"
+  mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+  <Page.Resources>
+    <DataTemplate x:Key="SearchFiledTypeSelectableItemTemplate" x:DataType="viewModels:SearchFieldTypeSelectableItem">
+      <CheckBox Content="{x:Bind Content}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+    </DataTemplate>
+  </Page.Resources>
+  <Grid>
+    <controls:DockPanel>
+
+      <Grid controls:DockPanel.Dock="Top" Margin="16 48 16 4" MaxWidth="720">
+
+        <StackPanel>
+          <CommandBar DefaultLabelPosition="Right">
+            <CommandBar.Content>
+              <StackPanel Orientation="Horizontal" Margin="24 0" >
+                <TextBlock Text="クエリ編集" Style="{StaticResource TitleTextBlockStyle}" />
+              </StackPanel>
+            </CommandBar.Content>
+
+            <CommandBar.PrimaryCommands>
+              <AppBarButton Label="検索（テスト含む）" Icon="Find" />
+            </CommandBar.PrimaryCommands>
+            <CommandBar.SecondaryCommands>
+              <AppBarButton Label="現在の条件をテンプレートとして保存" />
+              <AppBarSeparator />
+              <AppBarButton Label="テンプレートから読み込み" />
+              <AppBarButton Label="検索結果の履歴から読み込み" />
+              <AppBarButton Label="クエリ文字列から読み込み" />
+            </CommandBar.SecondaryCommands>
+          </CommandBar>
+        </StackPanel>
+
+        
+      </Grid>
+
+      <Grid controls:DockPanel.Dock="Bottom" MaxWidth="720">
+
+        <StackPanel Orientation="Horizontal">
+        </StackPanel>
+      </Grid>
+
+      <!-- ScrollViewer IsTabStop="True" を指定しないとSVの最上部コントロールにフォーカスが吸われる問題が発生します -->
+      <!-- https://bleepcoder.com/ja/microsoft-ui-xaml/435622383/scrollviewer-jumps-to-top-most-textbox-uwp-app -->
+      <ScrollViewer IsTabStop="True">
+        
+        <StackPanel Margin="32 0 32 32" Spacing="16" MaxWidth="720">
+          <StackPanel.Resources>
+            <Style x:Key="ItemTitleHeaderBorderStyle" TargetType="Border">
+              <Setter Property="Margin" Value="16 0" />
+            </Style>
+          </StackPanel.Resources>
+
+          <TextBlock Text="編集中の条件は自動保存されます。"
+                     Margin="16 0" 
+                     />
+
+          <StackPanel>
+            <Border Margin="16 0">
+              <TextBlock Text="検索用途を示すID（必須）" Style="{StaticResource SubtitleTextBlockStyle}"
+                         />
+            </Border>
+            <Border Style="{ThemeResource MicaCardBorderStyle}">
+              <TextBox Text="{Binding SearchQueryVM.Context, Mode=TwoWay}" MaxLength="40"
+                       PlaceholderText="例）月刊○○ランキング"
+                       />
+            </Border>
+          </StackPanel>
+          
+          
+          <StackPanel>
+            <Border Margin="16 0">
+              <TextBlock Text="キーワード" Style="{StaticResource SubtitleTextBlockStyle}" />
+            </Border>
+            <Border Style="{ThemeResource MicaCardBorderStyle}">
+              <TextBox Text="{Binding SearchQueryVM.Keyword, Mode=TwoWay}" />
+            </Border>
+          </StackPanel>
+
+          <StackPanel>
+            <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
+              <TextBlock Text="検索対象（必須）" Style="{StaticResource SubtitleTextBlockStyle}" />
+            </Border>
+            
+            <Border Style="{ThemeResource MicaCardBorderStyle}">
+              <ItemsControl x:Name="TargetCheckboxItems" ItemsSource="{Binding TargetSelectableItems}"
+                            ItemTemplate="{StaticResource SearchFiledTypeSelectableItemTemplate}"
+                            >
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <controls:WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+              </ItemsControl>
+            </Border>
+          </StackPanel>
+
+          <StackPanel>
+            <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
+              <TextBlock Text="取得項目" Style="{StaticResource SubtitleTextBlockStyle}" />
+            </Border>
+            <Border Style="{ThemeResource MicaCardBorderStyle}">
+              <ItemsControl x:Name="FieldCheckboxItems" ItemsSource="{Binding FieldSelectableItems}"
+                            ItemTemplate="{StaticResource SearchFiledTypeSelectableItemTemplate}"
+                            >
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <controls:WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+              </ItemsControl>
+            </Border>
+          </StackPanel>
+
+          <StackPanel>
+            <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
+              <TextBlock Text="並び順（必須）" Style="{StaticResource SubtitleTextBlockStyle}" />
+            </Border>
+            <Border Style="{ThemeResource MicaCardBorderStyle}">
+              <ComboBox ItemsSource="{Binding SortItems}" SelectedItem="{Binding SearchQueryVM.Sort, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="niconicoToolkitSnapshot:SearchSort">
+                    <TextBlock Text="{x:Bind ToString()}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Border>
+          </StackPanel>
+
+
+          <StackPanel>
+            <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
+              <TextBlock Text="絞り込み条件" Style="{StaticResource SubtitleTextBlockStyle}" />
+            </Border>
+            <Border Style="{ThemeResource MicaCardBorderStyle}">
+              <StackPanel Spacing="16">
+
+                <StackPanel Orientation="Horizontal" Spacing="16">
+                  <TextBlock Text="始点日時" VerticalAlignment="Center" />
+
+                  <TextBlock MinWidth="220" VerticalAlignment="Center">
+                    <Run Text="{Binding FilterStartTime_From_Date}" /> <Run Text="{Binding FilterStartTime_From_Time}" />
+                  </TextBlock>
+                  <Button>
+                    <Button.Flyout>
+                      <DatePickerFlyout Date="{Binding FilterStartTime_From_Date, Mode=TwoWay}" />
+                    </Button.Flyout>
+                    <SymbolIcon Symbol="Calendar" />
+                  </Button>
+
+                  <Button>
+                    <Button.Flyout>
+                      <TimePickerFlyout Time="{Binding FilterStartTime_From_Time, Mode=TwoWay}"/>
+                    </Button.Flyout>
+                    <SymbolIcon Symbol="Clock" />
+                  </Button>
+
+                  <Button Command="{Binding ClearFilterStartTimeFromCommand}">
+                    <SymbolIcon Symbol="Clear" />
+                  </Button>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="16">
+                  <TextBlock Text="終点日時" VerticalAlignment="Center" />
+                  <TextBlock MinWidth="220" VerticalAlignment="Center">
+                    <Run Text="{Binding FilterStartTime_To_Date}" /> <Run Text="{Binding FilterStartTime_To_Time}" />
+                  </TextBlock>
+                  <Button>
+                    <Button.Flyout>
+                      <DatePickerFlyout Date="{Binding FilterStartTime_To_Date, Mode=TwoWay}" />
+                    </Button.Flyout>
+                    <SymbolIcon Symbol="Calendar" />
+                  </Button>
+
+                  <Button>
+                    <Button.Flyout>
+                      <TimePickerFlyout Time="{Binding FilterStartTime_To_Time, Mode=TwoWay}" />
+                    </Button.Flyout>
+                    <SymbolIcon Symbol="Clock" />
+                  </Button>
+
+                  <Button Command="{Binding ClearFilterStartTimeToCommand}">
+                    <SymbolIcon Symbol="Clear" />
+                  </Button>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+         
+
+
+        </StackPanel>
+      </ScrollViewer>
+    </controls:DockPanel>
+  </Grid>
+</Page>

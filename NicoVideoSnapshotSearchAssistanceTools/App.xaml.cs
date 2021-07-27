@@ -1,7 +1,7 @@
 ﻿using Microsoft.Toolkit.Mvvm.Messaging;
-using NicoVideoSnapshotSearchAssistanceTools.ViewModels;
-using NicoVideoSnapshotSearchAssistanceTools.ViewModels.Messages;
-using NicoVideoSnapshotSearchAssistanceTools.Views;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels.Messages;
 using Prism.Ioc;
 using Prism.Modularity;
 using Prism.Mvvm;
@@ -27,6 +27,11 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using LiteDB;
+using Windows.Storage;
+using Microsoft.Toolkit.Uwp.Helpers;
+using Unity.Injection;
+using NicoVideoSnapshotSearchAssistanceTools.Models.Infrastructure;
 
 namespace NicoVideoSnapshotSearchAssistanceTools
 {
@@ -76,6 +81,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools
 
                 return viewModelType;
             });
+
+            base.ConfigureViewModelLocator();
         }
 
         public override void ConfigureModuleCatalog(IModuleCatalog moduleCatalog)
@@ -87,12 +94,21 @@ namespace NicoVideoSnapshotSearchAssistanceTools
 
         public override void RegisterTypes(IContainerRegistry container)
         {
-            container.RegisterForNavigation<ApplicationCorePage, ApplicationCorePageViewModel>();
+            container.RegisterForNavigation<QueryEditPage, QueryEditPageViewModel>();
+            container.RegisterForNavigation<QueryManagementPage, QueryManagementPageViewModel>();
+            container.RegisterForNavigation<SearchRunningManagementPage, SearchRunningManagementPageViewModel>();
+            container.RegisterForNavigation<SearchResultPage, SearchResultPageViewModel>();
         }
 
         protected override void RegisterRequiredTypes(IContainerRegistry containerRegistry)
         {
             base.RegisterRequiredTypes(containerRegistry);
+
+            var unityContainer = containerRegistry.GetContainer();
+            unityContainer.RegisterType<LocalObjectStorageHelper>(new InjectionFactory(c => new LocalObjectStorageHelper(new SystemTextJsonSerializer())));
+
+            LiteDatabase quertDb = new LiteDatabase($"Filename={Path.Combine(ApplicationData.Current.LocalFolder.Path, "query.db")};");
+            unityContainer.RegisterInstance<ILiteDatabase>(quertDb);
 
             containerRegistry.RegisterInstance<IMessenger>(WeakReferenceMessenger.Default);
         }
@@ -102,7 +118,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools
             InitializeUIShell();
 
             var messenger = Container.Resolve<IMessenger>();
-            messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(ApplicationCorePage))));
+            messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(QueryEditPage))));
         }
 
         private void InitializeUIShell()

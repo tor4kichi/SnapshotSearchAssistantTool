@@ -1,7 +1,7 @@
 ﻿using Microsoft.Toolkit.Mvvm.Messaging;
-using NicoVideoSnapshotSearchAssistanceTools.ViewModels;
-using NicoVideoSnapshotSearchAssistanceTools.ViewModels.Messages;
-using NicoVideoSnapshotSearchAssistanceTools.Views;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels.Messages;
 using Prism.Ioc;
 using Prism.Modularity;
 using System;

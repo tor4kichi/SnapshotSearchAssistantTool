@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NicoVideoSnapshotSearchAssistanceTools.ViewModels
+namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 {
-    public sealed class ApplicationCorePageViewModel : BindableBase
+    public sealed class SearchRunningManagementPageViewModel : ViewModelBase
     {
     }
 }

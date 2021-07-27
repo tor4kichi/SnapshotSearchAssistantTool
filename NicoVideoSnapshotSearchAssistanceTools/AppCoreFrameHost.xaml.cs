@@ -1,6 +1,6 @@
-﻿using CommunityToolkit.Diagnostics;
+﻿using Microsoft.Toolkit.Diagnostics;
 using Microsoft.Toolkit.Mvvm.Messaging;
-using NicoVideoSnapshotSearchAssistanceTools.ViewModels.Messages;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels.Messages;
 using Prism.Navigation;
 using System;
 using System.Collections.Generic;

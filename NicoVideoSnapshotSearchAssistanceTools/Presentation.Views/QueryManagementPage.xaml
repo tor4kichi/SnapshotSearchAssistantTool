@@ -1,0 +1,63 @@
+﻿<Page
+    x:Class="NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.QueryManagementPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+  xmlns:viewModels="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels" 
+  xmlns:uwpControls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+  mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+  <Grid x:Name="RootGrid">
+    <ScrollViewer>
+      <StackPanel Margin="0 16" Spacing="32" HorizontalAlignment="Center">
+        <ItemsControl ItemsSource="{Binding SearchQueryItems}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="viewModels:SearchQueryTemplateViewModel">
+              <Border Width="600" Height="200" Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                VerticalAlignment="Top" 
+                                HorizontalAlignment="Left" 
+                                Margin="16"
+                                CornerRadius="8"
+                                BorderThickness="1"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                <uwpControls:DockPanel>
+                  <TextBlock Text="{x:Bind Title}" Margin="12 16"
+                             uwpControls:DockPanel.Dock="Top"
+                             Style="{StaticResource SubtitleTextBlockStyle}"
+                             />
+
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+
+                    <Button Command="{x:Bind OpenEditPageCommand}">
+                      <StackPanel Orientation="Horizontal">
+                        <SymbolIcon Symbol="Edit" />
+                        <TextBlock Text="編集" />
+                      </StackPanel>
+                    </Button>
+
+                    <Button Command="{x:Bind OpenEditPageCommand}" >
+                      <StackPanel Orientation="Horizontal">
+                        <SymbolIcon Symbol="Clock" />
+                        <TextBlock Text="履歴" />
+                      </StackPanel>
+                    </Button>
+
+                    <Button Command="{x:Bind OpenEditPageCommand}">
+                      <StackPanel Orientation="Horizontal">
+                        <SymbolIcon Symbol="OpenFile" />
+                        <TextBlock Text="最新の結果を表示" />
+                      </StackPanel>
+                    </Button>
+                  </StackPanel>
+                </uwpControls:DockPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Page>

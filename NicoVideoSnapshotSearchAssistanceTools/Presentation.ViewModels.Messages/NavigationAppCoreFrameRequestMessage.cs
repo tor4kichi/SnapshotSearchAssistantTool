@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Media.Animation;
 
-namespace NicoVideoSnapshotSearchAssistanceTools.ViewModels.Messages
+namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels.Messages
 {
     public record NavigationAppCoreFrameRequestMessageValue
     {
