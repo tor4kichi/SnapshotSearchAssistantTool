@@ -29,19 +29,46 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         CancellationTokenSource _navigationCts;
 
+        private bool _isFailed;
+        public bool IsFailed
+        {
+            get { return _isFailed; }
+            set { SetProperty(ref _isFailed, value); }
+        }
 
+        private string _FailedErrorMessage;
+        public string FailedErrorMessage
+        {
+            get { return _FailedErrorMessage; }
+            set { SetProperty(ref _FailedErrorMessage, value); }
+        }
 
         public override async void OnNavigatedTo(INavigationParameters parameters)
         {
             _navigationCts = new CancellationTokenSource();
             base.OnNavigatedTo(parameters);
 
-            var ct = _navigationCts.Token;
-            if (parameters.TryGetValue("query", out string queryParameters)
-                && parameters.TryGetValue("version", out DateTimeOffset version)
-                )
+            try
             {
-                ResultMeta = await SnapshotResultFileHelper.GetSearchQueryResultMetaAsync(queryParameters, version);
+                var ct = _navigationCts.Token;
+                if (!parameters.TryGetValue("query", out string queryParameters))
+                {
+                    ThrowHelper.ThrowInvalidOperationException(nameof(queryParameters));
+                }
+
+                if (!parameters.TryGetValue("version", out DateTimeOffset version))
+                {
+                    ThrowHelper.ThrowInvalidOperationException(nameof(version));
+                }
+                    
+                try
+                {
+                    ResultMeta = await SnapshotResultFileHelper.GetSearchQueryResultMetaAsync(queryParameters, version);
+                }
+                catch (Exception ex)
+                {
+                    ThrowHelper.ThrowInvalidOperationException(nameof(ResultMeta), ex);
+                }
 
                 Guard.IsNotNull(ResultMeta, nameof(ResultMeta));
 
@@ -54,8 +81,17 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     await foreach (var item in itemsAsyncEnumerator)
                     {
                         ItemsView.Add(new SnapshotItemViewModel(counter, item));
+                        counter++;
+                        ct.ThrowIfCancellationRequested();
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                IsFailed = true;
+                FailedErrorMessage = ex.Message;
+                ItemsView.Clear();
+                throw;
             }
         }
     }
@@ -100,13 +136,13 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         public string LastResBody => _snapshotVideoItem.LastResBody;
 
-        public VideoId? ContentId => _snapshotVideoItem.ContentId;
+        public string ContentId => _snapshotVideoItem.ContentId;
 
-        public UserId? UserId => _snapshotVideoItem.UserId;
+        public long? UserId => _snapshotVideoItem.UserId.HasValue ? (long)_snapshotVideoItem.UserId.Value.RawId : null;
 
         public string Title => _snapshotVideoItem.Title;
 
-        public ChannelId? ChannelId => _snapshotVideoItem.ChannelId;
+        public string ChannelId => _snapshotVideoItem.ChannelId;
 
         public Uri ThumbnailUrl => _snapshotVideoItem.ThumbnailUrl;
 
