@@ -1,0 +1,2 @@
+# SnapshotSearchAssistantTool
+ニコニコ動画のスナップショット検索v2を補助するツール。（主にランキング系動画制作者向け）
