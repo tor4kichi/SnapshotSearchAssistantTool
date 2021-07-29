@@ -8,10 +8,12 @@ using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels.Messages;
 using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
 using Prism.Commands;
 using Prism.Mvvm;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -48,6 +50,11 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             set { SetProperty(ref _targets, value); }
         }
 
+        public IObservable<bool> GetValidTargetsObservable()
+        {
+            return this.ObserveProperty(x => x.Targets).Select(x => x.Any());
+        }
+
 
         private SearchSort _sort;
         public SearchSort Sort
@@ -55,6 +62,12 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             get { return _sort; }
             set { SetProperty(ref _sort, value); }
         }
+
+        public IObservable<bool> GetValidSortObservable()
+        {
+            return this.ObserveProperty(x => x.Sort).Select(x => x != null);
+        }
+
 
         private SearchFieldType[] _fields;
         public SearchFieldType[] Fields
@@ -77,6 +90,11 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         {
             get { return _Context; }
             set { SetProperty(ref _Context, value); }
+        }
+
+        public IObservable<bool> GetValidContextObservable()
+        {
+            return this.ObserveProperty(x => x.Context).Select(x => !string.IsNullOrWhiteSpace(x));
         }
 
         #endregion Query Parameter Property
@@ -314,7 +332,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         public string SeriaizeParameters()
         {
-            return SeriaizeParameters(Keyword, Targets, Sort, Fields, Filters);
+            return SeriaizeParameters(Keyword, Targets, Sort, Fields, Filters, Context);
         }
 
 
@@ -323,7 +341,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             SearchFieldType[] targets, 
             SearchSort sort, 
             SearchFieldType[] fields, 
-            ISearchFilter searchFilter
+            ISearchFilter searchFilter,
+            string context
             )
         {
             var nvc = new NameValueCollection()
@@ -331,6 +350,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 { SearchConstants.QuaryParameter, keyword ?? string.Empty },
                 { SearchConstants.TargetsParameter, targets.ToQueryString() },
                 { SearchConstants.SortParameter, sort.ToString() },
+                { SearchConstants.ContextParameter, context },
             };
 
             if (fields is not null)
@@ -368,6 +388,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     isFirst = false;
                 }
             }
+
+
 
             return sb.ToString();
         }

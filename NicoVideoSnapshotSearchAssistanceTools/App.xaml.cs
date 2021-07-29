@@ -111,6 +111,10 @@ namespace NicoVideoSnapshotSearchAssistanceTools
             unityContainer.RegisterInstance<ILiteDatabase>(quertDb);
 
             containerRegistry.RegisterInstance<IMessenger>(WeakReferenceMessenger.Default);
+
+            NiconicoToolkit.NiconicoContext niconicoContext = new NiconicoToolkit.NiconicoContext("https://github.com/tor4kichi/TimeMachine2525");
+            niconicoContext.SetupDefaultRequestHeaders();
+            containerRegistry.RegisterInstance(niconicoContext);
         }
 
         public override void OnInitialized()

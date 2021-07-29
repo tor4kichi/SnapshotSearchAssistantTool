@@ -38,7 +38,7 @@ namespace UnitTest
             var meta = new SearchQueryResultMeta() { Fields = NiconicoToolkit.SnapshotSearch.SearchFieldTypeExtensions.FieldTypes.ToArray(), SearchQueryId = Guid.NewGuid(), SnapshotVersion = DateTime.Now, TotalCount = 100 };
             await SnapshotResultFileHelper.SaveSearchQueryResultMetaAsync(meta);
 
-            var loadmetas = await SnapshotResultFileHelper.GetSearchQueryResultMetaItems(meta.SearchQueryId);
+            var loadmetas = await SnapshotResultFileHelper.GetSearchQueryResultMetaItemsAsync(meta.SearchQueryId);
             var loadMeta = loadmetas[0];
             Guard.IsEqualTo(meta.SnapshotVersion, loadMeta.SnapshotVersion, nameof(loadMeta.SnapshotVersion));
             Guard.IsEqualTo(meta.TotalCount, loadMeta.TotalCount, nameof(loadMeta.TotalCount));

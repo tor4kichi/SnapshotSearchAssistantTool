@@ -4,6 +4,8 @@ using Microsoft.Toolkit.Mvvm.Messaging.Messages;
 using NiconicoToolkit.SnapshotSearch;
 using NiconicoToolkit.SnapshotSearch.Filters;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels.Messages;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
 using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Navigation;
@@ -139,6 +141,35 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             FilterStartTime_To_Date = null;
         }
 
+
+
+        #region Input Field Message
+
+        private IReadOnlyReactiveProperty<bool> _IsInvalidTarget;
+        public IReadOnlyReactiveProperty<bool> IsInvalidTargets
+        {
+            get { return _IsInvalidTarget; }
+            set { SetProperty(ref _IsInvalidTarget, value); }
+        }
+
+
+        private IReadOnlyReactiveProperty<bool> _IsInvalidSort;
+        public IReadOnlyReactiveProperty<bool> IsInvalidSort
+        {
+            get { return _IsInvalidSort; }
+            set { SetProperty(ref _IsInvalidSort, value); }
+        }
+
+        private IReadOnlyReactiveProperty<bool> _IsInvalidContext;
+        public IReadOnlyReactiveProperty<bool> IsInvalidContext
+        {
+            get { return _IsInvalidContext; }
+            set { SetProperty(ref _IsInvalidContext, value); }
+        }
+
+        #endregion Input Field Message
+
+
         public override void OnNavigatedTo(INavigationParameters parameters)
         {
             base.OnNavigatedTo(parameters);
@@ -231,7 +262,24 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                         .Merge()
                         .Subscribe(_ => RefreshFilterConditions())
                         .AddTo(_navigationDisposables);
-                            
+
+                        IsInvalidTargets = SearchQueryVM.GetValidTargetsObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_navigationDisposables);
+                        IsInvalidSort = SearchQueryVM.GetValidSortObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_navigationDisposables);
+                        IsInvalidContext = SearchQueryVM.GetValidContextObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_navigationDisposables);
+
+                        StartSearchProcessCommand = new[]
+                        {
+                            IsInvalidTargets,
+                            IsInvalidSort,
+                            IsInvalidContext,
+                        }
+                        .CombineLatestValuesAreAllFalse()
+                        .ToReactiveCommand()
+                        .AddTo(_navigationDisposables);
+
+                        StartSearchProcessCommand.Subscribe(x => ExecuteStartSearchProcessCommand())
+                            .AddTo(_navigationDisposables);
+
                         SearchQueryVM.PropertyChangedAsObservable()
                             .Subscribe(_ => SaveEdittingQueryParameters())
                             .AddTo(_navigationDisposables);
@@ -311,6 +359,27 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         {
             throw new NotImplementedException();
         }
+
+
+        private ReactiveCommand _StartSearchProcessCommand;
+        public ReactiveCommand StartSearchProcessCommand
+        {
+            get { return _StartSearchProcessCommand; }
+            private set { SetProperty(ref _StartSearchProcessCommand, value); }
+        }
+
+        void ExecuteStartSearchProcessCommand()
+        {
+            _messenger.Send<NavigationAppCoreFrameRequestMessage>(new(new(nameof(SearchRunningManagementPage), ("query", SearchQueryVM.SeriaizeParameters()))));
+        }
+
+        bool CanExecuteStartSearchProcessCommand()
+        {
+            if (!SearchQueryVM.Targets.Any()) { return false; }
+
+
+            return true;
+        }
     }
 
     public class SearchFieldTypeSelectableItem : SelectableItem<SearchFieldType>
@@ -337,4 +406,5 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             set { SetProperty(ref _isSelected, value); }
         }
     }
+
 }

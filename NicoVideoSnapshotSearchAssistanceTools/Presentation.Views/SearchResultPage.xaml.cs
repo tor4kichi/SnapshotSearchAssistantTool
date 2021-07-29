@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.Toolkit.Uwp.UI;
+using Microsoft.Toolkit.Uwp.UI.Controls;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,6 +28,41 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views
         public SearchResultPage()
         {
             this.InitializeComponent();
+        }
+
+        private void DataGrid_Sorting(object sender, Microsoft.Toolkit.Uwp.UI.Controls.DataGridColumnEventArgs e)
+        {
+            var dataGrid = sender as DataGrid;
+            var acv = dataGrid.ItemsSource as AdvancedCollectionView;
+
+            using (acv.DeferRefresh())
+            {
+                acv.SortDescriptions.Clear();
+
+                if (e.Column.SortDirection == null)
+                {
+                    return;
+                }
+
+                static SortDirection ToAcvSortDirection(DataGridSortDirection value)
+                {
+                    return value == DataGridSortDirection.Ascending ? SortDirection.Ascending : SortDirection.Descending;
+                }
+
+                static bool IsSnapshotItemViewModelClassMemberPropertyName(string propertyName)
+                {
+                    var members = typeof(SnapshotItemViewModel).GetMember(propertyName);
+                    return members != null && members.Any();
+                }
+
+                var propertyName = Tag as string;
+                if (propertyName != null
+                    && IsSnapshotItemViewModelClassMemberPropertyName(propertyName)
+                    )
+                {
+                    acv.SortDescriptions.Add(new SortDescription(propertyName, ToAcvSortDirection(e.Column.SortDirection.Value));
+                }
+            }
         }
     }
 }

@@ -4,11 +4,41 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+  xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+  mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
 
+    <controls:DataGrid ItemsSource="{Binding ItemsView}"
+                       AutoGenerateColumns="False"
+                       IsReadOnly="True"
+                       GridLinesVisibility="All"
+                       MaxColumnWidth="320"
+                       FontSize="12"
+                       Sorting="DataGrid_Sorting"
+                       >
+      <controls:DataGrid.Columns>
+        <controls:DataGridTextColumn Header="取得番号" Binding="{Binding Index}" Tag="Index" />
+        <controls:DataGridTextColumn Header="動画ID" Binding="{Binding ContentId}" Tag="ContentId" />
+        <controls:DataGridTextColumn Header="タイトル" Binding="{Binding Title}" Tag="Title" FontSize="12" />
+        <controls:DataGridTextColumn Header="投稿時間" Binding="{Binding StartTime}" Tag="StartTime" />
+        <controls:DataGridTextColumn Header="再生時間" Binding="{Binding LengthSeconds}" Tag="LengthSeconds" />
+        <controls:DataGridTextColumn Header="再生数" Binding="{Binding ViewCounter}" Tag="ViewCounter" />
+        <controls:DataGridTextColumn Header="マイリスト数" Binding="{Binding MylistCounter}" Tag="MylistCounter" />
+        <controls:DataGridTextColumn Header="コメント数" Binding="{Binding CommentCounter}" Tag="CommentCounter" />
+        <controls:DataGridTextColumn Header="いいね！数" Binding="{Binding LikeCounter}" Tag="LikeCounter" />
+        <controls:DataGridTextColumn Header="ジャンル" Binding="{Binding Genre}" Tag="Genre" CanUserSort="False" />
+        <controls:DataGridTextColumn Header="カテゴリタグ" Binding="{Binding CategoryTags}" Tag="CategoryTags" CanUserSort="False" />
+        <controls:DataGridTextColumn Header="タグ" Binding="{Binding Tags}" Tag="Tags" CanUserSort="False" />
+        <controls:DataGridTextColumn Header="動画説明文" Binding="{Binding Description}" Tag="Description" CanUserSort="False" />
+        <controls:DataGridTextColumn Header="最新コメント" Binding="{Binding LastResBody}" Tag="LastResBody" CanUserSort="False" />
+        <controls:DataGridTextColumn Header="ユーザーID" Binding="{Binding UserId}" Tag="UserId" />
+        <controls:DataGridTextColumn Header="チャンネルID" Binding="{Binding ChannelId}" Tag="ChannelId" />
+        <controls:DataGridTextColumn Header="サムネイルURL" Binding="{Binding ThumbnailUrl.OriginalString}" CanUserSort="False" />
+        
+      </controls:DataGrid.Columns>
+    </controls:DataGrid>
     </Grid>
 </Page>

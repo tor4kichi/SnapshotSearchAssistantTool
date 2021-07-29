@@ -4,11 +4,279 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+  xmlns:viewModels="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels"
+  xmlns:uwpControls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+  xmlns:uwpTriggers="using:Microsoft.Toolkit.Uwp.UI.Triggers"
+  xmlns:uwpEx="using:Microsoft.Toolkit.Uwp.UI" 
+  
+  mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid>
+  <Page.Resources>
+    <DataTemplate x:Key="PrepareStateValidationControlTemplate" x:DataType="viewModels:PrepareStateValidationViewModel">
+      <UserControl>
+        <Grid>
+          <TextBlock x:Name="TitleTextBlock" Text="{x:Bind Title}" VerticalAlignment="Center" />
 
-    </Grid>
+          <Grid x:Name="StatusIndicatorUIContainer" HorizontalAlignment="Right" Width="48" Height="48">
+            <ProgressRing IsActive="{x:Bind NowProcessing, Mode=OneWay}" Visibility="{x:Bind NowProcessing, Mode=OneWay}" />
+            <SymbolIcon x:Name="ValidSymbolIcon" />
+          </Grid>
+
+          <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+              <VisualState>
+                <VisualState.StateTriggers>
+                  <StateTrigger IsActive="{x:Bind NowProcessing, Mode=OneWay}" />
+                </VisualState.StateTriggers>
+                <VisualState.Setters>
+                </VisualState.Setters>
+              </VisualState>
+              <VisualState>
+                <VisualState.StateTriggers>
+                  <uwpTriggers:IsEqualStateTrigger Value="{x:Bind IsValid, Mode=OneWay}" To="{x:Null}" />
+                </VisualState.StateTriggers>
+                <VisualState.Setters>
+                  <Setter Target="ValidSymbolIcon.Visibility" Value="Visible" />
+                  <Setter Target="ValidSymbolIcon.Symbol" Value="Remove" />
+                </VisualState.Setters>
+              </VisualState>
+              <VisualState>
+                <VisualState.StateTriggers>
+                  <uwpTriggers:IsEqualStateTrigger Value="{x:Bind IsValid, Mode=OneWay}" To="True" />
+                </VisualState.StateTriggers>
+                <VisualState.Setters>
+                  <Setter Target="ValidSymbolIcon.Visibility" Value="Visible" />
+                  <Setter Target="ValidSymbolIcon.Symbol" Value="Accept" />
+                  <Setter Target="ValidSymbolIcon.Foreground" Value="{ThemeResource SystemAccentColor}" />
+                </VisualState.Setters>
+              </VisualState>
+              <VisualState>
+                <VisualState.StateTriggers>
+                  <uwpTriggers:IsEqualStateTrigger Value="{x:Bind IsValid, Mode=OneWay}" To="False" />
+                </VisualState.StateTriggers>
+                <VisualState.Setters>
+                  <Setter Target="ValidSymbolIcon.Visibility" Value="Visible" />
+                  <Setter Target="ValidSymbolIcon.Symbol" Value="Important" />
+                  <Setter Target="ValidSymbolIcon.Foreground" Value="Red" />
+                </VisualState.Setters>
+              </VisualState>
+            </VisualStateGroup>
+          </VisualStateManager.VisualStateGroups>
+        </Grid>
+      </UserControl>
+    </DataTemplate>
+  </Page.Resources>
+  <Grid>
+
+    <uwpControls:DockPanel>
+
+      <StackPanel uwpControls:DockPanel.Dock="Top">
+
+        <Grid Margin="64 32">
+          <TextBlock Text="検索実行" 
+                     Style="{StaticResource TitleTextBlockStyle}"
+                     HorizontalAlignment="Left" />
+
+          <TextBlock HorizontalAlignment="Right" TextAlignment="Right" IsTextSelectionEnabled="True" Opacity="0.75">
+            <Run Text="Snapshot API Version" /> <LineBreak /> <Run Text="{Binding CurrentApiVersion}" />
+          </TextBlock>
+        </Grid>
+        
+        <Grid Margin="32 16"
+            >
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="80" />
+            <ColumnDefinition Width="*" MaxWidth="200" />
+            <ColumnDefinition Width="80" />
+            <ColumnDefinition Width="*" MaxWidth="200" />
+            <ColumnDefinition Width="80" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Border Grid.Column="0">
+            <!-- 左の余白 -->
+          </Border>
+          <Border Grid.Column="1">
+            <!-- 準備 -->
+            <StackPanel HorizontalAlignment="Center" Spacing="8">
+              <TextBlock Text="準備" />
+              <SymbolIcon Symbol="Accept" Foreground="{ThemeResource SystemAccentColor}" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="2">
+            <Border VerticalAlignment="Center" Height="1"
+                    Background="{ThemeResource AppBarBorderThemeBrush}"
+                    >
+            </Border>
+          </Border>
+          <Border Grid.Column="3">
+            <!-- 準備 -->
+            <StackPanel HorizontalAlignment="Center"  Spacing="8">
+              <TextBlock Text="処理中" />
+              <SymbolIcon Symbol="Accept" Foreground="{ThemeResource SystemAccentColor}" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="4">
+            <Border VerticalAlignment="Center" Height="1"
+                    Background="{ThemeResource AppBarBorderThemeBrush}"
+                    >
+            </Border>
+          </Border>
+          <Border Grid.Column="5">
+            <!-- 準備 -->
+            <StackPanel HorizontalAlignment="Center" Spacing="8">
+              <TextBlock Text="完了" />
+              <SymbolIcon Symbol="Accept" Foreground="{ThemeResource SystemAccentColor}" />
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="6">
+            <!-- 右の余白 -->
+          </Border>
+
+        </Grid>
+
+      </StackPanel>
+
+      <ScrollViewer>
+        <Grid>
+          <Grid.Resources>
+            <Style TargetType="StackPanel" x:Key="StatusUIContainerStackPanelStyle">
+              <Setter Property="HorizontalAlignment" Value="Center" />
+              <Setter Property="MinWidth" Value="320" />
+              <Setter Property="MaxWidth" Value="720" />
+              <Setter Property="Spacing" Value="16" />
+            </Style>
+          </Grid.Resources>
+          <Grid x:Name="PreparingStatusUIContainer" Visibility="Collapsed" Style="{ThemeResource MicaCardGirdStyle}">
+            <StackPanel Style="{StaticResource StatusUIContainerStackPanelStyle}">
+              <TextBlock Text="準備" Style="{StaticResource SubtitleTextBlockStyle}" />
+
+              
+              <ContentControl Content="{Binding ServerAvairableValidationState, Mode=OneTime}" ContentTemplate="{StaticResource PrepareStateValidationControlTemplate}"
+                              HorizontalContentAlignment="Stretch"
+                              />
+              <ContentControl Content="{Binding SearchConditionValidationState, Mode=OneTime}" ContentTemplate="{StaticResource PrepareStateValidationControlTemplate}"
+                              HorizontalContentAlignment="Stretch"
+                              />
+
+              <TextBlock HorizontalAlignment="Right">
+                取得件数:  <Run Text="{Binding ResultMeta.TotalCount}" />
+              </TextBlock>
+
+              <Button Content="検索を実行" 
+                      Command="{Binding GoRunnningStateCommand}"
+                      Style="{ThemeResource AccentButtonStyle}"
+                      HorizontalAlignment="Right"
+                      />
+              
+              <Button Content="検索済みの結果を表示" 
+                      Command="{Binding OpenSearchResultCommand}"
+                      HorizontalAlignment="Right"
+                      Visibility="{Binding IsAlreadyDownloadedSnapshotResult}"
+                      />
+
+
+              <TextBox Text="{Binding SearchQueryReadableText}" IsReadOnly="True"
+                       TextWrapping="Wrap"
+                       VerticalContentAlignment="Stretch"
+                       >
+                <TextBox.Header>
+                  <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="検索URL（_offsetと_limitは自動で付与されます）" VerticalAlignment="Center" />
+                    <Button Content="コピー" Command="{Binding SearchQueryTextCopyToClipboardCommand}" />
+                  </StackPanel>
+                </TextBox.Header>
+              </TextBox>
+
+              <HyperlinkButton NavigateUri="https://site.nicovideo.jp/search-api-docs/snapshot"
+                               Content="スナップショット検索 v2 APIドキュメント"                
+                />
+
+
+            </StackPanel>
+
+            <!-- 準備状態のデバッグUI -->
+            <StackPanel Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 128 0 0">
+              <Button Content="{Binding ServerAvairableValidationState.Title}"
+                      Command="{Binding ToggleStateTestCommand}"
+                      CommandParameter="{Binding ServerAvairableValidationState}"
+                      />
+
+              <Button Content="{Binding SearchConditionValidationState.Title}"
+                      Command="{Binding ToggleStateTestCommand}"
+                      CommandParameter="{Binding SearchConditionValidationState}"
+                      />
+            </StackPanel>
+          </Grid>
+
+          <Grid x:Name="RunningStatusUIContainer" Visibility="Collapsed" Style="{ThemeResource MicaCardGirdStyle}">
+            <StackPanel Style="{StaticResource StatusUIContainerStackPanelStyle}">
+              <TextBlock Text="処理中" Style="{StaticResource SubtitleTextBlockStyle}" />
+
+              <uwpControls:RadialProgressBar Maximum="{Binding ResultMeta.TotalCount}"
+                                             Minimum="0"
+                                             Value="{Binding ProcessedCount}"
+                                             Height="160"
+                                             Width="180"
+                />
+
+              <TextBlock>
+                <Run Text="{Binding ProcessedCount}"/> / <Run Text="{Binding ResultMeta.TotalCount}" />
+              </TextBlock>
+
+            </StackPanel>
+          </Grid>
+
+          <Grid x:Name="CompletedStatusUIContainer" Visibility="Collapsed" Style="{ThemeResource MicaCardGirdStyle}">
+            <StackPanel Style="{StaticResource StatusUIContainerStackPanelStyle}">
+              <TextBlock Text="完了!" Style="{StaticResource HeaderTextBlockStyle}" Foreground="{ThemeResource SystemAccentColor}"
+                         HorizontalAlignment="Right"
+                         />
+
+              <Button Content="結果を表示" Command="{Binding OpenSearchResultCommand}" HorizontalAlignment="Right"
+                      MinWidth="80"
+                      />
+            </StackPanel>
+          </Grid>
+
+          <StackPanel  Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
+            <Button Content="準備" Command="{Binding StatusChangeTestCommand}" CommandParameter="Preparing" />
+            <Button Content="実行中" Command="{Binding StatusChangeTestCommand}" CommandParameter="Running" />
+            <Button Content="完了" Command="{Binding StatusChangeTestCommand}" CommandParameter="Completed" />
+          </StackPanel>
+        </Grid>
+      </ScrollViewer>
+    </uwpControls:DockPanel>
+   
+    <VisualStateManager.VisualStateGroups>
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <uwpTriggers:IsEqualStateTrigger Value="{Binding RunningStatus}" To="Preparing" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="PreparingStatusUIContainer.Visibility" Value="Visible" />
+          </VisualState.Setters>
+        </VisualState>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <uwpTriggers:IsEqualStateTrigger Value="{Binding RunningStatus}" To="Running" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="RunningStatusUIContainer.Visibility" Value="Visible" />
+          </VisualState.Setters>
+        </VisualState>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <uwpTriggers:IsEqualStateTrigger Value="{Binding RunningStatus}" To="Completed" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="CompletedStatusUIContainer.Visibility" Value="Visible" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
+  </Grid>
 </Page>

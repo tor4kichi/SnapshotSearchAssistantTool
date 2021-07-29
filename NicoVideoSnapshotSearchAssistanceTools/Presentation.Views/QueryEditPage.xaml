@@ -7,7 +7,10 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
   xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls" 
   xmlns:viewModels="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels"
-  xmlns:winui="using:Microsoft.UI.Xaml.Controls" xmlns:niconicoToolkitSnapshot="using:NiconicoToolkit.SnapshotSearch"
+  xmlns:winui="using:Microsoft.UI.Xaml.Controls" 
+  xmlns:niconicoToolkitSnapshot="using:NiconicoToolkit.SnapshotSearch"
+  xmlns:wst="using:WindowsStateTriggers"
+  xmlns:winTriggers="using:Microsoft.Toolkit.Uwp.UI.Triggers"
   mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -30,7 +33,7 @@
             </CommandBar.Content>
 
             <CommandBar.PrimaryCommands>
-              <AppBarButton Label="検索（テスト含む）" Icon="Find" />
+              <AppBarButton Label="検索（テスト含む）" Icon="Find" Command="{Binding StartSearchProcessCommand}" />
             </CommandBar.PrimaryCommands>
             <CommandBar.SecondaryCommands>
               <AppBarButton Label="現在の条件をテンプレートとして保存" />
@@ -74,6 +77,7 @@
             <Border Style="{ThemeResource MicaCardBorderStyle}">
               <TextBox Text="{Binding SearchQueryVM.Context, Mode=TwoWay}" MaxLength="40"
                        PlaceholderText="例）月刊○○ランキング"
+                       x:Name="ContextTextBox"
                        />
             </Border>
           </StackPanel>
@@ -203,5 +207,18 @@
         </StackPanel>
       </ScrollViewer>
     </controls:DockPanel>
+
+    <VisualStateManager.VisualStateGroups>
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <StateTrigger IsActive="{Binding IsInvalidContext.Value}" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="ContextTextBox.BorderBrush" Value="Red" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
   </Grid>
 </Page>

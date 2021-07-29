@@ -14,7 +14,9 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.Attributes;
@@ -69,6 +71,11 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
             return $"{meta.SnapshotVersion:yyyy-MM-dd}.meta.json";
         }
 
+        private static string MakeMetaFileName(DateTimeOffset snapshotVersion)
+        {
+            return $"{snapshotVersion:yyyy-MM-dd}.meta.json";
+        }
+
 
         private static string MakeSearchResultFinalFileName(SearchQueryResultMeta meta)
         {
@@ -79,17 +86,56 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
         {
             return $"{meta.SnapshotVersion:yyyy-MM-dd}";
         }
-        private static async Task<StorageFolder> GetSearchQueryFolderAsync(Guid id)
+        private static async Task<StorageFolder> GetSearchQueryFolderAsync(string searchQueryId)
         {
-            return await _baseFolder.GetFolderAsync(id.ToString());
+            try
+            {
+                return await _baseFolder.GetFolderAsync(ToHashString(searchQueryId));
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
         }
 
-        private static async Task<StorageFolder> CreateSearchQueryFolderIfNotExistAsync(Guid id)
+        static readonly SHA256CryptoServiceProvider hashProvider = new SHA256CryptoServiceProvider();
+        public static string GetSHA256HashedString(string value)
+            => string.Join("", hashProvider.ComputeHash(Encoding.UTF8.GetBytes(value)).Select(x => $"{x:x2}"));
+
+        readonly static Dictionary<string, string> _hashMap = new Dictionary<string, string>();
+        private static string ToHashString(string searchQueryId)
         {
-            return await _baseFolder.CreateFolderAsync(id.ToString(), CreationCollisionOption.OpenIfExists);
+            if (_hashMap.TryGetValue(searchQueryId, out string hash)) { return hash; }
+
+            var hashed = GetSHA256HashedString(searchQueryId);
+            _hashMap.Add(searchQueryId, hashed);
+            return hashed;
         }
 
-        public static async Task<List<SearchQueryResultMeta>> GetSearchQueryResultMetaItems(Guid searchQueryId)
+
+        private static async Task<StorageFolder> CreateSearchQueryFolderIfNotExistAsync(string searchQueryId)
+        {
+            return await _baseFolder.CreateFolderAsync(ToHashString(searchQueryId), CreationCollisionOption.OpenIfExists);
+        }
+
+
+        public static async Task<bool> IsExistQueryResultItemsAsync(SearchQueryResultMeta meta)
+        {
+            try
+            {
+                var folder = await GetSearchQueryFolderAsync(meta.SearchQueryId);
+                Guard.IsNotNull(folder, nameof(folder));
+
+                var file = await folder.GetFileAsync(MakeSearchResultFinalFileName(meta));
+                return file != null;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static async Task<List<SearchQueryResultMeta>> GetSearchQueryResultMetaItemsAsync(string searchQueryId)
         {
             var folder = await GetSearchQueryFolderAsync(searchQueryId);
             if (folder == null)
@@ -113,9 +159,42 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
             return metaItems;
         }
 
-
-        public static async Task SaveSearchQueryResultMetaAsync(SearchQueryResultMeta meta)
+        public static async Task<SearchQueryResultMeta> GetSearchQueryResultMetaAsync(string query, DateTimeOffset version)
         {
+            try
+            {
+                var folder = await GetSearchQueryFolderAsync(query);
+                if (folder == null)
+                {
+                    return null;
+                }
+
+                var file = await folder.GetFileAsync(MakeMetaFileName(version));
+                using (var stream = await file.OpenStreamForWriteAsync())
+                {
+                    return await JsonSerializer.DeserializeAsync<SearchQueryResultMeta>(stream);
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
+            catch (JsonException jsonEx)
+            {
+                throw;
+            }
+        }
+
+        public static async Task<SearchQueryResultMeta> CreateSearchQueryResultMetaAsync(string searchQueryId, DateTimeOffset snapshotApiVersion, long totalCount)
+        {
+            var meta = new SearchQueryResultMeta() 
+            {
+                CsvFormat = CurrentCsvVersion,
+                SearchQueryId = searchQueryId,
+                SnapshotVersion = snapshotApiVersion,
+                TotalCount = totalCount,
+            };
+
             var folder = await CreateSearchQueryFolderIfNotExistAsync(meta.SearchQueryId);
             if (folder == null)
             {
@@ -127,6 +206,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
             {
                 await JsonSerializer.SerializeAsync(stream, meta);
             }
+
+            return meta;
         }
 
         public static async IAsyncEnumerable<SnapshotVideoItem> GetSearchResultItemsAsync(SearchQueryResultMeta meta, [EnumeratorCancellation] CancellationToken ct = default)
@@ -146,7 +227,17 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
             }
         }
 
-        public static async IAsyncEnumerable<SnapshotVideoItem> LoadCsvAsync(SearchQueryResultMeta meta, StorageFile csvFile, CsvConfiguration csvConfiguration, [EnumeratorCancellation] CancellationToken ct = default)
+        public static IAsyncEnumerable<SnapshotVideoItem> LoadTemporaryCsvAsync(SearchQueryResultMeta meta, StorageFile csvFile, CancellationToken ct = default)
+        {
+            return LoadCsvAsync(meta, csvFile, _csvConfiguration_ForTemp, ct);
+        }
+
+        public static IAsyncEnumerable<SnapshotVideoItem> LoadFinalCsvAsync(SearchQueryResultMeta meta, StorageFile csvFile, CancellationToken ct = default)
+        {
+            return LoadCsvAsync(meta, csvFile, _csvConfiguration_ForFinal, ct);
+        }
+
+        private static async IAsyncEnumerable<SnapshotVideoItem> LoadCsvAsync(SearchQueryResultMeta meta, StorageFile csvFile, CsvConfiguration csvConfiguration, [EnumeratorCancellation] CancellationToken ct = default)
         {
             using (var reader = await csvFile.OpenStreamForReadAsync())
             using (var textReader = new StreamReader(reader))
@@ -170,7 +261,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
 
         public static class Temporary
         {
-            public static async Task IntegrationTemporarySearchResultItemsAsync(SearchQueryResultMeta meta, CancellationToken ct = default)
+            public static async Task<StorageFile> IntegrationTemporarySearchResultItemsAsync(SearchQueryResultMeta meta, CancellationToken ct = default)
             {
                 var folder = await GetSearchQueryFolderAsync(meta.SearchQueryId);
                 Guard.IsNotNull(folder, nameof(folder));
@@ -178,7 +269,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
                 var tempFolder = await folder.GetFolderAsync(MakeSearchResultTemporaryFolderName(meta));
                 Guard.IsNotNull(tempFolder, nameof(tempFolder));
 
-                var outputFile = await folder.CreateFileAsync(MakeSearchResultFinalFileName(meta)).AsTask(ct);
+                var outputFile = await folder.CreateFileAsync(MakeSearchResultFinalFileName(meta), CreationCollisionOption.ReplaceExisting).AsTask(ct);
                 using (var outputStream = await outputFile.OpenStreamForWriteAsync())
                 {
                     using (var outputStreamTextWriter = new StreamWriter(outputStream))
@@ -203,9 +294,11 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
                 }
 
                 await tempFolder.DeleteAsync(StorageDeleteOption.PermanentDelete);
+
+                return outputFile;
             }
 
-            public static async Task SaveTemporarySearchResultRangeItemsAsync(SearchQueryResultMeta meta, int start, List<SnapshotVideoItem> items, CancellationToken ct = default)
+            public static async Task<StorageFile> SaveTemporarySearchResultRangeItemsAsync(SearchQueryResultMeta meta, int page, IEnumerable<SnapshotVideoItem> items, CancellationToken ct = default)
             {
                 var folder = await CreateSearchQueryFolderIfNotExistAsync(meta.SearchQueryId);
                 Guard.IsNotNull(folder, nameof(folder));
@@ -213,13 +306,15 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
                 var tempFolder = await folder.CreateFolderAsync($"{meta.SnapshotVersion:yyyy-MM-dd}", CreationCollisionOption.OpenIfExists);
                 Guard.IsNotNull(tempFolder, nameof(tempFolder));
 
-                var file = await tempFolder.CreateFileAsync(MakeTempSearchResultFileName(meta, start));
+                var file = await tempFolder.CreateFileAsync(MakeTempSearchResultFileName(meta, page));
                 using (var reader = await file.OpenStreamForWriteAsync())
                 using (var textReader = new StreamWriter(reader))
                 using (var csv = new CsvWriter(textReader, _csvConfiguration_ForTemp))
                 {
                     await csv.WriteRecordsAsync<SnapshotSearchItem_V0>(items.Select(SnapshotResultItemConverter_V0.Convert));
                 }
+
+                return file;
             }
 
 
@@ -251,7 +346,17 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
                 Guard.IsNotNull(tempFolder, nameof(tempFolder));
 
                 return await tempFolder.GetFilesAsync();
+            }
 
+            public static async Task DeleteTemporarySearchResultFilesAsync(SearchQueryResultMeta meta, CancellationToken ct = default)
+            {
+                var folder = await GetSearchQueryFolderAsync(meta.SearchQueryId);
+                if (folder is null) { return; }
+
+                var tempFolder = await folder.CreateFolderAsync(MakeSearchResultTemporaryFolderName(meta), CreationCollisionOption.OpenIfExists);
+                if (tempFolder is null) { return; }
+
+                await tempFolder.DeleteAsync();
             }
         }
     }
@@ -266,11 +371,10 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
     public sealed class SearchQueryResultMeta
     {
         public int CsvFormat { get; init; }
-        public Guid SearchQueryId { get; init; }
+        
+        public string SearchQueryId { get; init; }
 
-        public DateTime SnapshotVersion { get; init; }
-
-        public SearchFieldType[] Fields { get; init; }
+        public DateTimeOffset SnapshotVersion { get; init; }
 
         public long TotalCount { get; init; }
     }

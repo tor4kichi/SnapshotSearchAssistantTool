@@ -22,6 +22,16 @@
             <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
           </Style>
 
+          <Style TargetType="Grid" x:Key="MicaCardGirdStyle">
+            <Setter Property="Background" Value="{ThemeResource LayerFillColorDefaultBrush}" />
+            <Setter Property="Margin" Value="16" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+          </Style>
+
+
           <Style TargetType="Border" x:Key="MicaCardTopBorderStyle">
             <Setter Property="Background" Value="{ThemeResource SolidBackgroundFillColorSecondaryBrush}" />
             <Setter Property="Margin" Value="16 16 16 0" />
