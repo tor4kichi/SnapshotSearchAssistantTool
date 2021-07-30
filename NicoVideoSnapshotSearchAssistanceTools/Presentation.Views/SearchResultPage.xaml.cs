@@ -29,7 +29,27 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views
         public SearchResultPage()
         {
             this.InitializeComponent();
+
+            DataContextChanged += SearchResultPage_DataContextChanged;
         }
+
+        private void SearchResultPage_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+        {
+            ViewModel = args.NewValue as SearchResultPageViewModel;
+        }
+
+
+
+        public SearchResultPageViewModel ViewModel
+        {
+            get { return (SearchResultPageViewModel)GetValue(ViewModelProperty); }
+            set { SetValue(ViewModelProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for ViewModel.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty ViewModelProperty =
+            DependencyProperty.Register("ViewModel", typeof(SearchResultPageViewModel), typeof(SearchResultPage), new PropertyMetadata(null));
+
 
         private void DataGrid_Sorting(object sender, Microsoft.Toolkit.Uwp.UI.Controls.DataGridColumnEventArgs e)
         {
@@ -114,5 +134,25 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views
                 }
             }
         }
+    }
+
+    public sealed class DictionaryVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value is Dictionary<string, bool> dict)
+            {
+                var b = (bool)dict[parameter as string];
+                return b ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            throw new NotSupportedException();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new NotSupportedException();
+        }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Toolkit.Diagnostics;
+using Microsoft.Toolkit.Mvvm.Messaging;
 using Microsoft.Toolkit.Uwp.UI;
 using NiconicoToolkit.Channels;
 using NiconicoToolkit.SnapshotSearch;
@@ -8,6 +9,7 @@ using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
 using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
 using Prism.Mvvm;
 using Prism.Navigation;
+using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -20,9 +22,25 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 {
     public sealed class SearchResultPageViewModel : ViewModelBase
     {
-        public SearchResultPageViewModel(ApplicationInternalSettings applicationInternalSettings)
+        public SearchResultPageViewModel(
+            IMessenger messenger,
+            ApplicationInternalSettings applicationInternalSettings
+            )
         {
+            _messenger = messenger;
             _applicationInternalSettings = applicationInternalSettings;
+        }
+
+        private readonly IMessenger _messenger;
+        private readonly ApplicationInternalSettings _applicationInternalSettings;
+
+
+
+        private SearchQueryViewModel _SearchQueryVM;
+        public SearchQueryViewModel SearchQueryVM
+        {
+            get { return _SearchQueryVM; }
+            set { SetProperty(ref _SearchQueryVM, value); }
         }
 
         private SearchQueryResultMeta _resultMeta;
@@ -44,13 +62,21 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         }
 
         private string _FailedErrorMessage;
-        private readonly ApplicationInternalSettings _applicationInternalSettings;
 
         public string FailedErrorMessage
         {
             get { return _FailedErrorMessage; }
             set { SetProperty(ref _FailedErrorMessage, value); }
         }
+
+
+        public Dictionary<string, bool> VisibilityMap { get; } = 
+            Enumerable.Concat(
+                SearchFieldTypeExtensions.FieldTypes.Select(x => x.ToString()),
+                new[] { "Index" }
+                )
+                .ToDictionary(x => x, x => true);
+        
 
         public override async Task OnNavigatedToAsync(INavigationParameters parameters)
         {            
@@ -90,6 +116,22 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 _applicationInternalSettings.SaveLastOpenPage(nameof(SearchResultPage), ("query", queryParameters), ("version", version.ToString()));
 
                 Guard.IsNotNull(ResultMeta, nameof(ResultMeta));
+                SearchQueryVM = new SearchQueryViewModel(queryParameters, _messenger);
+
+                var fieldHashSet = SearchQueryVM.Fields.Select(x => x.ToString()).ToHashSet();
+                foreach (var pair in VisibilityMap.ToArray())
+                {
+                    if (pair.Key == "Index")
+                    {
+                        VisibilityMap[pair.Key] = true;
+                    }
+                    else
+                    {
+                        VisibilityMap[pair.Key] = fieldHashSet.Contains(pair.Key);
+                    }
+                }
+
+                RaisePropertyChanged(nameof(VisibilityMap));
 
                 ct.ThrowIfCancellationRequested();
 

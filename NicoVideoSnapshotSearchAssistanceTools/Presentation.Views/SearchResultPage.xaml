@@ -6,10 +6,15 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
   xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+  xmlns:conv="using:Microsoft.Toolkit.Uwp.UI.Converters"
   mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid>
+  <Page.Resources>
+    <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <local:DictionaryVisibilityConverter x:Key="DictionaryVisibilityConverter" />
+  </Page.Resources>
+  <Grid>
 
     <controls:DataGrid ItemsSource="{Binding ItemsView}"
                        AutoGenerateColumns="False"
@@ -20,23 +25,112 @@
                        Sorting="DataGrid_Sorting"
                        >
       <controls:DataGrid.Columns>
-        <controls:DataGridTextColumn Header="取得番号" Binding="{Binding Index}" Tag="Index" />
-        <controls:DataGridTextColumn Header="動画ID" Binding="{Binding ContentId}" Tag="ContentId" />
-        <controls:DataGridTextColumn Header="タイトル" Binding="{Binding Title}" Tag="Title" FontSize="12" />
-        <controls:DataGridTextColumn Header="投稿時間" Binding="{Binding StartTime}" Tag="StartTime" />
-        <controls:DataGridTextColumn Header="再生時間" Binding="{Binding LengthSeconds}" Tag="LengthSeconds" />
-        <controls:DataGridTextColumn Header="再生数" Binding="{Binding ViewCounter}" Tag="ViewCounter" />
-        <controls:DataGridTextColumn Header="マイリスト数" Binding="{Binding MylistCounter}" Tag="MylistCounter" />
-        <controls:DataGridTextColumn Header="コメント数" Binding="{Binding CommentCounter}" Tag="CommentCounter" />
-        <controls:DataGridTextColumn Header="いいね！数" Binding="{Binding LikeCounter}" Tag="LikeCounter" />
-        <controls:DataGridTextColumn Header="ジャンル" Binding="{Binding Genre}" Tag="Genre" CanUserSort="False" />
-        <controls:DataGridTextColumn Header="カテゴリタグ" Binding="{Binding CategoryTags}" Tag="CategoryTags" CanUserSort="False" />
-        <controls:DataGridTextColumn Header="タグ" Binding="{Binding Tags}" Tag="Tags" CanUserSort="False" />
-        <controls:DataGridTextColumn Header="動画説明文" Binding="{Binding Description}" Tag="Description" CanUserSort="False" />
-        <controls:DataGridTextColumn Header="最新コメント" Binding="{Binding LastResBody}" Tag="LastResBody" CanUserSort="False" />
-        <controls:DataGridTextColumn Header="ユーザーID" Binding="{Binding UserId}" Tag="UserId" />
-        <controls:DataGridTextColumn Header="チャンネルID" Binding="{Binding ChannelId}" Tag="ChannelId" />
-        <controls:DataGridTextColumn Header="サムネイルURL" Binding="{Binding ThumbnailUrl.OriginalString}" CanUserSort="False" />
+        <controls:DataGridTextColumn 
+          Header="取得番号" 
+          Binding="{Binding Index}" Tag="Index" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Index, Mode=OneWay}" 
+          />
+        <controls:DataGridTextColumn 
+          Header="動画ID" 
+          Binding="{Binding ContentId}" Tag="ContentId" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=ContentId, Mode=OneWay}"
+          />
+        <controls:DataGridTextColumn 
+          Header="タイトル" 
+          Binding="{Binding Title}" Tag="Title" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Title, Mode=OneWay}" 
+          FontSize="12" 
+          />
+        <controls:DataGridTextColumn 
+          Header="投稿時間" 
+          Binding="{Binding StartTime}" 
+          Tag="StartTime" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=StartTime, Mode=OneWay}" 
+          />
+        <controls:DataGridTextColumn 
+          Header="再生時間" 
+          Binding="{Binding LengthSeconds}" 
+          Tag="LengthSeconds" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=LengthSeconds, Mode=OneWay}" 
+          />
+        <controls:DataGridTextColumn 
+          Header="再生数" 
+          Binding="{Binding ViewCounter}"
+          Tag="ViewCounter" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=ViewCounter, Mode=OneWay}" 
+          />
+        <controls:DataGridTextColumn 
+          Header="マイリスト数" 
+          Binding="{Binding MylistCounter}"
+          Tag="MylistCounter" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=MylistCounter, Mode=OneWay}" 
+          />
+        <controls:DataGridTextColumn 
+          Header="コメント数" 
+          Binding="{Binding CommentCounter}" 
+          Tag="CommentCounter" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=CommentCounter, Mode=OneWay}" 
+          />
+        <controls:DataGridTextColumn 
+          Header="いいね！数" 
+          Binding="{Binding LikeCounter}" 
+          Tag="LikeCounter" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=LikeCounter, Mode=OneWay}" 
+          />
+        <controls:DataGridTextColumn 
+          Header="ジャンル" 
+          Binding="{Binding Genre}" 
+          Tag="Genre" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Genre, Mode=OneWay}" 
+          CanUserSort="False" 
+          />
+        <controls:DataGridTextColumn
+          Header="カテゴリタグ" 
+          Binding="{Binding CategoryTags}" 
+          Tag="CategoryTags" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=CategoryTags, Mode=OneWay}" 
+          CanUserSort="False" 
+          />
+        <controls:DataGridTextColumn 
+          Header="タグ" 
+          Binding="{Binding Tags}"
+          Tag="Tags" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Tags, Mode=OneWay}" 
+          CanUserSort="False"  
+          />
+        <controls:DataGridTextColumn 
+          Header="動画説明文" 
+          Binding="{Binding Description}" 
+          Tag="Description" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Description, Mode=OneWay}" 
+          CanUserSort="False" 
+          />
+        <controls:DataGridTextColumn 
+          Header="最新コメント" 
+          Binding="{Binding LastResBody}" 
+          Tag="LastResBody" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=LastResBody, Mode=OneWay}" 
+          CanUserSort="False" 
+          />
+        <controls:DataGridTextColumn 
+          Header="ユーザーID" 
+          Binding="{Binding UserId}" 
+          Tag="UserId" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=UserId, Mode=OneWay}" 
+          />
+        <controls:DataGridTextColumn 
+          Header="チャンネルID" 
+          Binding="{Binding ChannelId}" 
+          Tag="ChannelId" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=ChannelId, Mode=OneWay}" 
+          />
+        <controls:DataGridTextColumn 
+          Header="サムネイルURL"
+          Binding="{Binding ThumbnailUrl.OriginalString}" 
+          Tag="ThumbnailUrl" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=ThumbnailUrl, Mode=OneWay}" 
+          CanUserSort="False" 
+          />
         
       </controls:DataGrid.Columns>
     </controls:DataGrid>
