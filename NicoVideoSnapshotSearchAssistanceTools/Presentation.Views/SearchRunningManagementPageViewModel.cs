@@ -255,6 +255,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         {
             ServerAvairableValidationState.Reset();
             SearchConditionValidationState.Reset();
+            ResultPageItems = null;
 
             ServerAvairableValidationState.NowProcessing = true;
 
@@ -293,14 +294,13 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             {
                 SearchConditionValidationState.NowProcessing = true;
 
-                if (meta is not null)
+                if (meta is not null && !IsAlreadyDownloadedSnapshotResult)
                 {
                     if (meta.SnapshotVersion != CurrentApiVersion)
                     {
                         // ダウンロード済みのTempFileが利用できない場合はDL済みを削除
                         await SnapshotResultFileHelper.Temporary.DeleteTemporarySearchResultFilesAsync(meta);
                         meta = null;
-                        
                     }
 
                     var tempFiles = await SnapshotResultFileHelper.Temporary.GetAllTemporarySearchResultFilesAsync(meta);
@@ -334,6 +334,10 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                         .Select(x => new SnapshotSearchResultPageItemViewModel(_niconicoContext.VideoSnapshotSearch, meta, SearchQueryVM, x, downloadCount.ElementAtOrDefault(x)) { CsvFile = tempFiles.ElementAtOrDefault(x) })
                         .ToArray();
 
+                    SearchConditionValidationState.IsValid = true;
+                }
+                else if (IsAlreadyDownloadedSnapshotResult)
+                {
                     SearchConditionValidationState.IsValid = true;
                 }
             }
@@ -380,15 +384,23 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 {
                     SearchConditionValidationState.NowProcessing = false;
                 }
-
-                ResultPageItems = Enumerable.Range(0, ToPageCount((int)meta.TotalCount))
-                        .Select(x => new SnapshotSearchResultPageItemViewModel(_niconicoContext.VideoSnapshotSearch, meta, SearchQueryVM, x))
-                        .ToArray();
+            }
+            else 
+            {
+                SearchConditionValidationState.IsValid = true;
             }
 
             Guard.IsNotNull(meta, nameof(meta));
 
             ResultMeta = meta;
+
+            if (ResultPageItems == null)
+            {
+                ResultPageItems = Enumerable.Range(0, ToPageCount((int)meta.TotalCount))
+                .Select(x => new SnapshotSearchResultPageItemViewModel(_niconicoContext.VideoSnapshotSearch, meta, SearchQueryVM, x))
+                .ToArray();
+
+            }
         }
 
         private AsyncReactiveCommand _GoRunnningStateCommand = new AsyncReactiveCommand();
@@ -528,6 +540,18 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
             RunningStatus = SearchRunningStatus.Completed;
 
+            var token = _cancellationTokenSource?.Token ?? default;
+            SearchResultIntegrationFailedMessage = null;
+            try
+            {
+                await SnapshotResultFileHelper.Temporary.IntegrationTemporarySearchResultItemsAsync(ResultMeta, token);
+            }
+            catch (Exception ex)
+            {
+                SearchResultIntegrationFailedMessage = ex.Message;
+                return;
+            }
+
             OpenSearchResultCommand.Execute();
         }
 
@@ -606,18 +630,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         async void ExecuteOpenSearchResultCommand()
         {
-            var token = _cancellationTokenSource?.Token ?? default;
-            SearchResultIntegrationFailedMessage = null;
-            try
-            {
-                await SnapshotResultFileHelper.Temporary.IntegrationTemporarySearchResultItemsAsync(ResultMeta, token);
-            }
-            catch (Exception ex)
-            {
-                SearchResultIntegrationFailedMessage = ex.Message;
-                return;
-            }
-
             await _messenger.Send<NavigationAppCoreFrameRequestMessage>(new(new(nameof(Views.SearchResultPage), ("query", ResultMeta.SearchQueryId), ("version", ResultMeta.SnapshotVersion))));
         }
 
