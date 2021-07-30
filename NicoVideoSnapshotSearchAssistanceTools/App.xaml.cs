@@ -32,6 +32,8 @@ using Windows.Storage;
 using Microsoft.Toolkit.Uwp.Helpers;
 using Unity.Injection;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Infrastructure;
+using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
+using System.Web;
 
 namespace NicoVideoSnapshotSearchAssistanceTools
 {
@@ -98,6 +100,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools
             container.RegisterForNavigation<QueryManagementPage, QueryManagementPageViewModel>();
             container.RegisterForNavigation<SearchRunningManagementPage, SearchRunningManagementPageViewModel>();
             container.RegisterForNavigation<SearchResultPage, SearchResultPageViewModel>();
+            container.RegisterForNavigation<SearchHistoryPage, SearchHistoryPageViewModel>();
         }
 
         protected override void RegisterRequiredTypes(IContainerRegistry containerRegistry)
@@ -117,12 +120,29 @@ namespace NicoVideoSnapshotSearchAssistanceTools
             containerRegistry.RegisterInstance(niconicoContext);
         }
 
-        public override void OnInitialized()
+        public override async void OnInitialized()
         {
             InitializeUIShell();
 
             var messenger = Container.Resolve<IMessenger>();
-            messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(QueryEditPage))));
+            var appInternalSettings = Container.Resolve<ApplicationInternalSettings>();
+
+            try
+            {
+                if (!string.IsNullOrEmpty(appInternalSettings.LastOpenPageName))
+                {
+                    var navigationParameters = new NavigationParameters(appInternalSettings.LastOpenPageParameterKeyValues.Select(x => (x.Key, (object)x.Value)).ToArray());
+                    await messenger.Send(new NavigationAppCoreFrameRequestMessage(new(appInternalSettings.LastOpenPageName, navigationParameters)));
+                }
+                else
+                {
+                    await messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(QueryEditPage))));
+                }
+            }
+            catch
+            {
+                _ = messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(QueryEditPage))));
+            }
         }
 
         private void InitializeUIShell()

@@ -121,6 +121,7 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Domain\ApplicationInternalSettings.cs" />
     <Compile Include="Domain\SearchRunningSettings.cs" />
     <Compile Include="IsExternalInit.cs" />
     <Compile Include="Domain\SearchQueryDatabase_V0.cs" />

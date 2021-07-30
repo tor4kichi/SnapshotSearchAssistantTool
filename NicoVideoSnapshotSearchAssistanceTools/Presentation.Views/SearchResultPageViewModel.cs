@@ -5,10 +5,12 @@ using NiconicoToolkit.SnapshotSearch;
 using NiconicoToolkit.User;
 using NiconicoToolkit.Video;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
 using Prism.Mvvm;
 using Prism.Navigation;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,6 +20,11 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 {
     public sealed class SearchResultPageViewModel : ViewModelBase
     {
+        public SearchResultPageViewModel(ApplicationInternalSettings applicationInternalSettings)
+        {
+            _applicationInternalSettings = applicationInternalSettings;
+        }
+
         private SearchQueryResultMeta _resultMeta;
         public SearchQueryResultMeta ResultMeta
         {
@@ -37,16 +44,19 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         }
 
         private string _FailedErrorMessage;
+        private readonly ApplicationInternalSettings _applicationInternalSettings;
+
         public string FailedErrorMessage
         {
             get { return _FailedErrorMessage; }
             set { SetProperty(ref _FailedErrorMessage, value); }
         }
 
-        public override async void OnNavigatedTo(INavigationParameters parameters)
-        {
+        public override async Task OnNavigatedToAsync(INavigationParameters parameters)
+        {            
             _navigationCts = new CancellationTokenSource();
-            base.OnNavigatedTo(parameters);
+
+            await base.OnNavigatedToAsync(parameters);
 
             try
             {
@@ -58,9 +68,16 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
                 if (!parameters.TryGetValue("version", out DateTimeOffset version))
                 {
-                    ThrowHelper.ThrowInvalidOperationException(nameof(version));
+                    if (parameters.TryGetValue("version", out string versionStr))
+                    {
+                        version = DateTimeOffset.Parse(versionStr);
+                    }
+                    else
+                    {
+                        ThrowHelper.ThrowInvalidOperationException(nameof(version));
+                    }
                 }
-                    
+                
                 try
                 {
                     ResultMeta = await SnapshotResultFileHelper.GetSearchQueryResultMetaAsync(queryParameters, version);
@@ -69,6 +86,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 {
                     ThrowHelper.ThrowInvalidOperationException(nameof(ResultMeta), ex);
                 }
+
+                _applicationInternalSettings.SaveLastOpenPage(nameof(SearchResultPage), ("query", queryParameters), ("version", version.ToString()));
 
                 Guard.IsNotNull(ResultMeta, nameof(ResultMeta));
 

@@ -22,6 +22,12 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels.Message
             Parameters = new NavigationParameters(parameters);
         }
 
+        public NavigationAppCoreFrameRequestMessageValue(string path, INavigationParameters parameters)
+        {
+            Path = path;
+            Parameters = parameters;
+        }
+
         public INavigationParameters Parameters { get; init; }
         public NavigationTransitionInfo TransisionOverride { get; init; }
         public string Path { get; }

@@ -4,6 +4,7 @@ using NiconicoToolkit;
 using NiconicoToolkit.SnapshotSearch;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
 using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels.Messages;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
 using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Navigation;
@@ -40,18 +41,20 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         public SearchRunningManagementPageViewModel(
             IMessenger messenger,
             NiconicoContext niconicoContext,
-            SearchRunningSettings searchRunningSettings
+            SearchRunningSettings searchRunningSettings,
+            ApplicationInternalSettings applicationInternalSettings
             )
         {
             _messenger = messenger;
             _niconicoContext = niconicoContext;
             _searchRunningSettings = searchRunningSettings;
+            _applicationInternalSettings = applicationInternalSettings;
         }
 
         private readonly IMessenger _messenger;
         private readonly NiconicoContext _niconicoContext;
         private readonly SearchRunningSettings _searchRunningSettings;
-
+        private readonly ApplicationInternalSettings _applicationInternalSettings;
         private SearchQueryViewModel _SearchQueryVM;
         public SearchQueryViewModel SearchQueryVM
         {
@@ -106,9 +109,9 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         CancellationTokenSource _cancellationTokenSource;
 
-        public override async void OnNavigatedTo(INavigationParameters parameters)
+        public override async Task OnNavigatedToAsync(INavigationParameters parameters)
         {
-            base.OnNavigatedTo(parameters);
+            await base.OnNavigatedToAsync(parameters);
 
             _navigationDisposable = new CompositeDisposable();
             _cancellationTokenSource = new CancellationTokenSource()
@@ -120,6 +123,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 if (parameters.TryGetValue("query", out string queryParameters))
                 {
                     SearchQueryVM = new SearchQueryViewModel(queryParameters, _messenger);
+
+                    _applicationInternalSettings.SaveLastOpenPage(nameof(SearchRunningManagementPage), ("query", queryParameters));
                 }
                 else
                 {
@@ -130,7 +135,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             {
                 _navigationDisposable.Dispose();
                 _navigationDisposable = null;
-                return;
+                throw;
             }
 
             Guard.IsNotNull(SearchQueryVM, nameof(SearchQueryVM));

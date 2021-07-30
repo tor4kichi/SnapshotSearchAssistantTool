@@ -131,6 +131,10 @@
       <DependentUpon>QueryEditPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Presentation.Views\QueryEditPageViewModel.cs" />
+    <Compile Include="Presentation.Views\SearchHistoryPage.xaml.cs">
+      <DependentUpon>SearchHistoryPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Presentation.Views\SearchHistoryPageViewModel.cs" />
     <Compile Include="Presentation.Views\SearchResultPage.xaml.cs">
       <DependentUpon>SearchResultPage.xaml</DependentUpon>
     </Compile>
@@ -175,6 +179,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Presentation.Views\QueryManagementPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Presentation.Views\SearchHistoryPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

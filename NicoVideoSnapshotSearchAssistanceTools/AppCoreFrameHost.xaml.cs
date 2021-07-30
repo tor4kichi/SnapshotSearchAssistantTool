@@ -68,5 +68,10 @@ namespace NicoVideoSnapshotSearchAssistanceTools
             }
         }
 
+        private void NavigationViewItem_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            var pageName = (sender as FrameworkElement).Tag as string;
+            _ = NavigationAsync(pageName, null, null);
+        }
     }
 }

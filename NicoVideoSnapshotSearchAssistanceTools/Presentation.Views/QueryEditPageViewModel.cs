@@ -27,16 +27,19 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         private readonly IMessenger _messenger;
         private readonly SearchQueryDatabase_V0 _searchQueryDatabase;
         private readonly SearchQueryEditSettings _searchQueryEditSettings;
+        private readonly ApplicationInternalSettings _applicationInternalSettings;
 
         public QueryEditPageViewModel(
             IMessenger messenger,
             SearchQueryDatabase_V0 searchQueryDatabase,
-            SearchQueryEditSettings searchQueryEditSettings
+            SearchQueryEditSettings searchQueryEditSettings,
+            ApplicationInternalSettings applicationInternalSettings
             )
         {
             _messenger = messenger;
             _searchQueryDatabase = searchQueryDatabase;
             _searchQueryEditSettings = searchQueryEditSettings;
+            _applicationInternalSettings = applicationInternalSettings;
         }
 
 
@@ -194,6 +197,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     {
                         SearchQueryVM = new SearchQueryViewModel(queryParameters, _messenger);
 
+                        _applicationInternalSettings.SaveLastOpenPage(nameof(QueryEditPage));
+
                         foreach (var selectableItem in TargetSelectableItems)
                         {
                             selectableItem.IsSelected = SearchQueryVM.Targets.Any(x => x == selectableItem.Content);
@@ -288,6 +293,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     {
                         IsLoadingFailed = true;
                         FailedMessage = e.Message;
+                        throw;
                     }
                 }
             }
@@ -325,7 +331,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         private void SaveEdittingQueryParameters()
         {
-            _searchQueryEditSettings.EdittingQueryParameters = SearchQueryVM.SeriaizeParameters();
+            _searchQueryEditSettings.EdittingQueryParameters = SearchQueryVM.SeriaizeParameters(); ;
 
             Debug.WriteLine("query saved! ");
         }
