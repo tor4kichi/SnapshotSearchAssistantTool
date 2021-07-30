@@ -14,32 +14,45 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
+using Windows.System;
 
 namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 {
     public sealed class SearchRunningManagementPageViewModel : ViewModelBase
     {
+
+        internal static void ThrowNiconicoWebExceptionIfNotSuccess(SnapshotResponseMeta resMeta)
+        {
+            if (resMeta.IsSuccess) { return; }
+            throw new NiconicoWebException(resMeta.ErrorMessage, resMeta.Status, resMeta.ErrorCode);
+        }
+
         public SearchRunningManagementPageViewModel(
             IMessenger messenger,
-            NiconicoContext niconicoContext
+            NiconicoContext niconicoContext,
+            SearchRunningSettings searchRunningSettings
             )
         {
             _messenger = messenger;
             _niconicoContext = niconicoContext;
+            _searchRunningSettings = searchRunningSettings;
         }
 
-        private SearchQueryViewModel _SearchQueryVM;
         private readonly IMessenger _messenger;
         private readonly NiconicoContext _niconicoContext;
+        private readonly SearchRunningSettings _searchRunningSettings;
 
+        private SearchQueryViewModel _SearchQueryVM;
         public SearchQueryViewModel SearchQueryVM
         {
             get { return _SearchQueryVM; }
@@ -122,10 +135,22 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
             Guard.IsNotNull(SearchQueryVM, nameof(SearchQueryVM));
 
+            if (_searchRunningSettings.RetryAvairableTime is not null and DateTime retryAvairableTime)
+            {
+                _RetryAvairableTime = retryAvairableTime;
+                if (!CanRetryAndUpdateRetryWaitingTime())
+                {
+                    ServerErrorMessage = _searchRunningSettings.PrevServerErrorMessage ?? "リトライ待ち";
+                    IsShowRetryAvairableTime = true;
+                    StartRetryTimer();
+                }
+            }
+
             GoRunnningStateCommand = new[]
             {
                 ServerAvairableValidationState.ObserveProperty(x => x.IsValid).Select(x => x == true),
-                SearchConditionValidationState.ObserveProperty(x => x.IsValid).Select(x => x == true)
+                SearchConditionValidationState.ObserveProperty(x => x.IsValid).Select(x => x == true),
+                this.ObserveProperty(x => x.RetryWaitingTime).Select(x => x <= TimeSpan.Zero)
             }
             .CombineLatestValuesAreAllTrue()
             .ToAsyncReactiveCommand()
@@ -163,15 +188,42 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
                 return;
             }
+
+
+            if (!IsAlreadyDownloadedSnapshotResult)
+            {
+                if (GoRunnningStateCommand.CanExecute())
+                {
+                    GoRunnningStateCommand.Execute();
+                }
+            }
         }
 
         public override void OnNavigatedFrom(INavigationParameters parameters)
         {
+            ClearRetryTimer();
+            ClearHandleNiconicoWebException();
             _cancellationTokenSource.Cancel();
             _navigationDisposable?.Dispose();
             base.OnNavigatedFrom(parameters);
         }
 
+
+
+
+        private bool _IsQueryParameterError;
+        public bool IsQueryParameterError
+        {
+            get { return _IsQueryParameterError; }
+            set { SetProperty(ref _IsQueryParameterError, value); }
+        }
+
+        private string _QueryParameterErrorMessage;
+        public string QueryParameterErrorMessage
+        {
+            get { return _QueryParameterErrorMessage; }
+            set { SetProperty(ref _QueryParameterErrorMessage, value); }
+        }
 
 
         #region Prepering Status
@@ -292,17 +344,15 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 try
                 {
                     var firstResult = await GetSnapshotSearchResultOnCurrentConditionAsync(_niconicoContext.VideoSnapshotSearch, SearchQueryVM, 0, 10);
-                    if (!firstResult.IsSuccess)
-                    {
-                        // 取得失敗
-                        // firstResult.Meta.ErrorMessage等をユーザーに提示する
-                        // 検索条件編集に戻るか、時間を置いてから再試行するかをユーザーに委ねる
-                        throw new Exception(firstResult.Meta.ErrorMessage);
-                    }
+                    ThrowNiconicoWebExceptionIfNotSuccess(firstResult.Meta);
 
                     meta = await SnapshotResultFileHelper.CreateSearchQueryResultMetaAsync(searchQueryId, CurrentApiVersion.Value, firstResult.Meta.TotalCount);
                     
                     SearchConditionValidationState.IsValid = true;
+                }
+                catch (NiconicoWebException ex)
+                {
+                    HandleNiconicoWebException(ex);
                 }
                 catch (JsonException ex)
                 {
@@ -356,48 +406,220 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             set { SetProperty(ref _ProcessedCount, value); }
         }
 
+        private string _ServerErrorMessage;
+        public string ServerErrorMessage
+        {
+            get { return _ServerErrorMessage; }
+            set { SetProperty(ref _ServerErrorMessage, value); }
+        }
+
+        private bool _IsShowRetryAvairableTime;
+        public bool IsShowRetryAvairableTime
+        {
+            get { return _IsShowRetryAvairableTime; }
+            set { SetProperty(ref _IsShowRetryAvairableTime, value); }
+        }
+
+        private int _RetryCount;
+        public int RetryCount
+        {
+            get { return _RetryCount; }
+            set { SetProperty(ref _RetryCount, value); }
+        }
+
+        private TimeSpan _RetryWaitingTime;
+        public TimeSpan RetryWaitingTime
+        {
+            get { return _RetryWaitingTime; }
+            set { SetProperty(ref _RetryWaitingTime, value); }
+        }
+
+        private DateTime _RetryAvairableTime;
+
+        private DispatcherQueueTimer _retryTimer;
+        private DispatcherQueueTimer RetryTimer
+        {
+            get
+            {
+                if (_retryTimer != null) { return _retryTimer; }
+
+                _retryTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
+                _retryTimer.Interval = TimeSpan.FromSeconds(1);
+                _retryTimer.IsRepeating = true;
+                _retryTimer.Tick += (timer, state) => 
+                {
+                    if (CanRetryAndUpdateRetryWaitingTime())
+                    {
+                        DownloadRetryCommand.Execute();                        
+                    }
+                };
+                return _retryTimer;
+            }
+        }
+
+        private bool CanRetryAndUpdateRetryWaitingTime()
+        {
+            RetryWaitingTime = _RetryAvairableTime - DateTime.Now;
+            return _RetryAvairableTime <= DateTime.Now;
+        }
+
+        private void StartRetryTimer()
+        {
+            RetryTimer.Start();
+        }
+
+        private void ClearRetryTimer()
+        {
+            if (_retryTimer == null) { return; }
+
+            _retryTimer.Stop();
+            _retryTimer = null;
+
+            IsShowRetryAvairableTime = false;
+
+            _searchRunningSettings.RetryAvairableTime = null;
+        }
+
+
         async Task RunDownloadLoopingAsync(CancellationToken ct)
         {
+            IsShowRetryAvairableTime = false;
+
             ProcessedCount = ResultPageItems.TakeWhile(x => x.IsDownloaded).Sum(x => x.DownloadedCount);
             Stopwatch stopwatch = new Stopwatch();
-            foreach (var pageItem in ResultPageItems.SkipWhile(x => x.IsDownloaded))
+
+            try
             {
-                stopwatch.Start();
-                await pageItem.DownloadAsync(ct);
+#if DEBUG
+                //throw new NiconicoWebException("検索条件エラーのテスト", 400, "just testing");
+                //throw new NiconicoWebException("サーバーインターナルエラーのテスト", 500, "just testing");
+                //throw new NiconicoWebException("サーバー高負荷orメンテナンスのテスト", 503, "just testing");
+                //throw new NiconicoWebException("想定外のサーバエラーのテスト", 504, "just testing");
+#endif
+                foreach (var pageItem in ResultPageItems.SkipWhile(x => x.IsDownloaded))
+                {
+                    stopwatch.Start();
+                    await pageItem.DownloadAsync(ct);
+                    stopwatch.Stop();
+
+                    ProcessedCount += pageItem.DownloadedCount;
+
+                    await Task.Delay(stopwatch.Elapsed);
+
+                    stopwatch.Reset();
+                }
+            }
+            catch (NiconicoWebException ex)
+            {
+                HandleNiconicoWebException(ex);
+                return;
+            }
+            finally
+            {
                 stopwatch.Stop();
-
-                ProcessedCount += pageItem.DownloadedCount;
-
-                await Task.Delay(stopwatch.Elapsed);
-
-                stopwatch.Reset();
             }
 
             ProcessedCount = ResultMeta.TotalCount;
 
             RunningStatus = SearchRunningStatus.Completed;
 
-            await SnapshotResultFileHelper.Temporary.IntegrationTemporarySearchResultItemsAsync(ResultMeta, ct);
+            OpenSearchResultCommand.Execute();
         }
 
+        void ClearHandleNiconicoWebException()
+        {
+            IsQueryParameterError = false;
+            QueryParameterErrorMessage = null;
+            ServerErrorMessage = null;
+            _searchRunningSettings.PrevServerErrorMessage = null;
+            IsShowRetryAvairableTime = false;
+        }
+
+        void HandleNiconicoWebException(NiconicoWebException ex)
+        {
+            ClearHandleNiconicoWebException();
+
+            if (ex.StatusCode == 400)
+            {
+                IsQueryParameterError = true;
+                QueryParameterErrorMessage = $"Status:{ex.StatusCode} ErrorCode:{ex.ErrorCode} Message:{ex.Message}";
+                return;
+            }
+            else if (ex.StatusCode == 500)
+            {
+                ServerErrorMessage = $"Status:{ex.StatusCode} ErrorCode:{ex.ErrorCode} Message:{ex.Message}";
+                _RetryAvairableTime = DateTime.Now + TimeSpan.FromMinutes(5);
+                _searchRunningSettings.PrevServerErrorMessage = ServerErrorMessage;
+                IsShowRetryAvairableTime = true;
+                StartRetryTimer();
+                return;
+            }
+            else if (ex.StatusCode == 503)
+            {
+                ServerErrorMessage = $"Status:{ex.StatusCode} ErrorCode:{ex.ErrorCode} Message:{ex.Message}";
+                _RetryAvairableTime = DateTime.Now + TimeSpan.FromMinutes(5);
+                _searchRunningSettings.PrevServerErrorMessage = ServerErrorMessage;
+                IsShowRetryAvairableTime = true;
+                StartRetryTimer();
+                return;
+            }
+            else
+            {
+                ServerErrorMessage = $"Status:{ex.StatusCode} ErrorCode:{ex.ErrorCode} Message:{ex.Message}";
+                throw ex;
+            }
+        }
+
+
+        private DelegateCommand _DownloadRetryCommand;
+        public DelegateCommand DownloadRetryCommand =>
+            _DownloadRetryCommand ?? (_DownloadRetryCommand = new DelegateCommand(ExecuteDownloadRetryCommand));
+
+        void ExecuteDownloadRetryCommand()
+        {
+            ClearRetryTimer();
+            RetryCount++;
+            _ = RunDownloadLoopingAsync(_cancellationTokenSource.Token);
+        }
 
         #endregion Running State
 
         #region Completed State
 
 
-
-        #endregion Completed State
+        private string _SearchResultIntegrationFailedMessage;
+        public string SearchResultIntegrationFailedMessage
+        {
+            get { return _SearchResultIntegrationFailedMessage; }
+            set { SetProperty(ref _SearchResultIntegrationFailedMessage, value); }
+        }
 
 
         private DelegateCommand _OpenSearchResultCommand;
         public DelegateCommand OpenSearchResultCommand =>
             _OpenSearchResultCommand ?? (_OpenSearchResultCommand = new DelegateCommand(ExecuteOpenSearchResultCommand));
 
-        void ExecuteOpenSearchResultCommand()
+        async void ExecuteOpenSearchResultCommand()
         {
-            _messenger.Send<NavigationAppCoreFrameRequestMessage>(new(new(nameof(Views.SearchResultPage), ("query", ResultMeta.SearchQueryId), ("version", ResultMeta.SnapshotVersion))));
+            var token = _cancellationTokenSource?.Token ?? default;
+            SearchResultIntegrationFailedMessage = null;
+            try
+            {
+                await SnapshotResultFileHelper.Temporary.IntegrationTemporarySearchResultItemsAsync(ResultMeta, token);
+            }
+            catch (Exception ex)
+            {
+                SearchResultIntegrationFailedMessage = ex.Message;
+                return;
+            }
+
+            await _messenger.Send<NavigationAppCoreFrameRequestMessage>(new(new(nameof(Views.SearchResultPage), ("query", ResultMeta.SearchQueryId), ("version", ResultMeta.SnapshotVersion))));
         }
+
+
+        #endregion Completed State
+
+
 
 
         private DelegateCommand _SearchQueryTextCopyToClipboardCommand;
@@ -464,6 +686,21 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             parameter.NowProcessing = !parameter.NowProcessing;
         }
 
+
+        private DelegateCommand _SetRetryTestCommand;
+        public DelegateCommand SetRetryTestCommand =>
+            _SetRetryTestCommand ?? (_SetRetryTestCommand = new DelegateCommand(ExecuteSetRetryTestCommand));
+
+        void ExecuteSetRetryTestCommand()
+        {
+            IsShowRetryAvairableTime = true;
+            ServerErrorMessage = "リトライのテスト中";
+            RetryCount++;
+            _RetryAvairableTime = DateTime.Now + TimeSpan.FromMinutes(30);
+            StartRetryTimer();
+        }
+
+
         #endregion UI Debug
     }
 
@@ -525,13 +762,25 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             (CsvFile, DownloadedCount) = await Task.Run(async () => 
             {
                 var response = await SearchRunningManagementPageViewModel.GetSnapshotSearchResultOnCurrentConditionAsync(_searchClient, _searchQueryVM, Page * 100, 100);
+                SearchRunningManagementPageViewModel.ThrowNiconicoWebExceptionIfNotSuccess(response.Meta);
                 return (await SnapshotResultFileHelper.Temporary.SaveTemporarySearchResultRangeItemsAsync(_meta, Page, response.Items, ct), response.Items.Length);
             });
             
         }
+        
     }
 
+    public sealed class NiconicoWebException : Exception
+    {
+        public NiconicoWebException(string message, long statusCode, string errorCode) : base(message)
+        {
+            StatusCode = statusCode;
+            ErrorCode = errorCode;
+        }
 
+        public long StatusCode { get; }
+        public string ErrorCode { get; }
+    }
 
     public sealed class PrepareStateValidationViewModel : BindableBase
     {

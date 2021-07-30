@@ -17,7 +17,7 @@
     <DataTemplate x:Key="PrepareStateValidationControlTemplate" x:DataType="viewModels:PrepareStateValidationViewModel">
       <UserControl>
         <Grid>
-          <TextBlock x:Name="TitleTextBlock" Text="{x:Bind Title}" VerticalAlignment="Center" />
+          <TextBlock x:Name="TitleTextBlock" Text="{x:Bind Title}" VerticalAlignment="Center" IsTextSelectionEnabled="True" />
 
           <Grid x:Name="StatusIndicatorUIContainer" HorizontalAlignment="Right" Width="48" Height="48">
             <ProgressRing IsActive="{x:Bind NowProcessing, Mode=OneWay}" Visibility="{x:Bind NowProcessing, Mode=OneWay}" />
@@ -139,6 +139,54 @@
 
       </StackPanel>
 
+      <Grid x:Name="QueryParameterErrorUIContainer" uwpControls:DockPanel.Dock="Top" Visibility="Collapsed"
+            Style="{ThemeResource MicaCardGirdStyle}"
+            >
+
+        <StackPanel MinWidth="320"
+                    MaxWidth="720"
+             HorizontalAlignment="Center">
+          <TextBlock Text="検索条件のエラー" Style="{StaticResource SubtitleTextBlockStyle}" />
+          <TextBlock IsTextSelectionEnabled="True"                     
+                     >
+            <Run Text="検索条件が誤っているようです。" />
+          </TextBlock>
+          <TextBlock IsTextSelectionEnabled="True">
+            <Run Text="{Binding QueryParameterErrorMessage}" />
+          </TextBlock>
+        </StackPanel>
+      </Grid>
+
+      <Grid x:Name="ServerErrorUIContainer" uwpControls:DockPanel.Dock="Top" Visibility="Collapsed"
+            Style="{ThemeResource MicaCardGirdStyle}"
+            BorderBrush="Red"
+            BorderThickness="0.75"
+            
+            >
+
+        <StackPanel Spacing="8"
+                    MinWidth="320"
+                    MaxWidth="720"
+             HorizontalAlignment="Center"
+                    >
+          <TextBlock Text="サーバーエラー" Style="{StaticResource SubtitleTextBlockStyle}" />
+          
+          <TextBlock IsTextSelectionEnabled="True">
+            <Run Text="エラーメッセージ" /> <Run Text="{Binding ServerErrorMessage}" />
+          </TextBlock>
+          
+          <StackPanel x:Name="RetryUIContainer">
+            <TextBlock IsTextSelectionEnabled="True">
+            <Run Text="リトライまで" /> <Run Text="{Binding RetryWaitingTime}" />
+            </TextBlock>
+            <TextBlock IsTextSelectionEnabled="True">
+            <Run Text="リトライ回数:" /> <Run Text="{Binding RetryCount}" />
+            </TextBlock>
+          </StackPanel>
+        </StackPanel>
+
+      </Grid>
+      
       <ScrollViewer>
         <Grid>
           <Grid.Resources>
@@ -161,7 +209,7 @@
                               HorizontalContentAlignment="Stretch"
                               />
 
-              <TextBlock HorizontalAlignment="Right">
+              <TextBlock HorizontalAlignment="Right" IsTextSelectionEnabled="True">
                 取得件数:  <Run Text="{Binding ResultMeta.TotalCount}" />
               </TextBlock>
 
@@ -208,6 +256,8 @@
                       Command="{Binding ToggleStateTestCommand}"
                       CommandParameter="{Binding SearchConditionValidationState}"
                       />
+
+              <Button Content="リトライのテスト" Command="{Binding SetRetryTestCommand}"/>
             </StackPanel>
           </Grid>
 
@@ -233,6 +283,10 @@
             <StackPanel Style="{StaticResource StatusUIContainerStackPanelStyle}">
               <TextBlock Text="完了!" Style="{StaticResource HeaderTextBlockStyle}" Foreground="{ThemeResource SystemAccentColor}"
                          HorizontalAlignment="Right"
+                         />
+
+              <TextBlock Text="{Binding SearchResultIntegrationFailedMessage}" Foreground="Red"
+                         IsTextSelectionEnabled="True"
                          />
 
               <Button Content="結果を表示" Command="{Binding OpenSearchResultCommand}" HorizontalAlignment="Right"
@@ -274,6 +328,40 @@
           </VisualState.StateTriggers>
           <VisualState.Setters>
             <Setter Target="CompletedStatusUIContainer.Visibility" Value="Visible" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+
+      
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <StateTrigger IsActive="{Binding IsQueryParameterError}" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="QueryParameterErrorUIContainer.Visibility" Value="Visible" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <uwpTriggers:IsNotEqualStateTrigger Value="{Binding ServerErrorMessage}" To="{x:Null}" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="ServerErrorUIContainer.Visibility" Value="Visible" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+      
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <StateTrigger IsActive="{Binding IsShowRetryAvairableTime}" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="RetryUIContainer.Visibility" Value="Visible" />
           </VisualState.Setters>
         </VisualState>
       </VisualStateGroup>
