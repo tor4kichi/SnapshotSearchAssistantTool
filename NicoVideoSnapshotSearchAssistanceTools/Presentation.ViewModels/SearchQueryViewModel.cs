@@ -138,8 +138,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         static readonly Dictionary<string, SearchFieldType> _fieldTypeDescriptionMap =
             Enum.GetValues(typeof(SearchFieldType)).Cast<SearchFieldType>()
             .ToDictionary(x => x.GetDescription());
-        static readonly Dictionary<string, SearchFilterCompareCondition> _conditionTypeDescriptionMap =
-            Enum.GetValues(typeof(SearchFilterCompareCondition)).Cast<SearchFilterCompareCondition>()
+        static readonly Dictionary<string, SimpleFilterComparison> _conditionTypeDescriptionMap =
+            Enum.GetValues(typeof(SimpleFilterComparison)).Cast<SimpleFilterComparison>()
             .ToDictionary(x => x.GetDescription());
         private void ParseQueryParameters(string q)
         {

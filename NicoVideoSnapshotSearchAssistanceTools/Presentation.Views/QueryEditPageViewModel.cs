@@ -1,6 +1,8 @@
-﻿using Microsoft.Toolkit.Mvvm.Input;
+﻿using Microsoft.Toolkit.Diagnostics;
+using Microsoft.Toolkit.Mvvm.Input;
 using Microsoft.Toolkit.Mvvm.Messaging;
 using Microsoft.Toolkit.Mvvm.Messaging.Messages;
+using NiconicoToolkit;
 using NiconicoToolkit.SnapshotSearch;
 using NiconicoToolkit.SnapshotSearch.Filters;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
@@ -13,6 +15,8 @@ using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -22,12 +26,223 @@ using System.Threading.Tasks;
 
 namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 {
+    public interface ISimpleFilterViewModel : INotifyPropertyChanged
+    {
+        SearchFieldType FieldType { get; }
+        SimpleFilterComparison Comparison { get; set; }
+
+        object Value { get; set; }
+    }
+
+    public abstract class SimpleFilterViewModelBase : BindableBase
+    {
+        private readonly SimpleFilterComparison[] _Comparisons = Enum.GetValues(typeof(SimpleFilterComparison)).Cast<SimpleFilterComparison>().ToArray();
+        private readonly Action<ISimpleFilterViewModel> _onRemove;
+
+        public SimpleFilterComparison[] Comparisons => _Comparisons;
+
+        public SimpleFilterViewModelBase(Action<ISimpleFilterViewModel> onRemove)
+        {
+            _onRemove = onRemove;
+        }
+
+        private DelegateCommand _RemoveCommand;
+        public DelegateCommand RemoveCommand =>
+            _RemoveCommand ?? (_RemoveCommand = new DelegateCommand(ExecuteRemoveCommand));
+
+        void ExecuteRemoveCommand()
+        {
+            _onRemove(this as ISimpleFilterViewModel);
+        }
+    }
+
+    public abstract class SimpleFilterViewModel<T> : SimpleFilterViewModelBase, ISimpleFilterViewModel
+    {
+        public SimpleFilterViewModel(Action<ISimpleFilterViewModel> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, T value)
+            : base(onRemove)
+        {
+            FieldType = searchFieldType;
+            _Comparison = comparison;
+            _value = value;
+        }
+
+        public SearchFieldType FieldType { get; }
+
+        private SimpleFilterComparison _Comparison;
+        public SimpleFilterComparison Comparison
+        {
+            get { return _Comparison; }
+            set { SetProperty(ref _Comparison, value); }
+        }
+
+        private T _value;
+        public T Value
+        {
+            get { return _value; }
+            set { SetProperty(ref _value, value); }
+        }
+
+        object ISimpleFilterViewModel.Value
+        {
+            get { return _value; }
+            set { Value = (T)value; }
+        }
+    }
+
+    public class DateTimeOffsetSimpleFilterViewModel : SimpleFilterViewModel<DateTimeOffset>
+    {
+        public DateTimeOffsetSimpleFilterViewModel(Action<ISimpleFilterViewModel> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, DateTimeOffset value)
+            : base(onRemove, searchFieldType, comparison, value)
+        {
+            _Date = new DateTimeOffset(value.Year, value.Month, value.Day, 0, 0, 0, value.Offset);
+            _Time = new TimeSpan(value.Hour, value.Minute, 0);
+            RefreshValue();
+        }
+
+        private DateTimeOffset _Date;
+        public DateTimeOffset Date
+        {
+            get { return _Date; }
+            set 
+            {
+                if (SetProperty(ref _Date, value))
+                {
+                    RefreshValue();
+                }
+            }
+        }
+
+        private TimeSpan _Time;
+        public TimeSpan Time
+        {
+            get { return _Time; }
+            set 
+            {
+                if (SetProperty(ref _Time, value))
+                {
+                    RefreshValue();
+                }
+            }
+        }
+
+        void RefreshValue()
+        {
+            Value = new DateTimeOffset(_Date.Year, _Date.Month, _Date.Day, _Time.Hours, _Time.Minutes, _Time.Seconds, _Date.Offset);
+        }
+    }
+
+    public class IntSimpleFilterViewModel : SimpleFilterViewModel<int>
+    {
+        public IntSimpleFilterViewModel(Action<ISimpleFilterViewModel> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, int value)
+            : base(onRemove, searchFieldType, comparison, value)
+        {
+        }
+    }
+
+    public class TimeSpanSimpleFilterViewModel : SimpleFilterViewModel<TimeSpan>
+    {
+        public TimeSpanSimpleFilterViewModel(Action<ISimpleFilterViewModel> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, TimeSpan value)
+            : base(onRemove, searchFieldType, comparison, value)
+        {
+            _Hours = value.Hours;
+            _Minutes = value.Minutes;
+            _Seconds = value.Seconds;
+        }
+
+        private int _Hours;
+        public int Hours
+        {
+            get { return _Hours; }
+            set
+            {
+                if (SetProperty(ref _Hours, value))
+                {
+                    RefreshValue();
+                }
+            }
+        }
+
+        private int _Minutes;
+        public int Minutes
+        {
+            get { return _Minutes; }
+            set 
+            {
+                if (SetProperty(ref _Minutes, value))
+                {
+                    RefreshValue();
+                }
+            }
+        }
+
+        private int _Seconds;
+        public int Seconds
+        {
+            get { return _Seconds; }
+            set
+            {
+                if (SetProperty(ref _Seconds, value))
+                {
+                    RefreshValue();
+                }
+            }
+        }
+
+
+        private void RefreshValue()
+        {
+            Value = new TimeSpan(_Hours, _Minutes, _Seconds);
+        }
+    }
+
+    public class StringSimpleFilterViewModel : SimpleFilterViewModel<string>
+    {
+        public StringSimpleFilterViewModel(Action<ISimpleFilterViewModel> onRemove, SearchFieldType searchFieldType, string value, string[] suggestionItems = null)
+            : base(onRemove, searchFieldType, SimpleFilterComparison.Equal, value)
+        {
+            SuggestionItems = suggestionItems;
+        }
+
+        private SimpleFilterComparison _Comparison;
+        new public SimpleFilterComparison Comparison
+        {
+            get { return _Comparison; }
+            private set 
+            {
+                SetProperty(ref _Comparison, value); 
+            }
+        }
+
+        public string[] SuggestionItems { get; }
+    }
+
     public sealed class QueryEditPageViewModel : ViewModelBase
     {
         private readonly IMessenger _messenger;
         private readonly SearchQueryDatabase_V0 _searchQueryDatabase;
         private readonly SearchQueryEditSettings _searchQueryEditSettings;
         private readonly ApplicationInternalSettings _applicationInternalSettings;
+
+        public static string[] GenreKeywords { get; } = new[] 
+        {
+            "エンターテイメント",
+            "ラジオ",
+            "音楽・サウンド",
+            "ダンス",
+            "動物",
+            "自然",
+            "料理",
+            "旅行・アウトドア",
+            "乗り物",
+            "スポーツ",
+            "社会・政治・時事",
+            "技術・工作",
+            "解説・講座",
+            "アニメ",
+            "ゲーム",
+            "その他",
+            //"R-18",
+        };
 
         public QueryEditPageViewModel(
             IMessenger messenger,
@@ -71,6 +286,78 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             yield return new SearchSort(fieldType, SearchSortOrder.Asc);
         }
 
+        #region Filters JsonFilter
+
+        private bool _useJsonFilter;
+        public bool UseJsonFilter
+        {
+            get { return _useJsonFilter; }
+            set { SetProperty(ref _useJsonFilter, value); }
+        }
+
+
+        public ObservableCollection<ISimpleFilterViewModel> SimpleFilters { get; } = new();
+
+        private DelegateCommand<string> _AddSimpleFilterCommand;
+        public DelegateCommand<string> AddSimpleFilterCommand =>
+            _AddSimpleFilterCommand ?? (_AddSimpleFilterCommand = new DelegateCommand<string>(ExecuteAddSimpleFilterCommand));
+
+        void ExecuteAddSimpleFilterCommand(string parameter)
+        {
+            if (Enum.TryParse<SearchFieldType>(parameter, out var fieldType))
+            {
+                Guard.IsTrue(fieldType.IsFilterField(), nameof(SearchFieldTypeExtensions.IsFilterField));
+
+                var type = fieldType.GetAttrubute<SearchFieldTypeAttribute>().Type;
+                if (type == typeof(int))
+                {
+                    if (fieldType == SearchFieldType.LengthSeconds)
+                    {                        
+                        SimpleFilters.Add(new TimeSpanSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, SimpleFilterComparison.GreaterThan, TimeSpan.Zero));
+                    }
+                    else
+                    {
+                        SimpleFilters.Add(new IntSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, SimpleFilterComparison.GreaterThan, 0));
+                    }
+                }
+                else if (type == typeof(DateTimeOffset))
+                {
+                    var time = DateTimeOffset.Now;
+                    time -= time.TimeOfDay;
+                    SimpleFilters.Add(new DateTimeOffsetSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, SimpleFilterComparison.GreaterThan, time));
+                }
+                else if (type == typeof(string))
+                {
+                    if (fieldType is SearchFieldType.Genre or SearchFieldType.GenreKeyword)
+                    {
+                        SimpleFilters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, "", GenreKeywords));
+                    }
+                    else
+                    {
+                        SimpleFilters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, ""));
+                    }
+                }
+            }
+        }
+
+        private void RemoveSimpleFilterItem(ISimpleFilterViewModel filterVM)
+        {
+            SimpleFilters.Remove(filterVM);
+        }
+
+        private DelegateCommand<ISimpleFilterViewModel> _RemoveSimpleFilterCommand;
+        public DelegateCommand<ISimpleFilterViewModel> RemoveSimpleFilterCommand =>
+            _RemoveSimpleFilterCommand ?? (_RemoveSimpleFilterCommand = new DelegateCommand<ISimpleFilterViewModel>(ExecuteRemoveSimpleFilterCommand));
+
+        void ExecuteRemoveSimpleFilterCommand(ISimpleFilterViewModel parameter)
+        {
+            SimpleFilters.Remove(parameter);
+        }
+
+
+        #endregion Filters JsonFilter
+
+
         private bool _IsLoadingFailed;
         public bool IsLoadingFailed
         {
@@ -86,65 +373,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         }
 
         CompositeDisposable _navigationDisposables;
-
-        private DateTimeOffset? _filterStartTime_From_Date;
-        public DateTimeOffset? FilterStartTime_From_Date
-        {
-            get { return _filterStartTime_From_Date; }
-            set { SetProperty(ref _filterStartTime_From_Date, value); }
-        }
-
-        private TimeSpan? _filterStartTime_From_Time;
-        public TimeSpan? FilterStartTime_From_Time
-        {
-            get { return _filterStartTime_From_Time; }
-            set { SetProperty(ref _filterStartTime_From_Time, value); }
-        }
-
-        private DelegateCommand _ClearFilterStartTimeFromCommand;
-        public DelegateCommand ClearFilterStartTimeFromCommand =>
-            _ClearFilterStartTimeFromCommand ?? (_ClearFilterStartTimeFromCommand = new DelegateCommand(ExecuteClearFilterStartTimeFromCommand));
-
-        void ExecuteClearFilterStartTimeFromCommand()
-        {
-            FilterStartTime_From_Time = null;
-            FilterStartTime_From_Date = null;
-        }
-
-
-        private bool _useJsonFilter;
-        public bool UseJsonFilter
-        {
-            get { return _useJsonFilter; }
-            set { SetProperty(ref _useJsonFilter, value); }
-        }
-
-
-        private DateTimeOffset? _filterStartTime_To_Date;
-        public DateTimeOffset? FilterStartTime_To_Date
-        {
-            get { return _filterStartTime_To_Date; }
-            set { SetProperty(ref _filterStartTime_To_Date, value); }
-        }
-
-        private TimeSpan? _filterStartTime_To_Time;
-        public TimeSpan? FilterStartTime_To_Time
-        {
-            get { return _filterStartTime_To_Time; }
-            set { SetProperty(ref _filterStartTime_To_Time, value); }
-        }
-
-        private DelegateCommand _ClearFilterStartTimeToCommand;
-        public DelegateCommand ClearFilterStartTimeToCommand =>
-            _ClearFilterStartTimeToCommand ?? (_ClearFilterStartTimeToCommand = new DelegateCommand(ExecuteClearFilterStartTimeToCommand));
-
-        void ExecuteClearFilterStartTimeToCommand()
-        {
-            FilterStartTime_To_Time = null;
-            FilterStartTime_To_Date = null;
-        }
-
-
 
         #region Input Field Message
 
@@ -170,8 +398,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             set { SetProperty(ref _IsInvalidContext, value); }
         }
 
-        #endregion Input Field Message
-
+        #endregion Input Field Message        
 
         public override void OnNavigatedTo(INavigationParameters parameters)
         {
@@ -215,41 +442,36 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                                 .AddTo(_navigationDisposables);
                         }
 
+                        SimpleFilters.Clear();
                         if (SearchQueryVM.Filters is CompositeSearchFilter compositeSearchFilter)
                         {
                             foreach (var simpleFilter in compositeSearchFilter.Filters)
                             {
                                 if (simpleFilter is CompareSimpleSearchFilter<DateTimeOffset> dateTimeFilter)
                                 {
-                                    if (dateTimeFilter.FilterType == SearchFieldType.StartTime)
-                                    {
-                                        if (dateTimeFilter.Condition is SearchFilterCompareCondition.GreaterThan or SearchFilterCompareCondition.GreaterThanOrEqual)
-                                        {
-                                            var isEqauls = dateTimeFilter.Condition is SearchFilterCompareCondition.GreaterThanOrEqual;
-                                            int year = dateTimeFilter.Value.Year;
-                                            int month = dateTimeFilter.Value.Month;
-                                            int day = dateTimeFilter.Value.Day;
-                                            FilterStartTime_From_Date = new DateTimeOffset(year, month, day, 0, 0, 0, dateTimeFilter.Value.Offset);
-                                            FilterStartTime_From_Time = new TimeSpan(dateTimeFilter.Value.Hour, dateTimeFilter.Value.Minute, 0);
-                                        }
-                                        else if (dateTimeFilter.Condition is SearchFilterCompareCondition.LessThan or SearchFilterCompareCondition.LessThenOrEqual)
-                                        {
-                                            var isEqauls = dateTimeFilter.Condition is SearchFilterCompareCondition.LessThenOrEqual;
-                                            int year = dateTimeFilter.Value.Year;
-                                            int month = dateTimeFilter.Value.Month;
-                                            int day = dateTimeFilter.Value.Day;
-                                            FilterStartTime_To_Date = new DateTimeOffset(year, month, day, 0, 0, 0, dateTimeFilter.Value.Offset);
-                                            FilterStartTime_To_Time = new TimeSpan(dateTimeFilter.Value.Hour, dateTimeFilter.Value.Minute, 0);
-                                        }
-                                    }
-                                    else if (dateTimeFilter.FilterType == SearchFieldType.LastCommentTime)
-                                    {
-                                        //
-                                    }
+                                    SimpleFilters.Add(new DateTimeOffsetSimpleFilterViewModel(RemoveSimpleFilterItem, dateTimeFilter.FilterType, dateTimeFilter.Condition, dateTimeFilter.Value));
                                 }
                                 else if (simpleFilter is  CompareSimpleSearchFilter<int> numberFilter)
                                 {
-
+                                    if (numberFilter.FilterType == SearchFieldType.LengthSeconds)
+                                    {
+                                        SimpleFilters.Add(new TimeSpanSimpleFilterViewModel(RemoveSimpleFilterItem, numberFilter.FilterType, numberFilter.Condition, TimeSpan.FromSeconds(numberFilter.Value)));
+                                    }
+                                    else
+                                    {
+                                        SimpleFilters.Add(new IntSimpleFilterViewModel(RemoveSimpleFilterItem, numberFilter.FilterType, numberFilter.Condition, numberFilter.Value));
+                                    }
+                                }
+                                else if (simpleFilter is CompareSimpleSearchFilter<string> stringFilter)
+                                {
+                                    if (stringFilter.FilterType is SearchFieldType.Genre or SearchFieldType.GenreKeyword)
+                                    {
+                                        SimpleFilters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, stringFilter.FilterType, stringFilter.Value, GenreKeywords));
+                                    }
+                                    else
+                                    {
+                                        SimpleFilters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, stringFilter.FilterType, stringFilter.Value));
+                                    }
                                 }
                             }
                         }
@@ -257,10 +479,9 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                         new []
                         {
                             this.ObserveProperty(x => x.UseJsonFilter, isPushCurrentValueAtFirst: false).ToUnit(),
-                            this.ObserveProperty(x => x.FilterStartTime_From_Date, isPushCurrentValueAtFirst: false).ToUnit(),
-                            this.ObserveProperty(x => x.FilterStartTime_From_Time, isPushCurrentValueAtFirst: false).ToUnit(),
-                            this.ObserveProperty(x => x.FilterStartTime_To_Date, isPushCurrentValueAtFirst: false).ToUnit(),
-                            this.ObserveProperty(x => x.FilterStartTime_To_Time, isPushCurrentValueAtFirst: false).ToUnit(),
+                            SimpleFilters.CollectionChangedAsObservable().ToUnit(),
+                            SimpleFilters.ObserveElementPropertyChanged().ToUnit(),
+                            
 
                             // TODO: JsonFilterの条件が変わった場合のObservableをここに追加
                         }
@@ -309,20 +530,17 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             if (!UseJsonFilter)
             {
                 CompositeSearchFilter compositeSearchFilter = new();
-                if (FilterStartTime_From_Date is not null)
-                {
-                    FilterStartTime_From_Time ??= TimeSpan.Zero;
-                    var date = FilterStartTime_From_Date.Value;
-                    DateTimeOffset fromDateTime = new DateTimeOffset(date.Year, date.Month, date.Day, 0, 0, 0, date.Offset) + FilterStartTime_From_Time.Value;
-                    compositeSearchFilter.AddCompareFilter(SearchFieldType.StartTime, fromDateTime, SearchFilterCompareCondition.GreaterThanOrEqual);
-                }
 
-                if (FilterStartTime_To_Date is not null)
+                foreach (var simpleFilter in SimpleFilters)
                 {
-                    FilterStartTime_To_Time ??= TimeSpan.Zero;
-                    var date = FilterStartTime_To_Date.Value;
-                    DateTimeOffset toDateTime = new DateTimeOffset(date.Year, date.Month, date.Day, 0, 0, 0, date.Offset) + FilterStartTime_To_Time.Value;
-                    compositeSearchFilter.AddCompareFilter(SearchFieldType.StartTime, toDateTime, SearchFilterCompareCondition.LessThenOrEqual);
+                    if (simpleFilter.FieldType == SearchFieldType.LengthSeconds)
+                    {
+                        compositeSearchFilter.AddCompareFilter(simpleFilter.FieldType, (int)((TimeSpan)simpleFilter.Value).TotalSeconds, simpleFilter.Comparison);
+                    }
+                    else
+                    {
+                        compositeSearchFilter.AddCompareFilter(simpleFilter.FieldType, simpleFilter.Value, simpleFilter.Comparison);
+                    }
                 }
 
                 SearchQueryVM.Filters = compositeSearchFilter;

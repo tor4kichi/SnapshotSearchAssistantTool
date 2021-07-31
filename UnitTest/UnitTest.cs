@@ -35,30 +35,25 @@ namespace UnitTest
         [TestMethod]
         public async Task SnapshotResultMetaSaveAndLoadTest()
         {
-            var meta = new SearchQueryResultMeta() { Fields = NiconicoToolkit.SnapshotSearch.SearchFieldTypeExtensions.FieldTypes.ToArray(), SearchQueryId = Guid.NewGuid(), SnapshotVersion = DateTime.Now, TotalCount = 100 };
-            await SnapshotResultFileHelper.SaveSearchQueryResultMetaAsync(meta);
+            var meta = await SnapshotResultFileHelper.CreateSearchQueryResultMetaAsync("q=Test", DateTimeOffset.Now, 100);
 
             var loadmetas = await SnapshotResultFileHelper.GetSearchQueryResultMetaItemsAsync(meta.SearchQueryId);
             var loadMeta = loadmetas[0];
             Guard.IsEqualTo(meta.SnapshotVersion, loadMeta.SnapshotVersion, nameof(loadMeta.SnapshotVersion));
             Guard.IsEqualTo(meta.TotalCount, loadMeta.TotalCount, nameof(loadMeta.TotalCount));
             Guard.IsEqualTo(meta.CsvFormat, loadMeta.CsvFormat, nameof(loadMeta.CsvFormat));
-            for (int i = 0; i < meta.Fields.Length; i++)
-            {
-                Guard.IsTrue(meta.Fields[i] == loadMeta.Fields[i], nameof(loadMeta.Fields));
-            }
         }
 
 
         [TestMethod]
         public async Task SnapshotResultSaveTemporaryAndIntegrationTest()
         {
-            var meta = new SearchQueryResultMeta() { Fields = NiconicoToolkit.SnapshotSearch.SearchFieldTypeExtensions.FieldTypes.ToArray(), SearchQueryId = Guid.NewGuid(), SnapshotVersion = DateTime.Now, TotalCount = 100 };
+            var meta = new SearchQueryResultMeta() { SearchQueryId = "q=Test", SnapshotVersion = DateTime.Now, TotalCount = 100 };
 
             int oneTimeItemsCount = 100;
             foreach (var i in Enumerable.Range(0, 5))
             {
-                var items = MakeSnapshotResultItems(oneTimeItemsCount, meta.Fields);
+                var items = MakeSnapshotResultItems(oneTimeItemsCount, SearchFieldTypeExtensions.FieldTypes.ToArray());
                 await SnapshotResultFileHelper.Temporary.SaveTemporarySearchResultRangeItemsAsync(meta, oneTimeItemsCount * i, items.ToList());
             }
 
@@ -77,13 +72,13 @@ namespace UnitTest
         {
             var meta = new SearchQueryResultMeta() 
             { 
-                Fields = new SearchFieldType[0], SearchQueryId = Guid.NewGuid(), SnapshotVersion = DateTime.Now, TotalCount = 100 
+                SearchQueryId = "q=Test", SnapshotVersion = DateTime.Now, TotalCount = 100 
             };
 
             int oneTimeItemsCount = 100;
             foreach (var i in Enumerable.Range(0, 5))
             {
-                var items = MakeSnapshotResultItems(oneTimeItemsCount, meta.Fields);
+                var items = MakeSnapshotResultItems(oneTimeItemsCount, SearchFieldTypeExtensions.FieldTypes.ToArray());
                 await SnapshotResultFileHelper.Temporary.SaveTemporarySearchResultRangeItemsAsync(meta, oneTimeItemsCount * i, items.ToList());
             }
 

@@ -5,12 +5,15 @@
     xmlns:local="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+  xmlns:i="using:Microsoft.Xaml.Interactivity" 
+  xmlns:core="using:Microsoft.Xaml.Interactions.Core" 
   xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls" 
   xmlns:viewModels="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels"
   xmlns:winui="using:Microsoft.UI.Xaml.Controls" 
   xmlns:niconicoToolkitSnapshot="using:NiconicoToolkit.SnapshotSearch"
   xmlns:wst="using:WindowsStateTriggers"
-  xmlns:winTriggers="using:Microsoft.Toolkit.Uwp.UI.Triggers"
+  xmlns:winTriggers="using:Microsoft.Toolkit.Uwp.UI.Triggers" 
+  xmlns:conv="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters"
   mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -18,6 +21,8 @@
     <DataTemplate x:Key="SearchFiledTypeSelectableItemTemplate" x:DataType="viewModels:SearchFieldTypeSelectableItem">
       <CheckBox Content="{x:Bind Content}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
     </DataTemplate>
+
+    <conv:HumanReadbleDateTimeConverter x:Key="HumanReadableDateTimeConverter" />
   </Page.Resources>
   <Grid>
     <controls:DockPanel>
@@ -145,61 +150,210 @@
 
           <StackPanel>
             <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
-              <TextBlock Text="絞り込み条件" Style="{StaticResource SubtitleTextBlockStyle}" />
-            </Border>
-            <Border Style="{ThemeResource MicaCardBorderStyle}">
-              <StackPanel Spacing="16">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="絞り込み条件" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <Button >
+                  <Button.Content>
+                    <SymbolIcon Symbol="Add" />
+                  </Button.Content>
 
-                <StackPanel Orientation="Horizontal" Spacing="16">
-                  <TextBlock Text="始点日時" VerticalAlignment="Center" />
+                  <Button.Flyout>
+                    <MenuFlyout>
+                      <MenuFlyoutItem Text="投稿日時" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
+                      <MenuFlyoutItem Text="再生数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
+                      <MenuFlyoutItem Text="マイリスト数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
+                      <MenuFlyoutItem Text="いいね！数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
+                      <MenuFlyoutItem Text="再生時間（秒）" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
+                      <MenuFlyoutItem Text="コメント数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
+                      <MenuFlyoutItem Text="最終コメント時間" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
+                      <MenuFlyoutItem Text="カテゴリタグ" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
+                      <MenuFlyoutItem Text="タグ" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
+                      <MenuFlyoutItem Text="タグ完全一致" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
+                      <MenuFlyoutItem Text="ジャンル" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
+                      <MenuFlyoutItem Text="ジャンル完全一致" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
+                    </MenuFlyout>
+                  </Button.Flyout>
+                </Button>
 
-                  <TextBlock MinWidth="220" VerticalAlignment="Center">
-                    <Run Text="{Binding FilterStartTime_From_Date}" /> <Run Text="{Binding FilterStartTime_From_Time}" />
-                  </TextBlock>
-                  <Button>
-                    <Button.Flyout>
-                      <DatePickerFlyout Date="{Binding FilterStartTime_From_Date, Mode=TwoWay}" />
-                    </Button.Flyout>
-                    <SymbolIcon Symbol="Calendar" />
-                  </Button>
-
-                  <Button>
-                    <Button.Flyout>
-                      <TimePickerFlyout Time="{Binding FilterStartTime_From_Time, Mode=TwoWay}"/>
-                    </Button.Flyout>
-                    <SymbolIcon Symbol="Clock" />
-                  </Button>
-
-                  <Button Command="{Binding ClearFilterStartTimeFromCommand}">
-                    <SymbolIcon Symbol="Clear" />
-                  </Button>
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal" Spacing="16">
-                  <TextBlock Text="終点日時" VerticalAlignment="Center" />
-                  <TextBlock MinWidth="220" VerticalAlignment="Center">
-                    <Run Text="{Binding FilterStartTime_To_Date}" /> <Run Text="{Binding FilterStartTime_To_Time}" />
-                  </TextBlock>
-                  <Button>
-                    <Button.Flyout>
-                      <DatePickerFlyout Date="{Binding FilterStartTime_To_Date, Mode=TwoWay}" />
-                    </Button.Flyout>
-                    <SymbolIcon Symbol="Calendar" />
-                  </Button>
-
-                  <Button>
-                    <Button.Flyout>
-                      <TimePickerFlyout Time="{Binding FilterStartTime_To_Time, Mode=TwoWay}" />
-                    </Button.Flyout>
-                    <SymbolIcon Symbol="Clock" />
-                  </Button>
-
-                  <Button Command="{Binding ClearFilterStartTimeToCommand}">
-                    <SymbolIcon Symbol="Clear" />
-                  </Button>
-                </StackPanel>
               </StackPanel>
             </Border>
+            <Border>
+              <Border.Resources>
+                
+                <local:SimpleFilterTemplateSelector x:Key="SimpleFilterTemplateSelector">
+                  <local:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
+                    <DataTemplate x:DataType="viewModels:DateTimeOffsetSimpleFilterViewModel">
+                      <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
+                        <StackPanel Spacing="8">
+                          <TextBlock Text="{x:Bind FieldType}" />
+                          <StackPanel Orientation="Horizontal" Spacing="16">
+
+                            <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                  SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                    MinWidth="200"
+                                  >
+                            </ComboBox>
+
+                            <TextBox Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
+                            <Button>
+                              <Button.Flyout>
+                                <DatePickerFlyout Date="{x:Bind Date, Mode=TwoWay}" />
+                              </Button.Flyout>
+                              <SymbolIcon Symbol="Calendar" />
+                            </Button>
+                            <Button>
+                              <Button.Flyout>
+                                <TimePickerFlyout Time="{x:Bind Time, Mode=TwoWay}" />
+                              </Button.Flyout>
+                              <SymbolIcon Symbol="Clock" />
+                            </Button>
+                          </StackPanel>
+                        </StackPanel>
+
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                          <Button.Content>
+                            <SymbolIcon Symbol="More" />
+                          </Button.Content>
+                          <Button.Flyout>
+                            <MenuFlyout>
+                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
+                            </MenuFlyout>
+                          </Button.Flyout>
+                        </Button>
+                      </Grid>
+                    </DataTemplate>
+                  </local:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
+                  <local:SimpleFilterTemplateSelector.TimeSpanTemplate>
+                    <DataTemplate x:DataType="viewModels:TimeSpanSimpleFilterViewModel">
+                      <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
+                        <StackPanel Spacing="8">
+                          <TextBlock Text="{x:Bind FieldType}" />
+                          <StackPanel Orientation="Horizontal" Spacing="16">
+
+                            <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                  SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                    MinWidth="200"
+                                  >
+                            </ComboBox>
+
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                              <winui:NumberBox Value="{x:Bind Hours, Mode=TwoWay}" Minimum="0" Maximum="24" SmallChange="1" ToolTipService.ToolTip="時" />
+                              <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
+                              <winui:NumberBox Value="{x:Bind Minutes, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="分" />
+                              <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
+                              <winui:NumberBox Value="{x:Bind Seconds, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="秒" />
+                            </StackPanel>
+                          </StackPanel>
+                        </StackPanel>
+
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                          <Button.Content>
+                            <SymbolIcon Symbol="More" />
+                          </Button.Content>
+                          <Button.Flyout>
+                            <MenuFlyout>
+                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
+                            </MenuFlyout>
+                          </Button.Flyout>
+                        </Button>
+                      </Grid>
+                    </DataTemplate>
+                  </local:SimpleFilterTemplateSelector.TimeSpanTemplate>
+
+                  <local:SimpleFilterTemplateSelector.IntTemplate>
+                    <DataTemplate x:DataType="viewModels:IntSimpleFilterViewModel">
+                      <Grid Style="{ThemeResource MicaCardGirdStyle}"  Margin="16 0">
+                        <StackPanel Spacing="8">
+                          <TextBlock Text="{x:Bind FieldType}" />
+                          <StackPanel Orientation="Horizontal" Spacing="16">
+
+                            <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                  SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                    MinWidth="200"
+                                  >
+                            </ComboBox>
+
+                            <winui:NumberBox Value="{x:Bind Value, Mode=TwoWay}" Minimum="0" LargeChange="1000" SmallChange="100" />
+                          </StackPanel>
+                        </StackPanel>
+
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                          <Button.Content>
+                            <SymbolIcon Symbol="More" />
+                          </Button.Content>
+                          <Button.Flyout>
+                            <MenuFlyout>
+                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
+                            </MenuFlyout>
+                          </Button.Flyout>
+                        </Button>
+                      </Grid>
+                    </DataTemplate>
+                  </local:SimpleFilterTemplateSelector.IntTemplate>
+                  <local:SimpleFilterTemplateSelector.StringTemplate>
+                    <DataTemplate x:DataType="viewModels:StringSimpleFilterViewModel">
+                      <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
+                        <StackPanel Spacing="8">
+                          <TextBlock Text="{x:Bind FieldType}" />
+                          <StackPanel Orientation="Horizontal" Spacing="16">
+                            <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                  SelectedItem="{x:Bind Comparison}"
+                                  IsEnabled="False"
+                                  ToolTipService.ToolTip="文字列は一致のみ"
+                                    MinWidth="200"
+                                  >
+                            </ComboBox>
+
+                            <AutoSuggestBox Text="{x:Bind Value, Mode=TwoWay}"
+                                            ItemsSource="{x:Bind SuggestionItems}"
+                                            MinWidth="120"
+                                            >
+                              <i:Interaction.Behaviors>
+                                <core:EventTriggerBehavior EventName="GotFocus">
+                                  <core:ChangePropertyAction PropertyName="IsSuggestionListOpen" Value="True" />
+                                </core:EventTriggerBehavior>
+                              </i:Interaction.Behaviors>
+                              <AutoSuggestBox.TextBoxStyle>
+                                <Style TargetType="TextBox"></Style>
+                              </AutoSuggestBox.TextBoxStyle>
+                            </AutoSuggestBox>
+                          </StackPanel>
+
+                        </StackPanel>
+
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                          <Button.Content>
+                            <SymbolIcon Symbol="More" />
+                          </Button.Content>
+                          <Button.Flyout>
+                            <MenuFlyout>
+                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
+                            </MenuFlyout>
+                          </Button.Flyout>
+                        </Button>
+                      </Grid>
+                    </DataTemplate>
+                  </local:SimpleFilterTemplateSelector.StringTemplate>
+                </local:SimpleFilterTemplateSelector>
+              </Border.Resources>
+
+              <ItemsControl ItemsSource="{Binding SimpleFilters}"
+                            ItemTemplateSelector="{StaticResource SimpleFilterTemplateSelector}"
+                            Margin="0 16 0 16"
+                            >
+
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Spacing="16">
+
+                    </StackPanel>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+              </ItemsControl>
+
+
+            </Border>
+            
           </StackPanel>
          
 

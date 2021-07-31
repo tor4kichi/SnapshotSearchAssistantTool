@@ -394,7 +394,12 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
             ResultMeta = meta;
 
-            if (ResultPageItems == null)
+            if (meta.TotalCount == 0)
+            {
+                SearchConditionValidationState.IsValid = false;
+                SearchConditionValidationState.ErrorMessage = "検索結果の件数が０件です。検索条件編集に戻って検索キーワードや絞り込み条件を見直してください。";
+            }
+            else if (ResultPageItems == null)
             {
                 ResultPageItems = Enumerable.Range(0, ToPageCount((int)meta.TotalCount))
                 .Select(x => new SnapshotSearchResultPageItemViewModel(_niconicoContext.VideoSnapshotSearch, meta, SearchQueryVM, x))
