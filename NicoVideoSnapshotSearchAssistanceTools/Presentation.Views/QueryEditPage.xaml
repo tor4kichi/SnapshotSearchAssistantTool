@@ -28,29 +28,37 @@
     <controls:DockPanel>
 
       <Grid controls:DockPanel.Dock="Top" Margin="16 48 16 4" MaxWidth="720">
-
-        <StackPanel>
-          <CommandBar DefaultLabelPosition="Right">
-            <CommandBar.Content>
-              <StackPanel Orientation="Horizontal" Margin="24 0" >
-                <TextBlock Text="クエリ編集" Style="{StaticResource TitleTextBlockStyle}" />
+        <controls:DockPanel>
+          <StackPanel Orientation="Horizontal" controls:DockPanel.Dock="Right">
+            <Button Command="{Binding StartSearchProcessCommand}" 
+                        Style="{ThemeResource AccentButtonStyle}"
+                            >
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <SymbolIcon Symbol="Find" />
+                <TextBlock Text="検索（テスト含む）" />
               </StackPanel>
-            </CommandBar.Content>
+            </Button>
+            <CommandBar DefaultLabelPosition="Right"
+                      HorizontalContentAlignment="Right"
+                      HorizontalAlignment="Right"
+                      >
+              <CommandBar.PrimaryCommands>
 
-            <CommandBar.PrimaryCommands>
-              <AppBarButton Label="検索（テスト含む）" Icon="Find" Command="{Binding StartSearchProcessCommand}" />
-            </CommandBar.PrimaryCommands>
-            <CommandBar.SecondaryCommands>
-              <AppBarButton Label="現在の条件をテンプレートとして保存" />
-              <AppBarSeparator />
-              <AppBarButton Label="テンプレートから読み込み" />
-              <AppBarButton Label="検索結果の履歴から読み込み" />
-              <AppBarButton Label="クエリ文字列から読み込み" />
-            </CommandBar.SecondaryCommands>
-          </CommandBar>
-        </StackPanel>
+              </CommandBar.PrimaryCommands>
+              <CommandBar.SecondaryCommands>
+                <AppBarButton Label="現在の条件をテンプレートとして保存" />
+                <AppBarSeparator />
+                <AppBarButton Label="テンプレートから読み込み" />
+                <AppBarButton Label="検索結果の履歴から読み込み" />
+                <AppBarButton Label="クエリ文字列から読み込み" />
+              </CommandBar.SecondaryCommands>
+            </CommandBar>
 
-        
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Margin="24 0" >
+            <TextBlock Text="検索条件" Style="{StaticResource TitleTextBlockStyle}" />
+          </StackPanel>
+        </controls:DockPanel>
       </Grid>
 
       <Grid controls:DockPanel.Dock="Bottom" MaxWidth="720">
@@ -70,8 +78,10 @@
             </Style>
           </StackPanel.Resources>
 
-          <TextBlock Text="編集中の条件は自動保存されます。"
+          <TextBlock Text="編集中の検索条件は自動保存されます"
                      Margin="16 0" 
+                     Opacity="0.75"
+                     HorizontalAlignment="Right"
                      />
 
           <StackPanel>

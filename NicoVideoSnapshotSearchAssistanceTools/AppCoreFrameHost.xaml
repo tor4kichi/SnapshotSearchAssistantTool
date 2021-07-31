@@ -24,7 +24,7 @@
       </muxc:NavigationView.Resources>
       
       <muxc:NavigationView.MenuItems>
-        <muxc:NavigationViewItem Content="クエリ" Tapped="NavigationViewItem_Tapped" Tag="QueryEditPage">
+        <muxc:NavigationViewItem Content="検索" Tapped="NavigationViewItem_Tapped" Tag="QueryEditPage">
           
         </muxc:NavigationViewItem>
         <muxc:NavigationViewItem Content="履歴" Tapped="NavigationViewItem_Tapped" Tag="SearchHistoryPage">
