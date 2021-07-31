@@ -155,7 +155,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             {
                 ServerAvairableValidationState.ObserveProperty(x => x.IsValid).Select(x => x == true),
                 SearchConditionValidationState.ObserveProperty(x => x.IsValid).Select(x => x == true),
-                this.ObserveProperty(x => x.RetryWaitingTime).Select(x => x <= TimeSpan.Zero)
+                this.ObserveProperty(x => x.RetryWaitingTime).Select(x => x <= TimeSpan.Zero),
+                this.ObserveProperty(x => x.ResultMeta).Select(x => x?.TotalCount > 0),
             }
             .CombineLatestValuesAreAllTrue()
             .ToAsyncReactiveCommand()
@@ -195,7 +196,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             }
 
 
-            if (!IsAlreadyDownloadedSnapshotResult)
+            if (!IsAlreadyDownloadedSnapshotResult && ResultMeta?.TotalCount != 0)
             {
                 if (GoRunnningStateCommand.CanExecute())
                 {
@@ -228,7 +229,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         {
             get { return _QueryParameterErrorMessage; }
             set { SetProperty(ref _QueryParameterErrorMessage, value); }
-        }
+        }        
 
 
         #region Prepering Status
@@ -396,8 +397,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
             if (meta.TotalCount == 0)
             {
-                SearchConditionValidationState.IsValid = false;
-                SearchConditionValidationState.ErrorMessage = "検索結果の件数が０件です。検索条件編集に戻って検索キーワードや絞り込み条件を見直してください。";
+                
             }
             else if (ResultPageItems == null)
             {
@@ -655,6 +655,16 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             Clipboard.SetContent(dataPackage);
         }
 
+
+
+        private DelegateCommand _OpenQueryEditPageCommand;
+        public DelegateCommand OpenQueryEditPageCommand =>
+            _OpenQueryEditPageCommand ?? (_OpenQueryEditPageCommand = new DelegateCommand(ExecuteOpenQueryEditPageCommand));
+
+        async void ExecuteOpenQueryEditPageCommand()
+        {
+            await _messenger.Send<NavigationAppCoreFrameRequestMessage>(new(new(nameof(Views.QueryEditPage))));
+        }
 
 
         internal static async Task<SnapshotResponse> GetSnapshotSearchResultOnCurrentConditionAsync(VideoSnapshotSearchClient client, SearchQueryViewModel searchQueryViewModel,  int offset, int limit)

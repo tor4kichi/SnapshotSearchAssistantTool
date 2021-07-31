@@ -139,13 +139,41 @@
 
       </StackPanel>
 
-      <Grid x:Name="QueryParameterErrorUIContainer" uwpControls:DockPanel.Dock="Top" Visibility="Collapsed"
+      <Grid x:Name="TotalCountEqualsZeroUIContainer" uwpControls:DockPanel.Dock="Top" Visibility="Collapsed"
             Style="{ThemeResource MicaCardGirdStyle}"
+            BorderBrush="Yellow"
             >
 
         <StackPanel MinWidth="320"
                     MaxWidth="720"
-             HorizontalAlignment="Center">
+             HorizontalAlignment="Center"
+                    Spacing="8"
+                    >
+          <TextBlock Text="取得可能なアイテムが無いようです。" Style="{StaticResource SubtitleTextBlockStyle}" IsTextSelectionEnabled="True"                      
+                     />
+          <TextBlock IsTextSelectionEnabled="True"                     
+                     >
+            <Run Text="検索条件は正しいのですが、取得件数が０件で表示できるアイテムがありません。" />
+            <Run Text="検索条件を修正して再度検索してみてください。" />
+          </TextBlock>
+
+          <Button Content="検索条件を修正する" 
+                  Style="{ThemeResource AccentButtonStyle}"
+                  Command="{Binding OpenQueryEditPageCommand}"
+                  />
+        </StackPanel>
+      </Grid>
+      
+      <Grid x:Name="QueryParameterErrorUIContainer" uwpControls:DockPanel.Dock="Top" Visibility="Collapsed"
+            Style="{ThemeResource MicaCardGirdStyle}"
+            BorderBrush="Red"
+            >
+
+        <StackPanel MinWidth="320"
+                    MaxWidth="720"
+             HorizontalAlignment="Center"
+                    Spacing="8"
+                    >
           <TextBlock Text="検索条件のエラー" Style="{StaticResource SubtitleTextBlockStyle}" />
           <TextBlock IsTextSelectionEnabled="True"                     
                      >
@@ -154,6 +182,12 @@
           <TextBlock IsTextSelectionEnabled="True">
             <Run Text="{Binding QueryParameterErrorMessage}" />
           </TextBlock>
+
+          <Button Content="検索条件を修正する" 
+                  Style="{ThemeResource AccentButtonStyle}"
+                  Command="{Binding OpenQueryEditPageCommand}"
+                  />
+
         </StackPanel>
       </Grid>
 
@@ -161,7 +195,6 @@
             Style="{ThemeResource MicaCardGirdStyle}"
             BorderBrush="Red"
             BorderThickness="0.75"
-            
             >
 
         <StackPanel Spacing="8"
@@ -332,6 +365,16 @@
         </VisualState>
       </VisualStateGroup>
 
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <uwpTriggers:IsEqualStateTrigger Value="{Binding ResultMeta.TotalCount}" To="0" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="TotalCountEqualsZeroUIContainer.Visibility" Value="Visible" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
       
       <VisualStateGroup>
         <VisualState>
