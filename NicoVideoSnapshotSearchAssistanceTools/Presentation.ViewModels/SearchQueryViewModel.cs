@@ -220,7 +220,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     var value = nvc.Get(filter);
                     var split = filter.Split(new char[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
                     var field = _fieldTypeDescriptionMap[split[1]];
-                    var condition = _conditionTypeDescriptionMap[split[2]];
+                    var condition = _conditionTypeDescriptionMap.GetValueOrDefault(split[2]);
 
                     var targetTypeAttr = field.GetAttrubute<SearchFieldTypeAttribute>();
                     Guard.IsFalse(targetTypeAttr.IsDefaultAttribute(), nameof(targetTypeAttr.IsDefaultAttribute));
