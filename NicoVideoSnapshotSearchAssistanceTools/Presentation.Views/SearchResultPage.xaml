@@ -7,12 +7,15 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
   xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
   xmlns:conv="using:Microsoft.Toolkit.Uwp.UI.Converters"
+  xmlns:myConv="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters"
   mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
   <Page.Resources>
     <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <local:DictionaryVisibilityConverter x:Key="DictionaryVisibilityConverter" />
+    <myConv:HumanReadbleDateTimeConverter x:Key="HumanReadbleDateTimeConverter" />
+    <myConv:SecondsToReadableTimeConverter x:Key="SecondsToReadableTimeConverter" />
   </Page.Resources>
   <Grid>
 
@@ -43,13 +46,13 @@
           />
         <controls:DataGridTextColumn 
           Header="投稿時間" 
-          Binding="{Binding StartTime}" 
+          Binding="{Binding StartTime, Converter={StaticResource HumanReadbleDateTimeConverter}}" 
           Tag="StartTime" 
           Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=StartTime, Mode=OneWay}" 
           />
         <controls:DataGridTextColumn 
           Header="再生時間" 
-          Binding="{Binding LengthSeconds}" 
+          Binding="{Binding LengthSeconds, Converter={StaticResource SecondsToReadableTimeConverter}}" 
           Tag="LengthSeconds" 
           Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=LengthSeconds, Mode=OneWay}" 
           />

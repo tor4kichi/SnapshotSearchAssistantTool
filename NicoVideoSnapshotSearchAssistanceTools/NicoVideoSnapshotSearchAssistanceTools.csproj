@@ -128,6 +128,7 @@
     <Compile Include="Presentation.ViewModels\SearchQueryTemplateViewModel.cs" />
     <Compile Include="Presentation.ViewModels\SearchQueryViewModel.cs" />
     <Compile Include="Presentation.Views.Converters\HumanReadbleDateTimeConverter.cs" />
+    <Compile Include="Presentation.Views.Converters\SecondsToReadableTimeConverter.cs" />
     <Compile Include="Presentation.Views\QueryEditPage.xaml.cs">
       <DependentUpon>QueryEditPage.xaml</DependentUpon>
     </Compile>
