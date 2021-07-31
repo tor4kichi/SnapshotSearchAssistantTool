@@ -84,19 +84,31 @@
                      HorizontalAlignment="Right"
                      />
 
-          <StackPanel>
-            <Border Margin="16 0">
-              <TextBlock Text="検索用途を示すID（必須）" Style="{StaticResource SubtitleTextBlockStyle}"
-                         />
-            </Border>
-            <Border Style="{ThemeResource MicaCardBorderStyle}">
-              <TextBox Text="{Binding SearchQueryVM.Context, Mode=TwoWay}" MaxLength="40"
-                       PlaceholderText="例）月刊○○ランキング"
-                       x:Name="ContextTextBox"
-                       />
-            </Border>
-          </StackPanel>
-          
+          <winui:Expander Margin="16 0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+
+            <i:Interaction.Behaviors>
+              <core:DataTriggerBehavior Binding="{Binding IsInvalidContext.Value}" Value="True" ComparisonCondition="Equal">
+                <core:ChangePropertyAction PropertyName="IsExpanded" Value="True" />
+              </core:DataTriggerBehavior>
+            </i:Interaction.Behaviors>
+            
+            <winui:Expander.Header>
+              <StackPanel>
+                <TextBlock Text="コンテキストID（必須）" 
+                        />
+              </StackPanel>
+            </winui:Expander.Header>
+            <winui:Expander.Content>
+              <StackPanel Spacing="16">
+                <TextBox Text="{Binding ContextQueryParameter.Value, Mode=TwoWay}" MaxLength="40"
+                      PlaceholderText="例）月刊○○ランキング"
+                      x:Name="ContextTextBox"
+                      />
+                <TextBlock Text="検索パラメータの「_context」に指定する文字列です" />
+                <TextBlock Text="企画名や動画シリーズ名などを指定することをこのアプリの開発者として推奨" />
+              </StackPanel>
+            </winui:Expander.Content>
+          </winui:Expander>
           
           <StackPanel>
             <Border Margin="16 0">

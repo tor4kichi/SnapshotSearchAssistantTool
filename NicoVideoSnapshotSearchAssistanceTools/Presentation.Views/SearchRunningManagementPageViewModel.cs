@@ -113,6 +113,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         {
             await base.OnNavigatedToAsync(parameters);
 
+            Guard.IsNotNullOrEmpty(_applicationInternalSettings.ContextQueryParameter, nameof(_applicationInternalSettings.ContextQueryParameter));
+
             _navigationDisposable = new CompositeDisposable();
             _cancellationTokenSource = new CancellationTokenSource()
                 .AddTo(_navigationDisposable);
@@ -182,10 +184,10 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
             try
             {
-                SearchQueryText = SearchQueryVM.SeriaizeParameters();
+                SearchQueryText = SearchQueryVM.SeriaizeParameters(_applicationInternalSettings.ContextQueryParameter);
                 SearchQueryReadableText = Uri.UnescapeDataString(SearchQueryText);
 
-                await RestoreSearchResultIfExistAsync(SearchQueryText);
+                await RestoreSearchResultIfExistAsync();
             }
             catch
             {
@@ -252,7 +254,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             set { SetProperty(ref _IsAlreadyDownloadedSnapshotResult, value); }
         }
 
-        async Task RestoreSearchResultIfExistAsync(string searchQueryId)
+        async Task RestoreSearchResultIfExistAsync()
         {
             ServerAvairableValidationState.Reset();
             SearchConditionValidationState.Reset();
@@ -283,7 +285,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 return totalCount == 0 ? 0 : totalCount / SearchConstants.MaxSearchLimit + 1;
             }
 
-            var metaItems = await SnapshotResultFileHelper.GetSearchQueryResultMetaItemsAsync(searchQueryId);
+            var searchQueryWithoutContext = SearchQueryVM.SeriaizeParameters();
+            var metaItems = await SnapshotResultFileHelper.GetSearchQueryResultMetaItemsAsync(searchQueryWithoutContext);
             SearchQueryResultMeta meta = metaItems.FirstOrDefault(x => x.SnapshotVersion == CurrentApiVersion);
 
             IsAlreadyDownloadedSnapshotResult = meta != null 
@@ -332,7 +335,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     }
 
                     ResultPageItems = Enumerable.Range(0, ToPageCount((int)meta.TotalCount))
-                        .Select(x => new SnapshotSearchResultPageItemViewModel(_niconicoContext.VideoSnapshotSearch, meta, SearchQueryVM, x, downloadCount.ElementAtOrDefault(x)) { CsvFile = tempFiles.ElementAtOrDefault(x) })
+                        .Select(x => new SnapshotSearchResultPageItemViewModel(_niconicoContext.VideoSnapshotSearch, meta, SearchQueryVM, _applicationInternalSettings.ContextQueryParameter, x, downloadCount.ElementAtOrDefault(x)) { CsvFile = tempFiles.ElementAtOrDefault(x) })
                         .ToArray();
 
                     SearchConditionValidationState.IsValid = true;
@@ -353,10 +356,10 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 SearchConditionValidationState.NowProcessing = true;
                 try
                 {
-                    var firstResult = await GetSnapshotSearchResultOnCurrentConditionAsync(_niconicoContext.VideoSnapshotSearch, SearchQueryVM, 0, 10);
+                    var firstResult = await GetSnapshotSearchResultOnCurrentConditionAsync(_niconicoContext.VideoSnapshotSearch, SearchQueryVM, _applicationInternalSettings.ContextQueryParameter, 0, 10);
                     ThrowNiconicoWebExceptionIfNotSuccess(firstResult.Meta);
 
-                    meta = await SnapshotResultFileHelper.CreateSearchQueryResultMetaAsync(searchQueryId, CurrentApiVersion.Value, firstResult.Meta.TotalCount);
+                    meta = await SnapshotResultFileHelper.CreateSearchQueryResultMetaAsync(searchQueryWithoutContext, CurrentApiVersion.Value, firstResult.Meta.TotalCount);
                     
                     SearchConditionValidationState.IsValid = true;
                 }
@@ -402,7 +405,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             else if (ResultPageItems == null)
             {
                 ResultPageItems = Enumerable.Range(0, ToPageCount((int)meta.TotalCount))
-                .Select(x => new SnapshotSearchResultPageItemViewModel(_niconicoContext.VideoSnapshotSearch, meta, SearchQueryVM, x))
+                .Select(x => new SnapshotSearchResultPageItemViewModel(_niconicoContext.VideoSnapshotSearch, meta, SearchQueryVM, _applicationInternalSettings.ContextQueryParameter, x))
                 .ToArray();
 
             }
@@ -667,13 +670,13 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         }
 
 
-        internal static async Task<SnapshotResponse> GetSnapshotSearchResultOnCurrentConditionAsync(VideoSnapshotSearchClient client, SearchQueryViewModel searchQueryViewModel,  int offset, int limit)
+        internal static async Task<SnapshotResponse> GetSnapshotSearchResultOnCurrentConditionAsync(VideoSnapshotSearchClient client, SearchQueryViewModel searchQueryViewModel, string context, int offset, int limit)
         {
             return await client.GetVideoSnapshotSearchAsync(
                 searchQueryViewModel.Keyword,
                 searchQueryViewModel.Targets,
                 searchQueryViewModel.Sort,
-                searchQueryViewModel.Context,
+                context,
                 offset,
                 limit,
                 searchQueryViewModel.Fields,
@@ -751,12 +754,14 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         private readonly VideoSnapshotSearchClient _searchClient;
         private readonly SearchQueryResultMeta _meta;
         private readonly SearchQueryViewModel _searchQueryVM;
+        private readonly string _context;
 
-        public SnapshotSearchResultPageItemViewModel(VideoSnapshotSearchClient searchClient, SearchQueryResultMeta meta, SearchQueryViewModel searchQueryVM, int page, int downloadedCount = 0)
+        public SnapshotSearchResultPageItemViewModel(VideoSnapshotSearchClient searchClient, SearchQueryResultMeta meta, SearchQueryViewModel searchQueryVM, string context, int page, int downloadedCount = 0)
         {
             _searchClient = searchClient;
             _meta = meta;
             _searchQueryVM = searchQueryVM;
+            _context = context;
             Page = page;
         }
 
@@ -793,7 +798,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         {
             (CsvFile, DownloadedCount) = await Task.Run(async () => 
             {
-                var response = await SearchRunningManagementPageViewModel.GetSnapshotSearchResultOnCurrentConditionAsync(_searchClient, _searchQueryVM, Page * 100, 100);
+                var response = await SearchRunningManagementPageViewModel.GetSnapshotSearchResultOnCurrentConditionAsync(_searchClient, _searchQueryVM, _context, Page * 100, 100);
                 SearchRunningManagementPageViewModel.ThrowNiconicoWebExceptionIfNotSuccess(response.Meta);
                 return (await SnapshotResultFileHelper.Temporary.SaveTemporarySearchResultRangeItemsAsync(_meta, Page, response.Items, ct), response.Items.Length);
             });

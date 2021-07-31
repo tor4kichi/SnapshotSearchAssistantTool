@@ -265,6 +265,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             set { SetProperty(ref _SearchQueryVM, value); }
         }
 
+        public ReactivePropertySlim<string> ContextQueryParameter { get; private set; }
 
         public SearchFieldTypeSelectableItem[] FieldSelectableItems { get; } =
             SearchFieldTypeExtensions.FieldTypes
@@ -405,6 +406,11 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             base.OnNavigatedTo(parameters);
 
             _navigationDisposables = new CompositeDisposable();
+
+            ContextQueryParameter = _applicationInternalSettings.ToReactivePropertySlimAsSynchronized(x => x.ContextQueryParameter)
+                .AddTo(_navigationDisposables);
+            RaisePropertyChanged(nameof(ContextQueryParameter));
+
             try
             {
                 if (parameters.GetNavigationMode() == NavigationMode.New)
@@ -491,7 +497,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
                         IsInvalidTargets = SearchQueryVM.GetValidTargetsObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_navigationDisposables);
                         IsInvalidSort = SearchQueryVM.GetValidSortObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_navigationDisposables);
-                        IsInvalidContext = SearchQueryVM.GetValidContextObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_navigationDisposables);
+                        IsInvalidContext = ContextQueryParameter.Select(x => string.IsNullOrWhiteSpace(x)).ToReadOnlyReactivePropertySlim().AddTo(_navigationDisposables);
 
                         StartSearchProcessCommand = new[]
                         {

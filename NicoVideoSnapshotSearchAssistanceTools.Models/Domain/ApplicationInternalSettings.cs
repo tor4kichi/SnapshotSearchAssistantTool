@@ -41,6 +41,13 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
 
             LastOpenPageName = lastOpenPageName;
             LastOpenPageParameterKeyValues = parameters.Select(x => new KeyValuePair<string, string>(x.key, x.value)).ToArray();
-        }        
+        }
+
+
+        public string ContextQueryParameter
+        {
+            get => Read(default(string));
+            set => Save(value);
+        }
     }
 }

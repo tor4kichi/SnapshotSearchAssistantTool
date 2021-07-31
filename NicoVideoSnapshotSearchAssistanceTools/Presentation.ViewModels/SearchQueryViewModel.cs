@@ -84,19 +84,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             set { SetProperty(ref _Filters, value); }
         }
 
-
-        private string _Context;
-        public string Context
-        {
-            get { return _Context; }
-            set { SetProperty(ref _Context, value); }
-        }
-
-        public IObservable<bool> GetValidContextObservable()
-        {
-            return this.ObserveProperty(x => x.Context).Select(x => !string.IsNullOrWhiteSpace(x));
-        }
-
         #endregion Query Parameter Property
 
 
@@ -254,8 +241,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 var data = JsonSerializer.Deserialize<IJsonSearchFilterData>(jsonFilters);
                 Filters = RecursiveBuildJsonSearchFilter(data);
             }
-
-            Context = nvc.Get(SearchConstants.ContextParameter) ?? string.Empty;
         }
 
         static IJsonSearchFilter RecursiveBuildJsonSearchFilter(IJsonSearchFilterData data)
@@ -330,9 +315,9 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             }
         }
 
-        public string SeriaizeParameters()
+        public string SeriaizeParameters(string context = null)
         {
-            return SeriaizeParameters(Keyword, Targets, Sort, Fields, Filters, Context);
+            return SeriaizeParameters(Keyword, Targets, Sort, Fields, Filters, context);
         }
 
 
@@ -350,8 +335,14 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 { SearchConstants.QuaryParameter, keyword ?? string.Empty },
                 { SearchConstants.TargetsParameter, targets.ToQueryString() },
                 { SearchConstants.SortParameter, sort.ToString() },
-                { SearchConstants.ContextParameter, context },
             };
+
+            // Contextは本来必須だが、アプリの仕様上、Contextをアプリ設定として保持したいので
+            // 空の場合にシリアライズから除外できるようにしている
+            if (!string.IsNullOrWhiteSpace(context))
+            {
+                nvc.Add(SearchConstants.ContextParameter, context);
+            }
 
             if (fields is not null)
             {
