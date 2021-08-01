@@ -7,58 +7,97 @@ using NiconicoToolkit.User;
 using NiconicoToolkit.Video;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
 using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
+using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Navigation;
 using Reactive.Bindings;
+using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 {
+
+
     public sealed class SearchResultPageViewModel : ViewModelBase, IConfirmNavigationAsync
     {
         public SearchResultPageViewModel(
             IMessenger messenger,
-            ApplicationInternalSettings applicationInternalSettings
+            ApplicationInternalSettings applicationInternalSettings,
+            SearchResultSettings searchResultSettings
             )
         {
             _messenger = messenger;
             _applicationInternalSettings = applicationInternalSettings;
+            _searchResultSettings = searchResultSettings;
         }
 
         private readonly IMessenger _messenger;
         private readonly ApplicationInternalSettings _applicationInternalSettings;
-
-
-
+        private readonly SearchResultSettings _searchResultSettings;
         private SearchQueryViewModel _SearchQueryVM;
         public SearchQueryViewModel SearchQueryVM
         {
             get { return _SearchQueryVM; }
-            set { SetProperty(ref _SearchQueryVM, value); }
+            private set { SetProperty(ref _SearchQueryVM, value); }
         }
 
         private SearchQueryResultMeta _resultMeta;
         public SearchQueryResultMeta ResultMeta
         {
             get { return _resultMeta; }
-            set { SetProperty(ref _resultMeta, value); }
+            private set { SetProperty(ref _resultMeta, value); }
         }
 
         public AdvancedCollectionView ItemsView { get; } = new AdvancedCollectionView();
 
+
+        private ReactivePropertySlim<double> _ViewCounterWeightingFactor;
+        public ReactivePropertySlim<double> ViewCounterWeightingFactor
+        {
+            get { return _ViewCounterWeightingFactor; }
+            private set { SetProperty(ref _ViewCounterWeightingFactor, value); }
+        }
+
+        private ReactivePropertySlim<double> _MylistCounterWeightingFactor;
+        public ReactivePropertySlim<double> MylistCounterWeightingFactor
+        {
+            get { return _MylistCounterWeightingFactor; }
+            private set { SetProperty(ref _MylistCounterWeightingFactor, value); }
+        }
+
+        private ReactivePropertySlim<double> _CommentCounterWeightingFactor;
+        public ReactivePropertySlim<double> CommentCounterWeightingFactor
+        {
+            get { return _CommentCounterWeightingFactor; }
+            private set { SetProperty(ref _CommentCounterWeightingFactor, value); }
+        }
+
+        private ReactivePropertySlim<double> _LikeCounterWeightingFactor;
+        public ReactivePropertySlim<double> LikeCounterWeightingFactor
+        {
+            get { return _LikeCounterWeightingFactor; }
+            private set { SetProperty(ref _LikeCounterWeightingFactor, value); }
+        }
+
+
+
         CancellationTokenSource _navigationCts;
+        CompositeDisposable _navigationDisposable;
 
         private bool _isFailed;
         public bool IsFailed
         {
             get { return _isFailed; }
-            set { SetProperty(ref _isFailed, value); }
+            private set { SetProperty(ref _isFailed, value); }
         }
 
         private string _FailedErrorMessage;
@@ -66,21 +105,30 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         public string FailedErrorMessage
         {
             get { return _FailedErrorMessage; }
-            set { SetProperty(ref _FailedErrorMessage, value); }
+            private set { SetProperty(ref _FailedErrorMessage, value); }
         }
 
+        public const string CustomFieldTypeName_Index = "Index";
+        public const string CustomFieldTypeName_Score = "Score";
+
+        public readonly static string[] CustomFieldTypeNames = new[]
+        {
+            CustomFieldTypeName_Index,
+            CustomFieldTypeName_Score
+        };
 
         public Dictionary<string, bool> VisibilityMap { get; } = 
             Enumerable.Concat(
                 SearchFieldTypeExtensions.FieldTypes.Select(x => x.ToString()),
-                new[] { "Index" }
+                CustomFieldTypeNames
                 )
                 .ToDictionary(x => x, x => true);
 
         public override async Task OnNavigatedToAsync(INavigationParameters parameters)
-        {            
+        {
+            _navigationDisposable = new CompositeDisposable();
             _navigationCts = new CancellationTokenSource();
-
+            
             await base.OnNavigatedToAsync(parameters);
 
             try
@@ -120,9 +168,18 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 var fieldHashSet = SearchQueryVM.Fields.Select(x => x.ToString()).ToHashSet();
                 foreach (var pair in VisibilityMap.ToArray())
                 {
-                    if (pair.Key == "Index")
+                    if (pair.Key == CustomFieldTypeName_Index)
                     {
                         VisibilityMap[pair.Key] = true;
+                    }
+                    else if (pair.Key == CustomFieldTypeName_Score)
+                    {
+                        VisibilityMap[pair.Key] =
+                            fieldHashSet.Contains(nameof(SearchFieldType.ViewCounter))
+                            || fieldHashSet.Contains(nameof(SearchFieldType.MylistCounter))
+                            || fieldHashSet.Contains(nameof(SearchFieldType.CommentCounter))
+                            || fieldHashSet.Contains(nameof(SearchFieldType.LikeCounter))
+                            ;
                     }
                     else
                     {
@@ -138,13 +195,34 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 {
                     var itemsAsyncEnumerator = SnapshotResultFileHelper.GetSearchResultItemsAsync(ResultMeta, ct);
                     int counter = 1;
+
+                    bool culcScore = VisibilityMap[CustomFieldTypeName_Score];
                     await foreach (var item in itemsAsyncEnumerator)
                     {
-                        ItemsView.Add(new SnapshotItemViewModel(counter, item));
+                        var itemVM = new SnapshotItemViewModel(counter, item);
+                        if (culcScore)
+                        {
+                            CulcScore(itemVM);
+                        }
+                        ItemsView.Add(itemVM);
                         counter++;
                         ct.ThrowIfCancellationRequested();
                     }
                 }
+
+                ViewCounterWeightingFactor = _searchResultSettings.ToReactivePropertySlimAsSynchronized(x => x.ViewCounterWeightingFactor, mode: ReactivePropertyMode.DistinctUntilChanged)
+                    .AddTo(_navigationDisposable);
+                MylistCounterWeightingFactor = _searchResultSettings.ToReactivePropertySlimAsSynchronized(x => x.MylistCounterWeightingFactor, mode: ReactivePropertyMode.DistinctUntilChanged)
+                    .AddTo(_navigationDisposable);
+                CommentCounterWeightingFactor = _searchResultSettings.ToReactivePropertySlimAsSynchronized(x => x.CommentCounterWeightingFactor, mode: ReactivePropertyMode.DistinctUntilChanged)
+                    .AddTo(_navigationDisposable);
+                LikeCounterWeightingFactor = _searchResultSettings.ToReactivePropertySlimAsSynchronized(x => x.LikeCounterWeightingFactor, mode: ReactivePropertyMode.DistinctUntilChanged)
+                    .AddTo(_navigationDisposable);
+
+                _prevViewCounterWeightingFactor = _searchResultSettings.ViewCounterWeightingFactor;
+                _prevMylistCounterWeightingFactor = _searchResultSettings.MylistCounterWeightingFactor;
+                _prevCommentCounterWeightingFactor = _searchResultSettings.CommentCounterWeightingFactor;
+                _prevLikeCounterWeightingFactor = _searchResultSettings.LikeCounterWeightingFactor;
             }
             catch (Exception ex)
             {
@@ -154,6 +232,69 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 throw;
             }
         }
+
+        double _prevViewCounterWeightingFactor;
+        double _prevMylistCounterWeightingFactor;
+        double _prevCommentCounterWeightingFactor;
+        double _prevLikeCounterWeightingFactor;
+
+        private DelegateCommand _ReCulcScoreCommand;
+        public DelegateCommand ReCulcScoreCommand =>
+            _ReCulcScoreCommand ?? (_ReCulcScoreCommand = new DelegateCommand(ExecuteReCulcScoreCommand));
+
+        async void ExecuteReCulcScoreCommand()
+        {
+            // 閉じた瞬間に呼ばれると同値のままの可能性があるのでちょい待ち
+            await Task.Delay(1);
+
+            if (_prevViewCounterWeightingFactor == _searchResultSettings.ViewCounterWeightingFactor
+                && _prevMylistCounterWeightingFactor == _searchResultSettings.MylistCounterWeightingFactor
+                && _prevCommentCounterWeightingFactor == _searchResultSettings.CommentCounterWeightingFactor
+                && _prevLikeCounterWeightingFactor == _searchResultSettings.LikeCounterWeightingFactor
+                )
+            {
+                return;
+            }
+
+            _prevViewCounterWeightingFactor = _searchResultSettings.ViewCounterWeightingFactor;
+            _prevMylistCounterWeightingFactor = _searchResultSettings.MylistCounterWeightingFactor;
+            _prevCommentCounterWeightingFactor = _searchResultSettings.CommentCounterWeightingFactor;
+            _prevLikeCounterWeightingFactor = _searchResultSettings.LikeCounterWeightingFactor;
+
+            Debug.WriteLine("スコア再計算 開始");
+            foreach (var item in ItemsView.Cast<SnapshotItemViewModel>())
+            {
+                CulcScore(item);
+                if (_navigationCts?.IsCancellationRequested ?? true) { return; }
+            }
+
+            if (ItemsView.SortDescriptions.Any(x => x.PropertyName == CustomFieldTypeName_Score))
+            {
+                ItemsView.RefreshSorting();
+            }
+
+            Debug.WriteLine("スコア再計算 完了");
+        }
+        
+
+        #region Score
+
+        private void CulcScore(SnapshotItemViewModel item)
+        {
+            item.Score = CulcScore(item.ViewCounter, item.MylistCounter, item.CommentCounter, item.LikeCounter);
+        }
+
+        public long CulcScore(long? viewCounter, long? mylistCounter, long? commentCounter, long? likeCounter)
+        {
+            return (long)Math.Round(
+                  (viewCounter ?? 0) * _searchResultSettings.ViewCounterWeightingFactor
+                + (mylistCounter ?? 0) * _searchResultSettings.MylistCounterWeightingFactor
+                + (commentCounter ?? 0) * _searchResultSettings.CommentCounterWeightingFactor
+                + (likeCounter ?? 0) * _searchResultSettings.LikeCounterWeightingFactor
+                );
+        }
+
+        #endregion
     }
 
 
@@ -170,6 +311,12 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         public int Index { get; }
 
 
+        private long? _Score;
+        public long? Score
+        {
+            get { return _Score; }
+            set { SetProperty(ref _Score, value); }
+        }
 
 
         public long? MylistCounter => _snapshotVideoItem.MylistCounter;

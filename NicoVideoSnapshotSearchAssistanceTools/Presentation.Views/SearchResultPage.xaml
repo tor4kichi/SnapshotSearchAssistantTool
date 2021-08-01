@@ -5,9 +5,13 @@
     xmlns:local="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+  xmlns:i="using:Microsoft.Xaml.Interactivity" 
+  xmlns:core="using:Microsoft.Xaml.Interactions.Core" 
   xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+  xmlns:tkControlsPrim="using:Microsoft.Toolkit.Uwp.UI.Controls.Primitives"
+  xmlns:winui="using:Microsoft.UI.Xaml.Controls"
   xmlns:conv="using:Microsoft.Toolkit.Uwp.UI.Converters"
-  xmlns:myConv="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters"
+  xmlns:myConv="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters"  
   mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -24,7 +28,46 @@
                        FontSize="12"
                        Sorting="DataGrid_Sorting"
                        >
+      <controls:DataGrid.Resources>
+        <Style TargetType="winui:NumberBox" x:Key="WeightingFactorNumberBoxStyle">
+          <Setter Property="Minimum" Value="0" />
+          <Setter Property="Maximum" Value="100000" />
+          <Setter Property="MinWidth" Value="180" />
+        </Style>
+        <Flyout x:Key="ScoreResultItemFlyout" 
+                xmlns:myInteractions="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Interactions"
+                myInteractions:FlyoutExtensions.DataContextPropagationToFlyoutChild="True"
+                Placement="RightEdgeAlignedTop"
+                >
+          <i:Interaction.Behaviors>
+            <core:EventTriggerBehavior EventName="Closing">
+              <core:InvokeCommandAction Command="{x:Bind ViewModel.ReCulcScoreCommand, Mode=OneWay}" />
+            </core:EventTriggerBehavior>
+          </i:Interaction.Behaviors>
+          <StackPanel Spacing="16">
+            <winui:NumberBox Value="{Binding ViewCounterWeightingFactor.Value, Mode=TwoWay}" Header="再生数" Style="{StaticResource WeightingFactorNumberBoxStyle}" />
+            <winui:NumberBox Value="{Binding MylistCounterWeightingFactor.Value, Mode=TwoWay}" Header="マイリスト数" Style="{StaticResource WeightingFactorNumberBoxStyle}" />
+            <winui:NumberBox Value="{Binding CommentCounterWeightingFactor.Value, Mode=TwoWay}" Header="コメント数" Style="{StaticResource WeightingFactorNumberBoxStyle}" />
+            <winui:NumberBox Value="{Binding LikeCounterWeightingFactor.Value, Mode=TwoWay}" Header="いいね！数" Style="{StaticResource WeightingFactorNumberBoxStyle}" />
+
+            <TextBlock Text="ポップアップを閉じると自動で再計算します" TextWrapping="Wrap" MaxWidth="120" Opacity="0.75" />
+          </StackPanel>
+        </Flyout>
+      </controls:DataGrid.Resources>
+      
       <controls:DataGrid.Columns>
+        <controls:DataGridTextColumn 
+          Header="スコア" 
+          Binding="{Binding Score, Mode=OneWay}" Tag="Score" 
+          Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Score, Mode=OneWay}"           
+          >
+          <controls:DataGridTextColumn.HeaderStyle>
+            <Style TargetType="tkControlsPrim:DataGridColumnHeader">
+              <Setter Property="ContextFlyout" Value="{StaticResource ScoreResultItemFlyout}" />
+            </Style>
+          </controls:DataGridTextColumn.HeaderStyle>
+        </controls:DataGridTextColumn>
+
         <controls:DataGridTextColumn 
           Header="取得番号" 
           Binding="{Binding Index}" Tag="Index" 

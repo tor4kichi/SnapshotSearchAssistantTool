@@ -53,7 +53,10 @@
                   IsItemClickEnabled="True"
                   >
           <ListView.Resources>
-            <MenuFlyout x:Key="MetaVMItemFlyout" Opening="MenuFlyout_Opening">
+            <MenuFlyout x:Key="MetaVMItemFlyout" 
+                        xmlns:myInteractions="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Interactions"
+                        myInteractions:FlyoutExtensions.DataContextPropagationToFlyoutChild="True"
+                        >
               <MenuFlyoutItem Text="検索条件を開く" Command="{Binding OpenEditPageCommand}"/>
             </MenuFlyout>
           </ListView.Resources>

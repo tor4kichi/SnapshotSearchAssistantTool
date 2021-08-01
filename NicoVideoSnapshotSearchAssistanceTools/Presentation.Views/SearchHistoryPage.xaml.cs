@@ -35,20 +35,5 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views
                 vm.OpenSnapshotResultPageCommand.Execute();
             }
         }
-
-        private void MenuFlyout_Opening(object sender, object e)
-        {
-            var flyout = sender as MenuFlyout;
-            var dataContext = (flyout.Target as ListViewItem)?.Content;
-            if (dataContext == null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            foreach (var menuItem in flyout.Items)
-            {
-                menuItem.DataContext = dataContext;
-            }
-        }
     }
 }
