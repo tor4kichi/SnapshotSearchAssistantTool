@@ -122,6 +122,13 @@ namespace NicoVideoSnapshotSearchAssistanceTools
 
         public override async void OnInitialized()
         {
+#if DEBUG
+            Resources["IsDebug"] = true;
+#else
+            Resources["IsDebug"] = false;
+#endif
+
+
             InitializeUIShell();
 
             var messenger = Container.Resolve<IMessenger>();

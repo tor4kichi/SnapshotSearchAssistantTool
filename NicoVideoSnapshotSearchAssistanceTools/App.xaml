@@ -5,14 +5,25 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:NicoVideoSnapshotSearchAssistanceTools" 
   xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+  xmlns:uwpConv="using:Microsoft.Toolkit.Uwp.UI.Converters"
   >
   <prism:PrismApplication.Resources>
-    <controls:XamlControlsResources>
-      <controls:XamlControlsResources.MergedDictionaries>
+
+    <ResourceDictionary>
+
+      <x:Boolean x:Key="IsDebug">False</x:Boolean>
+
+      <uwpConv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+
+
+
+      <ResourceDictionary.MergedDictionaries>
         <controls:XamlControlsResources />
         <!-- Other app resources here -->
 
         <ResourceDictionary>
+
           <Style TargetType="Border" x:Key="MicaCardBorderStyle">
             <Setter Property="Background" Value="{ThemeResource LayerFillColorDefaultBrush}" />
             <Setter Property="Margin" Value="16" />
@@ -50,8 +61,7 @@
             <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
           </Style>
         </ResourceDictionary>
-      </controls:XamlControlsResources.MergedDictionaries>
-
-    </controls:XamlControlsResources>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
   </prism:PrismApplication.Resources>
 </prism:PrismApplication>

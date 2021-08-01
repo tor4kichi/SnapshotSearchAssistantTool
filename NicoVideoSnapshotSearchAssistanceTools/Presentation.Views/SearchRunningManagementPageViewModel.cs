@@ -523,15 +523,12 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 #endif
                 foreach (var pageItem in ResultPageItems.SkipWhile(x => x.IsDownloaded))
                 {
+                    await Task.Delay(stopwatch.Elapsed);
+                    stopwatch.Reset();
                     stopwatch.Start();
                     await pageItem.DownloadAsync(ct);
                     stopwatch.Stop();
-
-                    ProcessedCount += pageItem.DownloadedCount;
-
-                    await Task.Delay(stopwatch.Elapsed);
-
-                    stopwatch.Reset();
+                    ProcessedCount += pageItem.DownloadedCount;                    
                 }
             }
             catch (NiconicoWebException ex)

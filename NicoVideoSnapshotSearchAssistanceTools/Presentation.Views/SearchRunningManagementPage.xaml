@@ -10,6 +10,7 @@
   xmlns:uwpTriggers="using:Microsoft.Toolkit.Uwp.UI.Triggers"
   xmlns:uwpEx="using:Microsoft.Toolkit.Uwp.UI" 
   
+  
   mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -279,7 +280,7 @@
             </StackPanel>
 
             <!-- 準備状態のデバッグUI -->
-            <StackPanel Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 128 0 0">
+            <StackPanel Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 128 0 0" Visibility="{Binding Source={StaticResource IsDebug}, Converter={StaticResource BoolToVisibilityConverter}}">
               <Button Content="{Binding ServerAvairableValidationState.Title}"
                       Command="{Binding ToggleStateTestCommand}"
                       CommandParameter="{Binding ServerAvairableValidationState}"
@@ -328,7 +329,7 @@
             </StackPanel>
           </Grid>
 
-          <StackPanel  Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
+          <StackPanel  Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom" Visibility="{Binding Source={StaticResource IsDebug}, Converter={StaticResource BoolToVisibilityConverter}}">
             <Button Content="準備" Command="{Binding StatusChangeTestCommand}" CommandParameter="Preparing" />
             <Button Content="実行中" Command="{Binding StatusChangeTestCommand}" CommandParameter="Running" />
             <Button Content="完了" Command="{Binding StatusChangeTestCommand}" CommandParameter="Completed" />
