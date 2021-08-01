@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
   xmlns:i="using:Microsoft.Xaml.Interactivity" 
   xmlns:core="using:Microsoft.Xaml.Interactions.Core" 
-  xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls" 
+  xmlns:uwpControls="using:Microsoft.Toolkit.Uwp.UI.Controls" 
   xmlns:viewModels="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels"
   xmlns:winui="using:Microsoft.UI.Xaml.Controls" 
   xmlns:niconicoToolkitSnapshot="using:NiconicoToolkit.SnapshotSearch"
@@ -21,15 +21,13 @@
     <DataTemplate x:Key="SearchFiledTypeSelectableItemTemplate" x:DataType="viewModels:SearchFieldTypeSelectableItem">
       <CheckBox Content="{x:Bind Content}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
     </DataTemplate>
-
-    <conv:HumanReadbleDateTimeConverter x:Key="HumanReadableDateTimeConverter" />
   </Page.Resources>
   <Grid>
-    <controls:DockPanel>
+    <uwpControls:DockPanel>
 
-      <Grid controls:DockPanel.Dock="Top" Margin="16 48 16 4" MaxWidth="720">
-        <controls:DockPanel>
-          <StackPanel Orientation="Horizontal" controls:DockPanel.Dock="Right">
+      <Grid uwpControls:DockPanel.Dock="Top" Margin="16 48 16 4" MaxWidth="720">
+        <uwpControls:DockPanel>
+          <StackPanel Orientation="Horizontal" uwpControls:DockPanel.Dock="Right">
             <Button Command="{Binding StartSearchProcessCommand}" 
                         Style="{ThemeResource AccentButtonStyle}"
                             >
@@ -49,7 +47,6 @@
                 <AppBarButton Label="現在の条件をテンプレートとして保存" />
                 <AppBarSeparator />
                 <AppBarButton Label="テンプレートから読み込み" />
-                <AppBarButton Label="検索結果の履歴から読み込み" />
                 <AppBarButton Label="クエリ文字列から読み込み" />
               </CommandBar.SecondaryCommands>
             </CommandBar>
@@ -58,13 +55,7 @@
           <StackPanel Orientation="Horizontal" Margin="24 0" >
             <TextBlock Text="検索条件" Style="{StaticResource TitleTextBlockStyle}" />
           </StackPanel>
-        </controls:DockPanel>
-      </Grid>
-
-      <Grid controls:DockPanel.Dock="Bottom" MaxWidth="720">
-
-        <StackPanel Orientation="Horizontal">
-        </StackPanel>
+        </uwpControls:DockPanel>
       </Grid>
 
       <!-- ScrollViewer IsTabStop="True" を指定しないとSVの最上部コントロールにフォーカスが吸われる問題が発生します -->
@@ -130,7 +121,7 @@
                             >
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
-                    <controls:WrapPanel />
+                    <uwpControls:WrapPanel />
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
               </ItemsControl>
@@ -147,7 +138,7 @@
                             >
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
-                    <controls:WrapPanel />
+                    <uwpControls:WrapPanel />
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
               </ItemsControl>
@@ -382,7 +373,7 @@
 
         </StackPanel>
       </ScrollViewer>
-    </controls:DockPanel>
+    </uwpControls:DockPanel>
 
     <VisualStateManager.VisualStateGroups>
       <VisualStateGroup>

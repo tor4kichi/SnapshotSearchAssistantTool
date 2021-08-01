@@ -12,10 +12,7 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
   <Page.Resources>
-    <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <local:DictionaryVisibilityConverter x:Key="DictionaryVisibilityConverter" />
-    <myConv:HumanReadbleDateTimeConverter x:Key="HumanReadbleDateTimeConverter" />
-    <myConv:SecondsToReadableTimeConverter x:Key="SecondsToReadableTimeConverter" />
   </Page.Resources>
   <Grid>
 

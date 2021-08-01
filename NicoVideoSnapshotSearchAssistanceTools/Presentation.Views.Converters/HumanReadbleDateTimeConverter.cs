@@ -11,7 +11,11 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value is DateTimeOffset dateTimeOffset)
+            if (value == null)
+            {
+                return "";
+            }
+            else if (value is DateTimeOffset dateTimeOffset)
             {
                 if (parameter is string format)
                 {

@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 
 namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 {
-    public sealed class SearchResultPageViewModel : ViewModelBase
+    public sealed class SearchResultPageViewModel : ViewModelBase, IConfirmNavigationAsync
     {
         public SearchResultPageViewModel(
             IMessenger messenger,
@@ -76,7 +76,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 new[] { "Index" }
                 )
                 .ToDictionary(x => x, x => true);
-        
 
         public override async Task OnNavigatedToAsync(INavigationParameters parameters)
         {            

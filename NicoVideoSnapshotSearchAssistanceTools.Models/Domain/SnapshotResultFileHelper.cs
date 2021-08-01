@@ -112,6 +112,26 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
             return hashed;
         }
 
+        public static async IAsyncEnumerable<SearchQueryResultMeta> GetAllQueryResultMetaAsync([EnumeratorCancellation] CancellationToken ct = default)
+        {
+            var fileQueryOptions = new Windows.Storage.Search.QueryOptions(Windows.Storage.Search.CommonFileQuery.DefaultQuery, new string[] { ".json" });
+            fileQueryOptions.FolderDepth = Windows.Storage.Search.FolderDepth.Deep;
+            var fileQuery = _baseFolder.CreateFileQueryWithOptions(fileQueryOptions);
+            uint count = await fileQuery.GetItemCountAsync();
+            const int oneTimeItemsCount = 10;
+            foreach (uint index in Enumerable.Range(0, (int)count / oneTimeItemsCount + 1))
+            {
+                var files = await fileQuery.GetFilesAsync(index * oneTimeItemsCount, oneTimeItemsCount).AsTask(ct);
+                foreach (var file in files)
+                {
+                    using (var stream = await file.OpenStreamForReadAsync())
+                    {
+                        yield return await JsonSerializer.DeserializeAsync<SearchQueryResultMeta>(stream, cancellationToken: ct);
+                    }
+                }
+            }
+        }
+
 
         private static async Task<StorageFolder> CreateSearchQueryFolderIfNotExistAsync(string searchQueryId)
         {
@@ -170,7 +190,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
                 }
 
                 var file = await folder.GetFileAsync(MakeMetaFileName(version));
-                using (var stream = await file.OpenStreamForWriteAsync())
+                using (var stream = await file.OpenStreamForReadAsync())
                 {
                     return await JsonSerializer.DeserializeAsync<SearchQueryResultMeta>(stream);
                 }

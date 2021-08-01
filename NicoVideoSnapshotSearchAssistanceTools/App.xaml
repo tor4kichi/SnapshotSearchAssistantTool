@@ -5,8 +5,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:NicoVideoSnapshotSearchAssistanceTools" 
   xmlns:controls="using:Microsoft.UI.Xaml.Controls"
-  xmlns:uwpConv="using:Microsoft.Toolkit.Uwp.UI.Converters"
-  >
+  xmlns:uwpConv="using:Microsoft.Toolkit.Uwp.UI.Converters" 
+  xmlns:myConv="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters">
   <prism:PrismApplication.Resources>
 
     <ResourceDictionary>
@@ -14,7 +14,10 @@
       <x:Boolean x:Key="IsDebug">False</x:Boolean>
 
       <uwpConv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-
+      
+      <myConv:HumanReadbleDateTimeConverter x:Key="HumanReadbleDateTimeConverter" />
+      <myConv:SecondsToReadableTimeConverter x:Key="SecondsToReadableTimeConverter" />
+      <myConv:UrlEncodeConverter x:Key="UrlEncodeConverter" />
 
 
 

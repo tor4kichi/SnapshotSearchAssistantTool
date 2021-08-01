@@ -105,7 +105,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         void ExecuteOpenSnapshotResultHistoryPageCommand()
         {
-
+            _messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(SearchResultPage), ("query", SeriaizeParameters()))));
         }
 
 
