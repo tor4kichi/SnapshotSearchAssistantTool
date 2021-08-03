@@ -40,9 +40,9 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain.SnapshotResult_V0
             return new SnapshotVideoItem()
             {
                 CategoryTags = item.CategoryTags,
-                ChannelId = !string.IsNullOrEmpty(item.ChannelId) ? (ChannelId)item.ChannelId : null,
+                ChannelId = !string.IsNullOrEmpty(item.ChannelId) ? (ChannelId)item.ChannelId : default(ChannelId?),
                 CommentCounter = item.CommentCounter,
-                ContentId = !string.IsNullOrEmpty(item.ContentId) ? (VideoId)item.ContentId : null,
+                ContentId = !string.IsNullOrEmpty(item.ContentId) ? (VideoId)item.ContentId : default(VideoId?),
                 Description = item.Description,
                 Genre = item.Genre,
                 LastCommentTime = item.LastCommentTime,

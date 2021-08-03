@@ -150,7 +150,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                         ThrowHelper.ThrowInvalidOperationException(nameof(version));
                     }
                 }
-                
+
                 try
                 {
                     ResultMeta = await SnapshotResultFileHelper.GetSearchQueryResultMetaAsync(queryParameters, version);
