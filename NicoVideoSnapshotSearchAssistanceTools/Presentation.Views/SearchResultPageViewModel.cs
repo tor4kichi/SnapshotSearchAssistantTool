@@ -6,6 +6,7 @@ using NiconicoToolkit.SnapshotSearch;
 using NiconicoToolkit.User;
 using NiconicoToolkit.Video;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
+using NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Scoring;
 using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
 using Prism.Commands;
 using Prism.Mvvm;
@@ -14,6 +15,7 @@ using Reactive.Bindings;
 using Reactive.Bindings.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
@@ -38,6 +40,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             _messenger = messenger;
             _applicationInternalSettings = applicationInternalSettings;
             _searchResultSettings = searchResultSettings;
+
+            ScoringVM = new(_searchResultSettings);
         }
 
         private readonly IMessenger _messenger;
@@ -59,36 +63,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         public AdvancedCollectionView ItemsView { get; } = new AdvancedCollectionView();
 
-
-        private ReactivePropertySlim<double> _ViewCounterWeightingFactor;
-        public ReactivePropertySlim<double> ViewCounterWeightingFactor
-        {
-            get { return _ViewCounterWeightingFactor; }
-            private set { SetProperty(ref _ViewCounterWeightingFactor, value); }
-        }
-
-        private ReactivePropertySlim<double> _MylistCounterWeightingFactor;
-        public ReactivePropertySlim<double> MylistCounterWeightingFactor
-        {
-            get { return _MylistCounterWeightingFactor; }
-            private set { SetProperty(ref _MylistCounterWeightingFactor, value); }
-        }
-
-        private ReactivePropertySlim<double> _CommentCounterWeightingFactor;
-        public ReactivePropertySlim<double> CommentCounterWeightingFactor
-        {
-            get { return _CommentCounterWeightingFactor; }
-            private set { SetProperty(ref _CommentCounterWeightingFactor, value); }
-        }
-
-        private ReactivePropertySlim<double> _LikeCounterWeightingFactor;
-        public ReactivePropertySlim<double> LikeCounterWeightingFactor
-        {
-            get { return _LikeCounterWeightingFactor; }
-            private set { SetProperty(ref _LikeCounterWeightingFactor, value); }
-        }
-
-
+        public ScoringExpressionViewModel ScoringVM { get; }
 
         CancellationTokenSource _navigationCts;
         CompositeDisposable _navigationDisposable;
@@ -193,36 +168,24 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
                 using (ItemsView.DeferRefresh())
                 {
+                    CulcExpressionTreeContext scoreCulcConctxt = new();
+
                     var itemsAsyncEnumerator = SnapshotResultFileHelper.GetSearchResultItemsAsync(ResultMeta, ct);
                     int counter = 1;
 
-                    bool culcScore = VisibilityMap[CustomFieldTypeName_Score];
+                    bool culcScore = VisibilityMap[CustomFieldTypeName_Score] && ScoringVM.PrepareScoreCulc();
                     await foreach (var item in itemsAsyncEnumerator)
                     {
                         var itemVM = new SnapshotItemViewModel(counter, item);
                         if (culcScore)
                         {
-                            CulcScore(itemVM);
+                            itemVM.Score = ScoringVM.CulcScore(itemVM);
                         }
                         ItemsView.Add(itemVM);
                         counter++;
                         ct.ThrowIfCancellationRequested();
                     }
                 }
-
-                ViewCounterWeightingFactor = _searchResultSettings.ToReactivePropertySlimAsSynchronized(x => x.ViewCounterWeightingFactor, mode: ReactivePropertyMode.DistinctUntilChanged)
-                    .AddTo(_navigationDisposable);
-                MylistCounterWeightingFactor = _searchResultSettings.ToReactivePropertySlimAsSynchronized(x => x.MylistCounterWeightingFactor, mode: ReactivePropertyMode.DistinctUntilChanged)
-                    .AddTo(_navigationDisposable);
-                CommentCounterWeightingFactor = _searchResultSettings.ToReactivePropertySlimAsSynchronized(x => x.CommentCounterWeightingFactor, mode: ReactivePropertyMode.DistinctUntilChanged)
-                    .AddTo(_navigationDisposable);
-                LikeCounterWeightingFactor = _searchResultSettings.ToReactivePropertySlimAsSynchronized(x => x.LikeCounterWeightingFactor, mode: ReactivePropertyMode.DistinctUntilChanged)
-                    .AddTo(_navigationDisposable);
-
-                _prevViewCounterWeightingFactor = _searchResultSettings.ViewCounterWeightingFactor;
-                _prevMylistCounterWeightingFactor = _searchResultSettings.MylistCounterWeightingFactor;
-                _prevCommentCounterWeightingFactor = _searchResultSettings.CommentCounterWeightingFactor;
-                _prevLikeCounterWeightingFactor = _searchResultSettings.LikeCounterWeightingFactor;
             }
             catch (Exception ex)
             {
@@ -233,10 +196,20 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             }
         }
 
-        double _prevViewCounterWeightingFactor;
-        double _prevMylistCounterWeightingFactor;
-        double _prevCommentCounterWeightingFactor;
-        double _prevLikeCounterWeightingFactor;
+        public override void OnNavigatedFrom(INavigationParameters parameters)
+        {
+            _navigationDisposable.Dispose();
+            _navigationCts.Cancel();
+            _navigationCts.Dispose();
+
+            foreach (var removeItem in ScoringVM.SettingItems)
+            {
+//                ScoringVM.SettingItems.Remove(removeItem);
+                removeItem.Dispose();
+            }
+
+            base.OnNavigatedFrom(parameters);
+        }
 
         private DelegateCommand _ReCulcScoreCommand;
         public DelegateCommand ReCulcScoreCommand =>
@@ -247,24 +220,13 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             // 閉じた瞬間に呼ばれると同値のままの可能性があるのでちょい待ち
             await Task.Delay(1);
 
-            if (_prevViewCounterWeightingFactor == _searchResultSettings.ViewCounterWeightingFactor
-                && _prevMylistCounterWeightingFactor == _searchResultSettings.MylistCounterWeightingFactor
-                && _prevCommentCounterWeightingFactor == _searchResultSettings.CommentCounterWeightingFactor
-                && _prevLikeCounterWeightingFactor == _searchResultSettings.LikeCounterWeightingFactor
-                )
-            {
-                return;
-            }
-
-            _prevViewCounterWeightingFactor = _searchResultSettings.ViewCounterWeightingFactor;
-            _prevMylistCounterWeightingFactor = _searchResultSettings.MylistCounterWeightingFactor;
-            _prevCommentCounterWeightingFactor = _searchResultSettings.CommentCounterWeightingFactor;
-            _prevLikeCounterWeightingFactor = _searchResultSettings.LikeCounterWeightingFactor;
+            ScoringVM.PrepareScoreCulc();
 
             Debug.WriteLine("スコア再計算 開始");
             foreach (var item in ItemsView.Cast<SnapshotItemViewModel>())
             {
-                CulcScore(item);
+                item.Score = ScoringVM.CulcScore(item);
+
                 if (_navigationCts?.IsCancellationRequested ?? true) { return; }
             }
 
@@ -279,24 +241,292 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         #region Score
 
-        private void CulcScore(SnapshotItemViewModel item)
-        {
-            item.Score = CulcScore(item.ViewCounter, item.MylistCounter, item.CommentCounter, item.LikeCounter);
-        }
-
-        public long CulcScore(long? viewCounter, long? mylistCounter, long? commentCounter, long? likeCounter)
-        {
-            return (long)Math.Round(
-                  (viewCounter ?? 0) * _searchResultSettings.ViewCounterWeightingFactor
-                + (mylistCounter ?? 0) * _searchResultSettings.MylistCounterWeightingFactor
-                + (commentCounter ?? 0) * _searchResultSettings.CommentCounterWeightingFactor
-                + (likeCounter ?? 0) * _searchResultSettings.LikeCounterWeightingFactor
-                );
-        }
-
         #endregion
     }
 
+
+    public class ScoringExpressionViewModel : BindableBase
+    {
+        public ScoringExpressionViewModel(SearchResultSettings searchResultSettings)
+        {
+            _searchResultSettings = searchResultSettings;
+
+            SettingItems = new (_searchResultSettings.ScoringSettings.Select(x => new ScoringExpressionItemViewModel(x)));
+            CurrentScoringSetting = new ReactivePropertySlim<ScoringExpressionItemViewModel>(SettingItems.ElementAtOrDefault(_searchResultSettings.CurrentScoringSettingIndex) ?? SettingItems.ElementAtOrDefault(0));
+        }
+
+        public ObservableCollection<ScoringExpressionItemViewModel> SettingItems { get; }
+
+        public ReactivePropertySlim<ScoringExpressionItemViewModel> CurrentScoringSetting { get; private set; }
+
+
+        private readonly SearchResultSettings _searchResultSettings;
+        CulcExpressionTreeContext _context = new CulcExpressionTreeContext();
+
+        public void SaveScoringExpressionSettings()
+        {
+            foreach (var setting in SettingItems)
+            {
+                setting.ScoringSettingItem.Title = setting.Title.Value;
+                setting.ScoringSettingItem.VariableDeclarations = setting.VariableDeclarations.Select(x => x.VariableDeclaration).ToArray();
+                setting.ScoringSettingItem.ScoreCulsExpressionText = setting.ScoreCulcExpressionText.Value;
+            }
+
+            if (CurrentScoringSetting.Value?.IsRemoveRequested ?? false)
+            {
+                CurrentScoringSetting.Value = SettingItems.FirstOrDefault(x => x.IsRemoveRequested is false);
+            }
+
+            _searchResultSettings.CurrentScoringSettingIndex = SettingItems.IndexOf(CurrentScoringSetting.Value);
+
+            _searchResultSettings.ScoringSettings = SettingItems
+                .Where(x => x.IsRemoveRequested is false)
+                .Select(x => x.ScoringSettingItem)
+                .ToArray();
+        }
+
+        private DelegateCommand _SaveScoringSettingsCommand;
+        public DelegateCommand SaveScoringSettingsCommand =>
+            _SaveScoringSettingsCommand ?? (_SaveScoringSettingsCommand = new DelegateCommand(ExecuteSaveScoringSettingsCommand));
+
+        void ExecuteSaveScoringSettingsCommand()
+        {
+            SaveScoringExpressionSettings();
+        }
+
+        public bool PrepareScoreCulc()
+        {
+            var scoringVM = CurrentScoringSetting.Value;
+            if (scoringVM == null) 
+            {
+                return false; 
+            }
+
+            return scoringVM.PrepareScoreCulc();
+        }
+
+        public long? CulcScore(SnapshotItemViewModel item)
+        {
+            var scoringVM = CurrentScoringSetting.Value;
+            if (scoringVM == null)
+            {
+                return null;
+            }
+
+            
+            return scoringVM.CulcScore(item, _context);
+        }
+
+        private DelegateCommand _AddScoringExpressionCommand;
+        public DelegateCommand AddScoringExpressionCommand =>
+            _AddScoringExpressionCommand ?? (_AddScoringExpressionCommand = new DelegateCommand(ExecuteAddScoringExpressionCommand));
+
+        void ExecuteAddScoringExpressionCommand()
+        {
+            SettingItems.Add(new ScoringExpressionItemViewModel(SearchResultSettings.CreateDefaultScoringSettingItem()));
+        }
+
+    }
+
+
+    public class ScoringExpressionItemViewModel : BindableBase, IDisposable
+    {
+        public ScoringSettingItem ScoringSettingItem { get; }
+
+        public ScoringExpressionItemViewModel(ScoringSettingItem scoringSettingItem)
+        {
+            ScoringSettingItem = scoringSettingItem;
+            Title = new ReactivePropertySlim<string>(ScoringSettingItem.Title);
+            ScoreCulcExpressionText = new ReactivePropertySlim<string>(ScoringSettingItem.ScoreCulsExpressionText);
+            VariableDeclarations = new ObservableCollection<VariableDeclarationViewModel>(ScoringSettingItem.VariableDeclarations.Select(x => new VariableDeclarationViewModel(x)));
+            PrepareScoreCulc();
+        }
+
+        public void Dispose()
+        {
+            Title.Dispose();
+            ScoreCulcExpressionText.Dispose();
+        }
+
+        public ReactivePropertySlim<string> Title { get; }
+
+        public ReactivePropertySlim<string> ScoreCulcExpressionText { get; }
+
+        public ObservableCollection<VariableDeclarationViewModel> VariableDeclarations { get; }
+
+
+        private DelegateCommand _AddVariableDeclarationCommand;
+        public DelegateCommand AddVariableDeclarationCommand =>
+            _AddVariableDeclarationCommand ?? (_AddVariableDeclarationCommand = new DelegateCommand(ExecuteAddVariableDeclarationCommand));
+
+        void ExecuteAddVariableDeclarationCommand()
+        {
+            VariableDeclarations.Add(new VariableDeclarationViewModel(new ScoringVariableDeclaration()));
+        }
+
+
+
+        private bool _IsRemoveRequested;
+        public bool IsRemoveRequested
+        {
+            get { return _IsRemoveRequested;; }
+            set { SetProperty(ref _IsRemoveRequested, value); }
+        }
+
+        private DelegateCommand _ToggleRemoveRequestedCommand;
+
+        public DelegateCommand ToggleRemoveRequestedCommand =>
+            _ToggleRemoveRequestedCommand ?? (_ToggleRemoveRequestedCommand = new DelegateCommand(ExecuteRemoveCommand));
+
+        void ExecuteRemoveCommand()
+        {
+            IsRemoveRequested = !IsRemoveRequested;
+        }
+
+
+
+        Dictionary<string, ICulcExpressionTreeNode> _variableDeclNodes;
+        ICulcExpressionTreeNode _scoreCulcNode;
+
+        public bool PrepareScoreCulc()
+        {
+            _variableDeclNodes = null;
+            _scoreCulcNode = null;
+            HasError = false;
+            ErrorMessage = string.Empty;
+
+            Dictionary<string, ICulcExpressionTreeNode> variableNameToExpressionNodeMap = new Dictionary<string, ICulcExpressionTreeNode>();
+            foreach (var decl in VariableDeclarations)
+            {
+                try
+                {
+                    variableNameToExpressionNodeMap.Add(decl.VariableName, CulcExpressionTree.CreateCulcExpressionTree(decl.ExpressionText));
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
+
+                    HasError = true;
+                    ErrorMessage = $"変数定義: {decl.VariableName} でエラー. : {ex.Message}";
+                    return false;
+                }
+            }
+
+            try
+            {
+                _scoreCulcNode = CulcExpressionTree.CreateCulcExpressionTree(ScoreCulcExpressionText.Value);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                HasError = true;
+                ErrorMessage = $"計算式評価に失敗 :\n {ex.Message}";
+                return false;
+            }
+
+
+            _variableDeclNodes = variableNameToExpressionNodeMap;
+
+            return true;
+        }
+
+        public long? CulcScore(SnapshotItemViewModel item, CulcExpressionTreeContext context)
+        {
+            if (_scoreCulcNode == null) { return null; }
+
+            context.VariableToValueMap.Clear();
+            context.VariableToValueMap["V"] = item.ViewCounter ?? 0;
+            context.VariableToValueMap["C"] = item.CommentCounter ?? 0;
+            context.VariableToValueMap["M"] = item.MylistCounter ?? 0;
+            context.VariableToValueMap["L"] = item.LikeCounter ?? 0;
+
+            foreach (var decl in _variableDeclNodes)
+            {
+                context.VariableToValueMap[decl.Key] = decl.Value.Culc(context);
+            }
+
+            return (long)Math.Round(_scoreCulcNode.Culc(context));
+        }
+
+
+
+        private bool _HasError;
+        public bool HasError
+        {
+            get { return _HasError; }
+            private set { SetProperty(ref _HasError, value); }
+        }
+
+        private string _ErrorMessage;
+        public string ErrorMessage
+        {
+            get { return _ErrorMessage; }
+            set { SetProperty(ref _ErrorMessage, value); }
+        }
+    }
+
+
+    public sealed class VariableDeclarationViewModel : BindableBase
+    {
+        public VariableDeclarationViewModel(ScoringVariableDeclaration variableDeclaration)
+        {
+            VariableDeclaration = variableDeclaration;
+            _VariableName = VariableDeclaration.VariableName;
+            _ExpressionText = VariableDeclaration.ExpressionText;
+        }
+
+        public ScoringVariableDeclaration VariableDeclaration { get; }
+
+
+        private string _VariableName;
+        public string VariableName
+        {
+            get { return _VariableName; }
+            set 
+            {
+                if (SetProperty(ref _VariableName, value))
+                {
+                    VariableDeclaration.VariableName = value;
+                }
+            }
+        }
+
+
+        private string _ExpressionText;
+        public string ExpressionText
+        {
+            get 
+            {
+                return _ExpressionText; 
+            }
+            set 
+            {
+                if (SetProperty(ref _ExpressionText, value))
+                {
+                    VariableDeclaration.ExpressionText = value;
+                }
+            }
+        }
+
+
+        private bool _IsRemoveRequested;
+        public bool IsRemoveRequested
+        {
+            get { return _IsRemoveRequested; ; }
+            set { SetProperty(ref _IsRemoveRequested, value); }
+        }
+
+
+        private DelegateCommand _ToggleRemoveRequestedCommand;
+
+        public DelegateCommand ToggleRemoveRequestedCommand =>
+            _ToggleRemoveRequestedCommand ?? (_ToggleRemoveRequestedCommand = new DelegateCommand(ExecuteRemoveCommand));
+
+        void ExecuteRemoveCommand()
+        {
+            IsRemoveRequested = !IsRemoveRequested;
+        }
+    }
 
     public sealed class SnapshotItemViewModel : BindableBase
     {

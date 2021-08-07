@@ -9,64 +9,56 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
 {
     public sealed class SearchResultSettings : FlagsRepositoryBase
     {
+        const string DefaultScoreCulcExpressionText = "V + C + M * 20 + L";
+
+        public static ScoringSettingItem CreateDefaultScoringSettingItem()
+        {
+            return new ScoringSettingItem()
+            {
+                Title = "ランキング",
+                ScoreCulsExpressionText = "V + C + M * 20 + L",
+            };
+        }
+
+
         public SearchResultSettings()
         {
-            _ViewCounterWeightingFactor = Read(1.0, nameof(ViewCounterWeightingFactor));
-            _MylistCounterWeightingFactor = Read(1.0, nameof(MylistCounterWeightingFactor));
-            _CommentCounterWeightingFactor = Read(1.0, nameof(CommentCounterWeightingFactor));
-            _LikeCounterWeightingFactor = Read(1.0, nameof(LikeCounterWeightingFactor));
+            _ScoringSettings = Read(default(ScoringSettingItem[]), nameof(ScoringSettings)) ?? 
+                new[] { CreateDefaultScoringSettingItem() };
+
+            _CurrentScoringSettingIndex = Read(0, nameof(CurrentScoringSettingIndex));
         }
 
-        private double _ViewCounterWeightingFactor;
-        public double ViewCounterWeightingFactor
+
+        private int _CurrentScoringSettingIndex;
+        public int CurrentScoringSettingIndex
         {
-            get { return _ViewCounterWeightingFactor; }
-            set 
-            {
-                if (SetProperty(ref _ViewCounterWeightingFactor, value))
-                {
-                    Save(value);
-                }        
-            }
+            get { return _CurrentScoringSettingIndex; }
+            set { SetProperty(ref _CurrentScoringSettingIndex, value); }
         }
 
-        private double _MylistCounterWeightingFactor;
-        public double MylistCounterWeightingFactor
-        {
-            get { return _MylistCounterWeightingFactor; }
-            set 
-            {
-                if (SetProperty(ref _MylistCounterWeightingFactor, value))
-                {
-                    Save(value);
-                }
-            }
-        }
 
-        private double _CommentCounterWeightingFactor;
-        public double CommentCounterWeightingFactor
+        private ScoringSettingItem[] _ScoringSettings;
+        public ScoringSettingItem[] ScoringSettings
         {
-            get { return _CommentCounterWeightingFactor; }
-            set
-            {
-                if (SetProperty(ref _CommentCounterWeightingFactor, value))
-                {
-                    Save(value);
-                }
-            }
+            get => _ScoringSettings;
+            set => SetProperty(ref _ScoringSettings, value);
         }
+    }
 
-        private double _LikeCounterWeightingFactor;
-        public double LikeCounterWeightingFactor
-        {
-            get { return _LikeCounterWeightingFactor; }
-            set
-            {
-                if (SetProperty(ref _LikeCounterWeightingFactor, value))
-                {
-                    Save(value);
-                }
-            }
-        }
+
+    public sealed class ScoringSettingItem
+    {
+        public string Title { get; set; }
+
+        public ScoringVariableDeclaration[] VariableDeclarations { get; set; } = new ScoringVariableDeclaration[0];
+        public string ScoreCulsExpressionText { get; set; }
+    }
+
+    public sealed class ScoringVariableDeclaration
+    {
+        public string VariableName { get; set; }
+
+        public string ExpressionText { get; set; }
     }
 }

@@ -122,6 +122,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Domain\ApplicationInternalSettings.cs" />
+    <Compile Include="Domain\Scoring\CulcExpressionTree.cs" />
+    <Compile Include="Domain\Scoring\CulcStringTokenizer.cs" />
     <Compile Include="Domain\SearchResultSettings.cs" />
     <Compile Include="Domain\SearchRunningSettings.cs" />
     <Compile Include="IsExternalInit.cs" />

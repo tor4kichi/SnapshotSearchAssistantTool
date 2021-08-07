@@ -11,7 +11,8 @@
   xmlns:tkControlsPrim="using:Microsoft.Toolkit.Uwp.UI.Controls.Primitives"
   xmlns:winui="using:Microsoft.UI.Xaml.Controls"
   xmlns:conv="using:Microsoft.Toolkit.Uwp.UI.Converters"
-  xmlns:myConv="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters"  
+  xmlns:myConv="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters" 
+  xmlns:viewModels="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels"
   mc:Ignorable="d"
     >
 
@@ -39,7 +40,7 @@
         <StackPanel Orientation="Horizontal" controls:DockPanel.Dock="Right" Spacing="16">
           
           <TextBlock VerticalAlignment="Center">
-            <Run Text="{Binding ResultMeta.TotalCount}" />件
+            <Run Text="{x:Bind ViewModel.ResultMeta.TotalCount, Mode=OneWay}" />件
           </TextBlock>
 
 
@@ -47,11 +48,11 @@
             <Button.Content>
               <StackPanel Orientation="Horizontal" Spacing="16">
                 <TextBlock VerticalAlignment="Center" >
-                  <Run Text="検索条件" /> <LineBreak /> <Run Text="{Binding SearchQueryVM.Keyword}" />
+                  <Run Text="検索条件" /> <LineBreak /> <Run Text="{x:Bind ViewModel.SearchQueryVM.Keyword, Mode=OneWay}" />
                 </TextBlock>
 
                 <TextBlock HorizontalTextAlignment="Right" VerticalAlignment="Center" Opacity="0.75">
-                  <Run Text="Snapshot API Version" /> <LineBreak /> <Run  Text="{Binding ResultMeta.SnapshotVersion, Converter={StaticResource HumanReadbleDateTimeConverter}}" />
+                  <Run Text="Snapshot API Version" /> <LineBreak /> <Run  Text="{x:Bind ViewModel.ResultMeta.SnapshotVersion, Converter={StaticResource HumanReadbleDateTimeConverter}, Mode=OneWay}" />
                 </TextBlock>
 
               </StackPanel>
@@ -60,7 +61,7 @@
             <Button.Flyout>
               <Flyout Placement="Bottom">
                 <StackPanel HorizontalAlignment="Stretch">
-                  <TextBlock Text="{Binding ResultMeta.SearchQueryId, Converter={StaticResource UrlEncodeConverter}}" 
+                  <TextBlock Text="{x:Bind ViewModel.ResultMeta.SearchQueryId, Converter={StaticResource UrlEncodeConverter}, Mode=OneWay}" 
                              TextWrapping="WrapWholeWords" 
                              IsTextSelectionEnabled="True"
                              MaxWidth="320"
@@ -76,7 +77,178 @@
         
       </controls:DockPanel>
 
-      <controls:DataGrid ItemsSource="{Binding ItemsView}"
+           
+      <SplitView x:Name="ScoringPaneSplitView" IsPaneOpen="False"
+                 DisplayMode="Inline"
+                 OpenPaneLength="420"
+                 >
+
+        <i:Interaction.Behaviors>
+          <core:EventTriggerBehavior EventName="PaneClosed">
+            <core:InvokeCommandAction Command="{x:Bind ViewModel.ScoringVM.SaveScoringSettingsCommand, Mode=OneWay}" />
+            <core:InvokeCommandAction Command="{x:Bind ViewModel.ReCulcScoreCommand, Mode=OneWay}" />
+          </core:EventTriggerBehavior>
+        </i:Interaction.Behaviors>
+        
+        <SplitView.Pane>
+          <controls:DockPanel>
+            <controls:DockPanel controls:DockPanel.Dock="Top" Padding="16">
+
+
+              <Button controls:DockPanel.Dock="Left" Margin="0 0 8 0"
+                      ToolTipService.ToolTip="閉じる"
+                      >
+                <Button.Content>
+                  <SymbolIcon Symbol="ClosePane" />
+                </Button.Content>
+
+                <i:Interaction.Behaviors>
+                  <core:EventTriggerBehavior EventName="Tapped">
+                    <core:ChangePropertyAction TargetObject="{x:Bind ScoringPaneSplitView}"  PropertyName="IsPaneOpen" Value="False" />
+                  </core:EventTriggerBehavior>
+                </i:Interaction.Behaviors>
+              </Button>
+
+              <ComboBox ItemsSource="{x:Bind ViewModel.ScoringVM.SettingItems, Mode=OneWay}"
+                        SelectedItem="{x:Bind ViewModel.ScoringVM.CurrentScoringSetting.Value, Mode=TwoWay}"
+                        controls:DockPanel.Dock="Left"
+                        >
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="viewModels:ScoringExpressionItemViewModel">
+                    <TextBlock Text="{x:Bind Title.Value, Mode=OneWay}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+
+              <Button Command="{x:Bind ViewModel.ReCulcScoreCommand, Mode=OneWay}" Margin="8 0 0 0">
+                <Button.Content>
+                  <SymbolIcon Symbol="Refresh" />
+                </Button.Content>
+              </Button>
+              
+              <Button controls:DockPanel.Dock="Right" Margin="8 0 0 0">
+                <Button.Content>
+                  <SymbolIcon Symbol="Help" />
+                </Button.Content>
+
+                <Button.Flyout>
+                  <Flyout>
+                    <TextBlock>
+                      <Run Text="V = 再生数" /><LineBreak />
+                      <Run Text="C = コメント数" /><LineBreak />
+                      <Run Text="M = マイリスト数" /><LineBreak />
+                      <Run Text="L = いいね数" /><LineBreak />
+                      <Run Text="Limit(value, max)" /><LineBreak />
+                      <Run Text="Clamp(value, min, max)" /><LineBreak />
+                    </TextBlock>
+                  </Flyout>
+                </Button.Flyout>
+              </Button>
+
+              <Button controls:DockPanel.Dock="Right"
+                      Command="{x:Bind ViewModel.ScoringVM.AddScoringExpressionCommand, Mode=OneWay}"
+                      >
+                <Button.Content>
+                  <SymbolIcon Symbol="Add" />
+                </Button.Content>
+              </Button>
+
+              <Border />
+
+            </controls:DockPanel>
+
+            <ScrollViewer>
+              <ItemsControl ItemsSource="{x:Bind ViewModel.ScoringVM.SettingItems, Mode=OneWay}"
+                          ScrollViewer.VerticalScrollMode="Enabled"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          >
+                <ItemsControl.Resources>
+                  <MenuFlyout x:Key="ExpressionItemFlyout" 
+                              xmlns:myInteractions="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Interactions"
+                              myInteractions:FlyoutExtensions.DataContextPropagationToFlyoutChild="True"
+                              >
+                    <MenuFlyoutItem Text="削除" Icon="Delete" Command="{Binding ToggleRemoveRequestedCommand}" />
+                  </MenuFlyout>
+                </ItemsControl.Resources>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="viewModels:ScoringExpressionItemViewModel">
+                    <Grid Style="{ThemeResource MicaCardGirdStyle}"
+                          ContextFlyout="{StaticResource ExpressionItemFlyout}"
+                          >
+
+                      <Button Content="元に戻す" Command="{x:Bind ToggleRemoveRequestedCommand}"
+                              Visibility="{x:Bind IsRemoveRequested, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                              />
+                      <StackPanel Spacing="16" Visibility="{x:Bind IsRemoveRequested, Mode=OneWay, Converter={StaticResource InvBoolToVisibilityConverter}}">
+                        
+                        <TextBox Text="{x:Bind Title.Value, Mode=TwoWay}" Header="表示名" />
+
+                        <!--
+                        <controls:DockPanel Visibility="Collapsed" >
+                          <Button Command="{x:Bind AddVariableDeclarationCommand}" controls:DockPanel.Dock="Right">
+                            <SymbolIcon Symbol="Add" />
+                          </Button>
+                          <TextBlock Text="変数定義" VerticalAlignment="Center" /> 
+                        </controls:DockPanel>
+                        <ItemsControl ItemsSource="{x:Bind VariableDeclarations, Mode=OneWay}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="viewModels:VariableDeclarationViewModel">
+                              <Grid>
+
+                                <Grid Visibility="{x:Bind  IsRemoveRequested, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                                  <Button Content="元に戻す" Command="{x:Bind ToggleRemoveRequestedCommand}" />
+                                </Grid>
+                                
+                                <controls:DockPanel Visibility="{x:Bind  IsRemoveRequested, Converter={StaticResource InvBoolToVisibilityConverter}, Mode=OneWay}">
+                                  <StackPanel Orientation="Horizontal" controls:DockPanel.Dock="Left" VerticalAlignment="Center">
+                                    <TextBox Text="{x:Bind VariableName, Mode=TwoWay}" />
+                                    <TextBlock Text="=" VerticalAlignment="Center" Margin="4 0" FontSize="20" FontWeight="Bold" />
+                                  </StackPanel>
+
+                                  <StackPanel Orientation="Horizontal" controls:DockPanel.Dock="Right">
+                                    <Button Command="{x:Bind ToggleRemoveRequestedCommand}"
+                                            ToolTipService.ToolTip="削除"
+                                            >
+                                      <Button.Content>
+                                        <SymbolIcon Symbol="Delete" />
+                                      </Button.Content>
+                                    </Button>
+                                  </StackPanel>
+
+                                  <TextBox Text="{x:Bind ExpressionText, Mode=TwoWay}" HorizontalAlignment="Stretch"
+                                         TextWrapping="Wrap"
+                                         />
+                                </controls:DockPanel>
+                              </Grid>
+                              
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                          
+                        </ItemsControl>
+                        -->
+
+                        <TextBox Text="{x:Bind ScoreCulcExpressionText.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch"
+                                 Header="スコア計算式"
+                                         TextWrapping="Wrap"
+                                         />
+
+                        <TextBlock Text="{x:Bind ErrorMessage, Mode=OneWay}" Foreground="Red" TextWrapping="WrapWholeWords"
+                                   Visibility="{x:Bind HasError, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                   />
+                      </StackPanel>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+
+          </controls:DockPanel>
+        </SplitView.Pane>
+
+
+
+        <SplitView.Content>
+          <controls:DataGrid ItemsSource="{x:Bind ViewModel.ItemsView, Mode=OneWay}"
                        AutoGenerateColumns="False"
                        IsReadOnly="True"
                        GridLinesVisibility="All"
@@ -85,146 +257,157 @@
                        Sorting="DataGrid_Sorting"
                        >
 
-        <controls:DataGrid.Resources>
-          <Style TargetType="winui:NumberBox" x:Key="WeightingFactorNumberBoxStyle">
-            <Setter Property="Minimum" Value="0" />
-            <Setter Property="Maximum" Value="100000" />
-            <Setter Property="MinWidth" Value="180" />
-          </Style>
-          <Flyout x:Key="ScoreResultItemFlyout" 
+            <controls:DataGrid.Resources>
+              <Flyout x:Name="ScoreResultItemFlyout" 
                 xmlns:myInteractions="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Interactions"
                 myInteractions:FlyoutExtensions.DataContextPropagationToFlyoutChild="True"
                 Placement="RightEdgeAlignedTop"
                 >
-            <i:Interaction.Behaviors>
-              <core:EventTriggerBehavior EventName="Closing">
-                <core:InvokeCommandAction Command="{x:Bind ViewModel.ReCulcScoreCommand, Mode=OneWay}" />
-              </core:EventTriggerBehavior>
-            </i:Interaction.Behaviors>
-            <StackPanel Spacing="16">
-              <winui:NumberBox Value="{Binding ViewCounterWeightingFactor.Value, Mode=TwoWay}" Header="再生数" Style="{StaticResource WeightingFactorNumberBoxStyle}" />
-              <winui:NumberBox Value="{Binding MylistCounterWeightingFactor.Value, Mode=TwoWay}" Header="マイリスト数" Style="{StaticResource WeightingFactorNumberBoxStyle}" />
-              <winui:NumberBox Value="{Binding CommentCounterWeightingFactor.Value, Mode=TwoWay}" Header="コメント数" Style="{StaticResource WeightingFactorNumberBoxStyle}" />
-              <winui:NumberBox Value="{Binding LikeCounterWeightingFactor.Value, Mode=TwoWay}" Header="いいね！数" Style="{StaticResource WeightingFactorNumberBoxStyle}" />
+                <i:Interaction.Behaviors>
+                  <core:EventTriggerBehavior EventName="Closing">
+                    <core:InvokeCommandAction Command="{x:Bind ViewModel.ReCulcScoreCommand, Mode=OneWay}" />
+                  </core:EventTriggerBehavior>
+                </i:Interaction.Behaviors>
+                <StackPanel Spacing="16">
 
-              <TextBlock Text="ポップアップを閉じると自動で再計算します" TextWrapping="Wrap" MaxWidth="120" Opacity="0.75" />
-            </StackPanel>
-          </Flyout>
-        </controls:DataGrid.Resources>
+                  <ComboBox ItemsSource="{x:Bind ViewModel.ScoringVM.SettingItems, Mode=OneWay}"
+                            SelectedItem="{x:Bind ViewModel.ScoringVM.CurrentScoringSetting.Value, Mode=TwoWay}"
+                            >
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="viewModels:ScoringExpressionItemViewModel">
+                        <TextBlock Text="{x:Bind Title.Value}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
 
-        <controls:DataGrid.Columns>
-          <controls:DataGridTextColumn 
+                  <Button Content="スコアの計算式を編集">
+                    <i:Interaction.Behaviors>
+                      <core:EventTriggerBehavior EventName="Tapped">
+                        <core:CallMethodAction TargetObject="{x:Bind ScoreResultItemFlyout}" MethodName="Hide"/>
+                        <core:ChangePropertyAction TargetObject="{x:Bind ScoringPaneSplitView}"  PropertyName="IsPaneOpen" Value="True" />
+                      </core:EventTriggerBehavior>
+                    </i:Interaction.Behaviors>
+                  </Button>
+                  
+                  <TextBlock Text="ポップアップを閉じると再計算します" TextWrapping="Wrap" MaxWidth="120" Opacity="0.75" />
+
+                </StackPanel>
+              </Flyout>
+            </controls:DataGrid.Resources>
+
+            <controls:DataGrid.Columns>
+              <controls:DataGridTextColumn 
                 Header="スコア" 
                 Binding="{Binding Score, Mode=OneWay}" Tag="Score" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Score, Mode=OneWay}"           
                 >
-            <controls:DataGridTextColumn.HeaderStyle>
-              <Style TargetType="tkControlsPrim:DataGridColumnHeader">
-                <Setter Property="ContextFlyout" Value="{StaticResource ScoreResultItemFlyout}" />
-              </Style>
-            </controls:DataGridTextColumn.HeaderStyle>
-          </controls:DataGridTextColumn>
+                <controls:DataGridTextColumn.HeaderStyle>
+                  <Style TargetType="tkControlsPrim:DataGridColumnHeader">
+                    <Setter Property="ContextFlyout" Value="{StaticResource ScoreResultItemFlyout}" />
+                  </Style>
+                </controls:DataGridTextColumn.HeaderStyle>
+              </controls:DataGridTextColumn>
 
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="取得番号" 
                 Binding="{Binding Index}" Tag="Index" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Index, Mode=OneWay}" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="動画ID" 
                 Binding="{Binding ContentId}" Tag="ContentId" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=ContentId, Mode=OneWay}"
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="タイトル" 
                 Binding="{Binding Title}" Tag="Title" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Title, Mode=OneWay}" 
                 FontSize="12" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="投稿時間" 
                 Binding="{Binding StartTime, Converter={StaticResource HumanReadbleDateTimeConverter}}" 
                 Tag="StartTime" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=StartTime, Mode=OneWay}" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="再生時間" 
                 Binding="{Binding LengthSeconds, Converter={StaticResource SecondsToReadableTimeConverter}}" 
                 Tag="LengthSeconds" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=LengthSeconds, Mode=OneWay}" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="再生数" 
                 Binding="{Binding ViewCounter}"
                 Tag="ViewCounter" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=ViewCounter, Mode=OneWay}" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="マイリスト数" 
                 Binding="{Binding MylistCounter}"
                 Tag="MylistCounter" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=MylistCounter, Mode=OneWay}" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="コメント数" 
                 Binding="{Binding CommentCounter}" 
                 Tag="CommentCounter" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=CommentCounter, Mode=OneWay}" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="いいね！数" 
                 Binding="{Binding LikeCounter}" 
                 Tag="LikeCounter" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=LikeCounter, Mode=OneWay}" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="ジャンル" 
                 Binding="{Binding Genre}" 
                 Tag="Genre" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Genre, Mode=OneWay}" 
                 CanUserSort="False" 
                 />
-          <controls:DataGridTextColumn
+              <controls:DataGridTextColumn
                 Header="カテゴリタグ" 
                 Binding="{Binding CategoryTags}" 
                 Tag="CategoryTags" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=CategoryTags, Mode=OneWay}" 
                 CanUserSort="False" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="タグ" 
                 Binding="{Binding Tags}"
                 Tag="Tags" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Tags, Mode=OneWay}" 
                 CanUserSort="False"  
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="動画説明文" 
                 Binding="{Binding Description}" 
                 Tag="Description" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Description, Mode=OneWay}" 
                 CanUserSort="False" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="最新コメント" 
                 Binding="{Binding LastResBody}" 
                 Tag="LastResBody" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=LastResBody, Mode=OneWay}" 
                 CanUserSort="False" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="ユーザーID" 
                 Binding="{Binding UserId}" 
                 Tag="UserId" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=UserId, Mode=OneWay}" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="チャンネルID" 
                 Binding="{Binding ChannelId}" 
                 Tag="ChannelId" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=ChannelId, Mode=OneWay}" 
                 />
-          <controls:DataGridTextColumn 
+              <controls:DataGridTextColumn 
                 Header="サムネイルURL"
                 Binding="{Binding ThumbnailUrl.OriginalString}" 
                 Tag="ThumbnailUrl" 
@@ -232,8 +415,14 @@
                 CanUserSort="False" 
                 />
 
-        </controls:DataGrid.Columns>
-      </controls:DataGrid>
+            </controls:DataGrid.Columns>
+          </controls:DataGrid>
+        </SplitView.Content>
+      </SplitView>
+      
+      
     </controls:DockPanel>
   </Grid>
 </Page>
+
+  

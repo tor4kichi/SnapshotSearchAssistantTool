@@ -14,7 +14,15 @@
       <x:Boolean x:Key="IsDebug">False</x:Boolean>
 
       <uwpConv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-      
+      <uwpConv:BoolToObjectConverter x:Key="InvBoolToVisibilityConverter" >
+        <uwpConv:BoolToObjectConverter.TrueValue>
+          <Visibility>Collapsed</Visibility>
+        </uwpConv:BoolToObjectConverter.TrueValue>
+        <uwpConv:BoolToObjectConverter.FalseValue>
+          <Visibility>Visible</Visibility>
+        </uwpConv:BoolToObjectConverter.FalseValue>
+      </uwpConv:BoolToObjectConverter>
+
       <myConv:HumanReadbleDateTimeConverter x:Key="HumanReadbleDateTimeConverter" />
       <myConv:SecondsToReadableTimeConverter x:Key="SecondsToReadableTimeConverter" />
       <myConv:UrlEncodeConverter x:Key="UrlEncodeConverter" />
