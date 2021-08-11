@@ -7,7 +7,7 @@ using Windows.UI.Xaml.Data;
 
 namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters
 {
-    public sealed class HumanReadbleDateTimeConverter : IValueConverter
+    public sealed class HumanReadableDateTimeConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {

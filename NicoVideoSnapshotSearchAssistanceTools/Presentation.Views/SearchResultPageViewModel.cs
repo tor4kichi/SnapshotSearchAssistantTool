@@ -1,8 +1,10 @@
 ﻿using Microsoft.Toolkit.Diagnostics;
 using Microsoft.Toolkit.Mvvm.Messaging;
-using Microsoft.Toolkit.Uwp.UI;
+using Microsoft.Toolkit.Uwp.UI.Custom;
+using NiconicoToolkit;
 using NiconicoToolkit.Channels;
 using NiconicoToolkit.SnapshotSearch;
+using NiconicoToolkit.SnapshotSearch.Filters;
 using NiconicoToolkit.User;
 using NiconicoToolkit.Video;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
@@ -42,6 +44,24 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             _searchResultSettings = searchResultSettings;
 
             ScoringVM = new(_searchResultSettings);
+            ItemsView = new AdvancedCollectionView();
+            ItemsView.Source = _Items;
+            ItemsView.Filter = x =>
+            {
+                SnapshotItemViewModel item = x as SnapshotItemViewModel;
+                foreach (var filter in Filters)
+                {
+                    if (!filter.Compare(item))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            };
+
+            RestoreFilterSettings(_searchResultSettings.ResultFilters);
+
         }
 
         private readonly IMessenger _messenger;
@@ -61,7 +81,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             private set { SetProperty(ref _resultMeta, value); }
         }
 
-        public AdvancedCollectionView ItemsView { get; } = new AdvancedCollectionView();
+        ObservableCollection<SnapshotItemViewModel> _Items = new ObservableCollection<SnapshotItemViewModel>();
+        public AdvancedCollectionView ItemsView { get; private set; }
 
         public ScoringExpressionViewModel ScoringVM { get; }
 
@@ -98,6 +119,173 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 CustomFieldTypeNames
                 )
                 .ToDictionary(x => x, x => true);
+
+        public ReactivePropertySlim<bool> NowRefreshing { get; } = new ReactivePropertySlim<bool>();
+
+        public ObservableCollection<SimpleFilterViewModelBase> Filters { get; } = new ObservableCollection<SimpleFilterViewModelBase>();
+
+        private DelegateCommand<string> _AddSimpleFilterCommand;
+        public DelegateCommand<string> AddSimpleFilterCommand =>
+            _AddSimpleFilterCommand ?? (_AddSimpleFilterCommand = new DelegateCommand<string>(ExecuteAddSimpleFilterCommand));
+
+        void ExecuteAddSimpleFilterCommand(string parameter)
+        {
+            if (Enum.TryParse<SearchFieldType>(parameter, out var fieldType))
+            {
+                Guard.IsTrue(fieldType.IsFilterField(), nameof(SearchFieldTypeExtensions.IsFilterField));
+
+                var type = fieldType.GetAttrubute<SearchFieldTypeAttribute>().Type;
+                if (type == typeof(int))
+                {
+                    if (fieldType == SearchFieldType.LengthSeconds)
+                    {
+                        Filters.Add(new TimeSpanSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, SimpleFilterComparison.GreaterThan, TimeSpan.Zero));
+                    }
+                    else
+                    {
+                        Filters.Add(new IntSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, SimpleFilterComparison.GreaterThan, 0));
+                    }
+                }
+                else if (type == typeof(DateTimeOffset))
+                {
+                    var time = DateTimeOffset.Now;
+                    time -= time.TimeOfDay;
+                    Filters.Add(new DateTimeOffsetSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, SimpleFilterComparison.GreaterThan, time));
+                }
+                else if (type == typeof(string))
+                {
+                    if (fieldType is SearchFieldType.Genre or SearchFieldType.GenreKeyword)
+                    {
+                        Filters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, ""));
+                    }
+                    else
+                    {
+                        Filters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, ""));
+                    }
+                }
+            }
+        }
+
+        private void RemoveSimpleFilterItem(ISimpleFilterViewModel filterVM)
+        {
+            NowRefreshing.Value = true;
+            try
+            {
+                Filters.Remove(filterVM as SimpleFilterViewModelBase);
+            }
+            finally
+            {
+                NowRefreshing.Value = false;
+            }
+        }
+
+
+        private DelegateCommand _RefreshFilterCommand;
+        public DelegateCommand RefreshFilterCommand =>
+            _RefreshFilterCommand ?? (_RefreshFilterCommand = new DelegateCommand(ExecuteRefreshFilterCommand));
+
+        void ExecuteRefreshFilterCommand()
+        {
+            SaveFilterSettings();
+
+            var tempItemsView = ItemsView;
+            ItemsView = null;
+            RaisePropertyChanged(nameof(ItemsView));
+            tempItemsView.RefreshFilter();
+
+            ItemsView = tempItemsView;
+            RaisePropertyChanged(nameof(ItemsView));
+        }
+
+
+        void RestoreFilterSettings(IEnumerable<SearchResultFilterItem> filterItems)
+        {
+            Filters.Clear();
+
+            if (filterItems is null) { return; }
+
+            foreach (var filter in filterItems)
+            {
+                if (Enum.TryParse<SearchFieldType>(filter.FieldName, out var fieldType))
+                {
+                    var type = fieldType.GetAttrubute<SearchFieldTypeAttribute>().Type;
+                    if (type == typeof(int))
+                    {
+                        if (fieldType == SearchFieldType.LengthSeconds)
+                        {
+                            Filters.Add(new TimeSpanSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, filter.Comparison, filter.GetValueAsTimeSpan()));
+                        }
+                        else
+                        {
+                            Filters.Add(new IntSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, filter.Comparison, filter.GetValueAsInt()));
+                        }
+                    }
+                    else if (type == typeof(DateTimeOffset))
+                    {
+                        var time = filter.GetValueAsDateTimeOffset();
+                        time -= time.TimeOfDay;
+                        Filters.Add(new DateTimeOffsetSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, filter.Comparison, time));
+                    }
+                    else if (type == typeof(string))
+                    {
+                        if (fieldType is SearchFieldType.Genre or SearchFieldType.GenreKeyword)
+                        {
+                            Filters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, filter.GetValueAsString()));
+                        }
+                        else
+                        {
+                            Filters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, fieldType, filter.GetValueAsString()));
+                        }
+                    }
+                }
+                else if (filter.FieldName == CustomFieldTypeName_Score)
+                {
+                    throw new NotImplementedException();
+                }
+                else if (filter.FieldName == CustomFieldTypeName_Index)
+                {
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+        }
+
+        private void SaveFilterSettings()
+        {
+            _searchResultSettings.ResultFilters = Filters.Select(x =>
+            {
+                if (x is ISimpleFilterViewModel filter)
+                {
+                    if (filter.Value is TimeSpan timeSpan)
+                    {
+                        return new SearchResultFilterItem()
+                        {
+                            FieldName = filter.FieldType.ToString(),
+                            Comparison = filter.Comparison,
+                            Value = ((TimeSpan)filter.Value).TotalSeconds,
+                        };
+                    }
+                    else
+                    {
+                        return new SearchResultFilterItem()
+                        {
+                            FieldName = filter.FieldType.ToString(),
+                            Comparison = filter.Comparison,
+                            Value = filter.Value,
+                        };
+                    }                    
+                }
+                else
+                {
+                    throw new NotImplementedException(x.GetType().Name);
+                }
+            }
+            ).ToArray();
+        }
+
 
         public override async Task OnNavigatedToAsync(INavigationParameters parameters)
         {
@@ -181,11 +369,26 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                         {
                             itemVM.Score = ScoringVM.CulcScore(itemVM);
                         }
-                        ItemsView.Add(itemVM);
+                        _Items.Add(itemVM);
                         counter++;
                         ct.ThrowIfCancellationRequested();
                     }
                 }
+
+                
+                /*
+                new[]
+                {
+                    Filters.ObserveElementPropertyChanged().ToUnit(),
+                    Filters.CollectionChangedAsObservable().ToUnit()
+                }
+                .Merge()
+                .Subscribe(x => 
+                {
+                    ItemsView.RefreshFilter();
+                })
+                .AddTo(_navigationDisposable);
+                */
             }
             catch (Exception ex)
             {
@@ -195,6 +398,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 throw;
             }
         }
+
+
 
         public override void OnNavigatedFrom(INavigationParameters parameters)
         {
@@ -239,9 +444,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         }
         
 
-        #region Score
-
-        #endregion
     }
 
 
@@ -328,6 +530,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
     }
 
+    
 
     public class ScoringExpressionItemViewModel : BindableBase, IDisposable
     {
@@ -583,5 +786,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         public Uri ThumbnailUrl => _snapshotVideoItem.ThumbnailUrl;
 
+        string[] _Tags_Separated;
+        public string[] Tags_Separated => _Tags_Separated ??= Tags?.Split(' ') ?? new string[0];
     }
 }

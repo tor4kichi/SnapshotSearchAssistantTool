@@ -6,7 +6,8 @@
     xmlns:local="using:NicoVideoSnapshotSearchAssistanceTools" 
   xmlns:controls="using:Microsoft.UI.Xaml.Controls"
   xmlns:uwpConv="using:Microsoft.Toolkit.Uwp.UI.Converters" 
-  xmlns:myConv="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters">
+  xmlns:myConv="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters" 
+  >
   <prism:PrismApplication.Resources>
 
     <ResourceDictionary>
@@ -23,10 +24,10 @@
         </uwpConv:BoolToObjectConverter.FalseValue>
       </uwpConv:BoolToObjectConverter>
 
-      <myConv:HumanReadbleDateTimeConverter x:Key="HumanReadbleDateTimeConverter" />
+      <myConv:HumanReadableDateTimeConverter x:Key="HumanReadableDateTimeConverter" />
       <myConv:SecondsToReadableTimeConverter x:Key="SecondsToReadableTimeConverter" />
       <myConv:UrlEncodeConverter x:Key="UrlEncodeConverter" />
-
+      <myConv:ComparisonToCharacterSymbolConverter x:Key="ComparisonToCharacterSymbolConverter" />
 
 
       <ResourceDictionary.MergedDictionaries>

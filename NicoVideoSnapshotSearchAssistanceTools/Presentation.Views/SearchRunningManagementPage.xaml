@@ -81,7 +81,7 @@
                      HorizontalAlignment="Left" />
 
           <TextBlock HorizontalAlignment="Right" TextAlignment="Right" IsTextSelectionEnabled="True" Opacity="0.75">
-            <Run Text="Snapshot API Version" /> <LineBreak /> <Run Text="{Binding CurrentApiVersion, Converter={StaticResource HumanReadbleDateTimeConverter}}" />
+            <Run Text="Snapshot API Version" /> <LineBreak /> <Run Text="{Binding CurrentApiVersion, Converter={StaticResource HumanReadableDateTimeConverter}}" />
           </TextBlock>
         </Grid>
         

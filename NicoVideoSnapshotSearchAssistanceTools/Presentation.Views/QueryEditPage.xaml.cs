@@ -37,29 +37,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views
         }
     }
 
-    public sealed class SimpleFilterTemplateSelector : DataTemplateSelector
-    {
-        public DataTemplate DateTimeOffsetTemplate { get; set; }
-        public DataTemplate TimeSpanTemplate { get; set; }
-        public DataTemplate IntTemplate { get; set; }
-        public DataTemplate StringTemplate { get; set; }
-
-        protected override DataTemplate SelectTemplateCore(object item)
-        {
-            return this.SelectTemplateCore(item, null);
-        }
-        protected override DataTemplate SelectTemplateCore(object item, DependencyObject container)
-        {
-            return item switch
-            {
-                DateTimeOffsetSimpleFilterViewModel => DateTimeOffsetTemplate,
-                TimeSpanSimpleFilterViewModel => TimeSpanTemplate,
-                IntSimpleFilterViewModel => IntTemplate,
-                StringSimpleFilterViewModel => StringTemplate,
-                _ => base.SelectTemplateCore(item, container),
-            };
-        }
-    }
-
+    
    
 }

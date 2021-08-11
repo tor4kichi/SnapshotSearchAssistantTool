@@ -66,7 +66,7 @@
               <Grid>
                 <StackPanel>
                   <uwpControls:DockPanel>
-                    <TextBlock Text="{x:Bind SnapshotVersion, Converter={StaticResource HumanReadbleDateTimeConverter}}"  uwpControls:DockPanel.Dock="Right" VerticalAlignment="Top" />
+                    <TextBlock Text="{x:Bind SnapshotVersion, Converter={StaticResource HumanReadableDateTimeConverter}}"  uwpControls:DockPanel.Dock="Right" VerticalAlignment="Top" />
                     <TextBlock   uwpControls:DockPanel.Dock="Right" VerticalAlignment="Top" Margin="8 0">
                       <Run Text="{x:Bind TotalCount}" />件
                     </TextBlock>

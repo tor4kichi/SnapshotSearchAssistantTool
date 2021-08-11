@@ -117,6 +117,7 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="ACV.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
@@ -125,12 +126,18 @@
     </Compile>
     <Compile Include="AppCoreModule.cs" />
     <Compile Include="IsExternalInit.cs" />
+    <Compile Include="Locales\LocaleToDisplayNameConverter.cs" />
+    <Compile Include="Locales\LocalizeConverter.cs" />
+    <Compile Include="Locales\LocalizeWithParameterConverter.cs" />
     <Compile Include="Presentation.ViewModels\SearchQueryTemplateViewModel.cs" />
     <Compile Include="Presentation.ViewModels\SearchQueryViewModel.cs" />
+    <Compile Include="Presentation.ViewModels\SimpleFilterViewModel.cs" />
+    <Compile Include="Presentation.Views.Converters\ComparisonToCharacterSymbolConverter.cs" />
     <Compile Include="Presentation.Views.Converters\HumanReadbleDateTimeConverter.cs" />
     <Compile Include="Presentation.Views.Converters\SecondsToReadableTimeConverter.cs" />
     <Compile Include="Presentation.Views.Converters\UrlEncodeConverter.cs" />
     <Compile Include="Presentation.Views.Interactions\DataContextPropagationToFlyoutChild.cs" />
+    <Compile Include="Presentation.Views.TemplateSelector\SimpleFilterTemplateSelector.cs" />
     <Compile Include="Presentation.Views\QueryEditPage.xaml.cs">
       <DependentUpon>QueryEditPage.xaml</DependentUpon>
     </Compile>
@@ -160,6 +167,7 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Locales\ja-JP.txt" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -200,6 +208,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="I18NPortable">
+      <Version>1.0.1</Version>
+    </PackageReference>
     <PackageReference Include="LiteDB">
       <Version>5.0.10</Version>
     </PackageReference>
@@ -252,6 +263,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models.UseCase\" />
+    <Folder Include="Presentation.Views.Controls\" />
     <Folder Include="Presentation\" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
