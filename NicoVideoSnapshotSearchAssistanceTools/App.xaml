@@ -7,6 +7,7 @@
   xmlns:controls="using:Microsoft.UI.Xaml.Controls"
   xmlns:uwpConv="using:Microsoft.Toolkit.Uwp.UI.Converters" 
   xmlns:myConv="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters" 
+  xmlns:i18nConv="using:I18NPortable.Xaml.Converters"
   >
   <prism:PrismApplication.Resources>
 
@@ -29,7 +30,12 @@
       <myConv:UrlEncodeConverter x:Key="UrlEncodeConverter" />
       <myConv:ComparisonToCharacterSymbolConverter x:Key="ComparisonToCharacterSymbolConverter" />
 
+      <i18nConv:LocalizeConverter x:Key="LocalizeConverter" />
 
+      <DataTemplate x:Key="LocalizedTextBlock">
+        <TextBlock Text="{Binding Converter={StaticResource LocalizeConverter}}" />
+      </DataTemplate>
+      
       <ResourceDictionary.MergedDictionaries>
         <controls:XamlControlsResources />
         <!-- Other app resources here -->

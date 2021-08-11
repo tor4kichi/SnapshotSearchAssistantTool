@@ -1,0 +1,91 @@
+﻿
+Delete = 削除
+Add = 追加
+UnDo = 元に戻す
+
+## NiconicoToolkit
+
+SearchFieldType.ContentId = コンテンツID
+SearchFieldType.Title = タイトル
+SearchFieldType.Description = 動画説明文
+SearchFieldType.UserId = ユーザーID
+SearchFieldType.ChannelId = チャンネルID
+SearchFieldType.ViewCounter = 再生数
+SearchFieldType.MylistCounter = マイリスト数
+SearchFieldType.LikeCounter = いいね！数
+SearchFieldType.LengthSeconds = 再生時間
+SearchFieldType.ThumbnailUrl = サムネイルURL
+SearchFieldType.StartTime = 投稿日時
+SearchFieldType.LastResBody = 最新の投稿コメント
+SearchFieldType.CommentCounter = コメント数
+SearchFieldType.LastCommentTime = 最終コメント時間
+SearchFieldType.CategoryTags = カテゴリタグ
+SearchFieldType.Tags = タグ
+SearchFieldType.TagsExact = タグ（完全一致）
+SearchFieldType.Genre = ジャンル
+SearchFieldType.GenreKeyword = ジャンル（完全一致）
+
+
+SimpleFilterComparison.Equal = 一致
+SimpleFilterComparison.GreaterThan = 以上
+SimpleFilterComparison.GreaterThanOrEqual = 超過
+SimpleFilterComparison.LessThan = 未満
+SimpleFilterComparison.LessThenOrEqual = 以下
+
+-viewCounter = 再生数が多い順
++viewCounter = 再生数が少ない順
+-mylistCounter = マイリスト数が多い順
++mylistCounter = マイリスト数が少ない順
+-likeCounter = いいね！数が多い順
++likeCounter = いいね！数が少ない順
+-lengthSeconds = 再生時間が長い順
++lengthSeconds = 再生時間が短い順
+-startTime = 投稿日時が新しい順
++startTime = 投稿日時が古い順
+-commentCounter = コメント数が多い順
++commentCounter = コメント数が少ない順
+-lastCommentTime = 最終コメントが新しい順
++lastCommentTime = 最終コメントが古い順
+
+
+##
+
+SnapshotAPIVersion = Snapshot API Version
+SearchQueryCondition = 検索条件
+
+
+## QueryEditPage
+
+DoSearch_Command = 検索（テスト含む）
+SaveCurrentlySearchQueryAsTemplate = 現在の条件をテンプレートとして保存
+LoadSearchQueryFromTemplate = テンプレートから読み込み
+LoadSearchQueryFromText = クエリ文字列から読み込み
+QueryEditPage_AutoSaveDescription = 編集中の検索条件は自動保存されます
+
+
+SearchQuery_Context_Title = コンテキストID（必須）
+SearchQuery_Context_Description = 検索パラメータの「_context」に指定する文字列です
+
+SearchQuery_Keyword_Title = キーワード
+SearchQuery_Keyword_Description = 空欄も可
+
+SearchQuery_Target_Title = 検索対象（必須）
+
+SearchQuery_Field_Title = 取得項目
+
+SearchQuery_Sort_Title = 並び順（必須）
+
+## SearchResultPage
+
+SearchFilter = 絞り込み
+SearchFilterCondition = 絞り込み条件
+
+CustomFieldType_Index = 取得番号
+
+
+CustomFieldType_Score = スコア
+ScoreCulcExpression = スコア計算式
+ScoreCulcExpression_Edit = スコア計算式を編集
+ScoreCulcExprettion_Currently = 現在適用されている計算式
+ScoreCulcExprettion_ReCulcWhenPopupClosed = ポップアップを閉じると再計算します
+ScoreSettingItem_Title = 表示名

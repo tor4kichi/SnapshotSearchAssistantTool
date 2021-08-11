@@ -15,6 +15,7 @@
   xmlns:viewModels="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels" 
   xmlns:ts="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.TemplateSelector" 
   xmlns:nctkSnapshot="using:NiconicoToolkit.SnapshotSearch.Filters"
+  xmlns:i18nExt="using:I18NPortable.Xaml.Extensions"
   mc:Ignorable="d"
   x:Name="PageRoot"
     >
@@ -43,11 +44,11 @@
             <Button.Content>
               <StackPanel Orientation="Horizontal" Spacing="16">
                 <TextBlock VerticalAlignment="Center" >
-                  <Run Text="検索条件" /> <LineBreak /> <Run Text="{x:Bind ViewModel.SearchQueryVM.Keyword, Mode=OneWay}" />
+                  <Run Text="{i18nExt:Localize Key=SearchQueryCondition}" /> <LineBreak /> <Run Text="{x:Bind ViewModel.SearchQueryVM.Keyword, Mode=OneWay}" />
                 </TextBlock>
 
                 <TextBlock HorizontalTextAlignment="Right" VerticalAlignment="Center" Opacity="0.75">
-                  <Run Text="Snapshot API Version" /> <LineBreak /> <Run  Text="{x:Bind ViewModel.ResultMeta.SnapshotVersion, Converter={StaticResource HumanReadableDateTimeConverter}, Mode=OneWay}" />
+                  <Run Text="{i18nExt:Localize Key=SnapshotAPIVersion}" /> <LineBreak /> <Run  Text="{x:Bind ViewModel.ResultMeta.SnapshotVersion, Converter={StaticResource HumanReadableDateTimeConverter}, Mode=OneWay}" />
                 </TextBlock>
 
               </StackPanel>
@@ -90,7 +91,7 @@
                 <DataTemplate x:DataType="viewModels:DateTimeOffsetSimpleFilterViewModel">
                   <Grid Style="{ThemeResource MicaCardGirdStyle}" >
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <TextBlock Text="{x:Bind FieldType}" VerticalAlignment="Center" />
+                      <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
                       <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
                       <TextBlock Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
                     </StackPanel>
@@ -101,7 +102,7 @@
                 <DataTemplate x:DataType="viewModels:TimeSpanSimpleFilterViewModel">
                   <Grid Style="{ThemeResource MicaCardGirdStyle}">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <TextBlock Text="{x:Bind FieldType}" VerticalAlignment="Center" />
+                      <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
                       <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
                       <TextBlock Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
                     </StackPanel>
@@ -113,7 +114,7 @@
                 <DataTemplate x:DataType="viewModels:IntSimpleFilterViewModel">
                   <Grid Style="{ThemeResource MicaCardGirdStyle}" >
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <TextBlock Text="{x:Bind FieldType}" VerticalAlignment="Center" />
+                      <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
                       <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
                       <TextBlock Text="{x:Bind Value, Mode=OneWay}" />
                     </StackPanel>
@@ -123,8 +124,8 @@
               <ts:SimpleFilterTemplateSelector.StringTemplate>
                 <DataTemplate x:DataType="viewModels:StringSimpleFilterViewModel">
                   <Grid Style="{ThemeResource MicaCardGirdStyle}" >
-                    <StackPanel Spacing="8">
-                      <TextBlock Text="{x:Bind FieldType}" VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
                       <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
                       <TextBlock Text="{x:Bind Value, Mode=OneWay}" />
                     </StackPanel>
@@ -145,7 +146,7 @@
 
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <SymbolIcon Symbol="Filter" />
-                <TextBlock Text="絞り込み" VerticalAlignment="Center" />
+                <TextBlock Text="{i18nExt:Localize Key=SearchFilter}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
           </StackPanel>
@@ -188,16 +189,21 @@
             <Border x:Name="FilterEdittingUIContainer" Visibility="Collapsed">
               <Border.Resources>
 
+                <MenuFlyout x:Key="FilterItemFlyout">
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
+                </MenuFlyout>
+                
                 <ts:SimpleFilterTemplateSelector x:Key="SimpleFilterTemplateSelector">
                   <ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
                     <DataTemplate x:DataType="viewModels:DateTimeOffsetSimpleFilterViewModel">
                       <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
                         <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType}" VerticalAlignment="Center" />
+                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
                           <StackPanel Orientation="Horizontal" Spacing="16">
 
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
                                     MinWidth="200"
                                   >
                             </ComboBox>
@@ -218,15 +224,12 @@
                           </StackPanel>
                         </StackPanel>
 
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Flyout="{StaticResource FilterItemFlyout}"
+                                >
                           <Button.Content>
                             <SymbolIcon Symbol="More" />
                           </Button.Content>
-                          <Button.Flyout>
-                            <MenuFlyout>
-                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
-                            </MenuFlyout>
-                          </Button.Flyout>
                         </Button>
                       </Grid>
                     </DataTemplate>
@@ -235,11 +238,12 @@
                     <DataTemplate x:DataType="viewModels:TimeSpanSimpleFilterViewModel">
                       <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
                         <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType}" VerticalAlignment="Center" />
+                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
                           <StackPanel Orientation="Horizontal" Spacing="16">
 
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
                                     MinWidth="200"
                                   >
                             </ComboBox>
@@ -254,15 +258,12 @@
                           </StackPanel>
                         </StackPanel>
 
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Flyout="{StaticResource FilterItemFlyout}"
+                                >
                           <Button.Content>
                             <SymbolIcon Symbol="More" />
                           </Button.Content>
-                          <Button.Flyout>
-                            <MenuFlyout>
-                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
-                            </MenuFlyout>
-                          </Button.Flyout>
                         </Button>
                       </Grid>
                     </DataTemplate>
@@ -272,11 +273,12 @@
                     <DataTemplate x:DataType="viewModels:IntSimpleFilterViewModel">
                       <Grid Style="{ThemeResource MicaCardGirdStyle}"  Margin="16 0">
                         <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType}" VerticalAlignment="Center" />
+                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
                           <StackPanel Orientation="Horizontal" Spacing="16">
 
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
                                     MinWidth="200"
                                   >
                             </ComboBox>
@@ -285,15 +287,12 @@
                           </StackPanel>
                         </StackPanel>
 
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Flyout="{StaticResource FilterItemFlyout}"
+                                >
                           <Button.Content>
                             <SymbolIcon Symbol="More" />
                           </Button.Content>
-                          <Button.Flyout>
-                            <MenuFlyout>
-                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
-                            </MenuFlyout>
-                          </Button.Flyout>
                         </Button>
                       </Grid>
                     </DataTemplate>
@@ -302,12 +301,13 @@
                     <DataTemplate x:DataType="viewModels:StringSimpleFilterViewModel">
                       <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
                         <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType}" VerticalAlignment="Center" />
+                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
                           <StackPanel Orientation="Horizontal" Spacing="16">
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
                                   IsEnabled="False"
-                                  ToolTipService.ToolTip="文字列は一致のみ"
+                                  
                                     MinWidth="200"
                                   >
                             </ComboBox>
@@ -329,15 +329,12 @@
 
                         </StackPanel>
 
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Flyout="{StaticResource FilterItemFlyout}"
+                                >
                           <Button.Content>
                             <SymbolIcon Symbol="More" />
                           </Button.Content>
-                          <Button.Flyout>
-                            <MenuFlyout>
-                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
-                            </MenuFlyout>
-                          </Button.Flyout>
                         </Button>
                       </Grid>
                     </DataTemplate>
@@ -363,7 +360,7 @@
                   </Button>
 
                   <SymbolIcon Symbol="Filter" controls:DockPanel.Dock="Left" />
-                  <TextBlock Text="絞り込み条件" Margin="4 0 0 0" Style="{StaticResource SubtitleTextBlockStyle}" />
+                  <TextBlock Text="{i18nExt:Localize Key=SearchFilter}" Margin="4 0 0 0" Style="{StaticResource SubtitleTextBlockStyle}" />
                 </controls:DockPanel>
                 <controls:DockPanel controls:DockPanel.Dock="Top" Margin="16">
 
@@ -374,24 +371,23 @@
 
                     <Button.Flyout>
                       <MenuFlyout>
-                        <MenuFlyoutItem Text="投稿日時" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
-                        <MenuFlyoutItem Text="再生数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
-                        <MenuFlyoutItem Text="マイリスト数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
-                        <MenuFlyoutItem Text="いいね！数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
-                        <MenuFlyoutItem Text="再生時間（秒）" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
-                        <MenuFlyoutItem Text="コメント数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
-                        <MenuFlyoutItem Text="最終コメント時間" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
-                        <MenuFlyoutItem Text="カテゴリタグ" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
-                        <MenuFlyoutItem Text="タグ" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
-                        <MenuFlyoutItem Text="タグ完全一致" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
-                        <MenuFlyoutItem Text="ジャンル" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
-                        <MenuFlyoutItem Text="ジャンル完全一致" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=StartTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=ViewCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=MylistCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=LikeCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=LengthSeconds}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=CommentCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=LastCommentTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=CategoryTags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=Tags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=TagsExact}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=Genre}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=GenreKeyword}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
                       </MenuFlyout>
                     </Button.Flyout>
                   </Button>
 
                   <Button controls:DockPanel.Dock="Right" Margin="0 0 8 0"
-                      ToolTipService.ToolTip="フィルター更新"
                           Command="{Binding RefreshFilterCommand}"
                       >
                     <Button.Content>
@@ -422,7 +418,6 @@
 
               <controls:DockPanel controls:DockPanel.Dock="Top" Margin="16 16 16 8">
                 <Button controls:DockPanel.Dock="Right" Margin="0 0 0 0"
-                      ToolTipService.ToolTip="閉じる"
                       >
                   <Button.Content>
                     <SymbolIcon Symbol="ClosePane" />
@@ -443,19 +438,19 @@
                   <Button.Flyout>
                     <Flyout>
                       <TextBlock>
-                      <Run Text="V = 再生数" /><LineBreak />
-                      <Run Text="C = コメント数" /><LineBreak />
-                      <Run Text="M = マイリスト数" /><LineBreak />
-                      <Run Text="L = いいね数" /><LineBreak />
-                      <Run Text="Limit(value, max)" /><LineBreak />
-                      <Run Text="Clamp(value, min, max)" /><LineBreak />
+                        <Run Text="V = 再生数" /><LineBreak />
+                        <Run Text="C = コメント数" /><LineBreak />
+                        <Run Text="M = マイリスト数" /><LineBreak />
+                        <Run Text="L = いいね数" /><LineBreak />
+                        <Run Text="Limit(value, max)" /><LineBreak />
+                        <Run Text="Clamp(value, min, max)" /><LineBreak />
                       </TextBlock>
                     </Flyout>
                   </Button.Flyout>
                 </Button>
 
 
-                <TextBlock Text="スコア計算式" Margin="4 0 0 0" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <TextBlock Text="{i18nExt:Localize Key=ScoreCulcExpression}" Margin="4 0 0 0" Style="{StaticResource SubtitleTextBlockStyle}" />
               </controls:DockPanel>
                             
               <controls:DockPanel controls:DockPanel.Dock="Top" Padding="16">
@@ -464,7 +459,7 @@
                 <ComboBox ItemsSource="{x:Bind ViewModel.ScoringVM.SettingItems, Mode=OneWay}"
                         SelectedItem="{x:Bind ViewModel.ScoringVM.CurrentScoringSetting.Value, Mode=TwoWay}"
                         controls:DockPanel.Dock="Left"
-                          Header="現在適用されている計算式"
+                          Header="{i18nExt:Localize Key=ScoreCulcExprettion_Currently}"
                         >
                   <ComboBox.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:ScoringExpressionItemViewModel">
@@ -505,7 +500,7 @@
                               xmlns:myInteractions="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Interactions"
                               myInteractions:FlyoutExtensions.DataContextPropagationToFlyoutChild="True"
                               >
-                      <MenuFlyoutItem Text="削除" Icon="Delete" Command="{Binding ToggleRemoveRequestedCommand}" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding ToggleRemoveRequestedCommand}" />
                     </MenuFlyout>
                   </ItemsControl.Resources>
                   <ItemsControl.ItemTemplate>
@@ -514,12 +509,12 @@
                           ContextFlyout="{StaticResource ExpressionItemFlyout}"
                           >
 
-                        <Button Content="元に戻す" Command="{x:Bind ToggleRemoveRequestedCommand}"
+                        <Button Content="{i18nExt:Localize Key=UnDo}" Command="{x:Bind ToggleRemoveRequestedCommand}"
                               Visibility="{x:Bind IsRemoveRequested, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                               />
                         <StackPanel Spacing="16" Visibility="{x:Bind IsRemoveRequested, Mode=OneWay, Converter={StaticResource InvBoolToVisibilityConverter}}">
 
-                          <TextBox Text="{x:Bind Title.Value, Mode=TwoWay}" Header="表示名" />
+                          <TextBox Text="{x:Bind Title.Value, Mode=TwoWay}" Header="{i18nExt:Localize Key=ScoreSettingItem_Title}" />
 
                           <!--
                         <controls:DockPanel Visibility="Collapsed" >
@@ -566,7 +561,7 @@
                         -->
 
                           <TextBox Text="{x:Bind ScoreCulcExpressionText.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Stretch"
-                                 Header="スコア計算式"
+                                 Header="{i18nExt:Localize Key=ScoreCulcExpression}"
                                          TextWrapping="Wrap"
                                          />
 
@@ -620,7 +615,7 @@
                     </ComboBox.ItemTemplate>
                   </ComboBox>
 
-                  <Button Content="スコアの計算式を編集">
+                  <Button Content="{i18nExt:Localize Key=ScoreCulcExpression_Edit}">
                     <i:Interaction.Behaviors>
                       <core:EventTriggerBehavior EventName="Tapped">
                         <core:CallMethodAction TargetObject="{x:Bind ScoreResultItemFlyout}" MethodName="Hide"/>
@@ -628,8 +623,8 @@
                       </core:EventTriggerBehavior>
                     </i:Interaction.Behaviors>
                   </Button>
-                  
-                  <TextBlock Text="ポップアップを閉じると再計算します" TextWrapping="Wrap" MaxWidth="120" Opacity="0.75" />
+
+                  <TextBlock Text="{i18nExt:Localize Key=ScoreCulcExprettion_ReCulcWhenPopupClosed}" TextWrapping="Wrap" MaxWidth="120" Opacity="0.75" />
 
                 </StackPanel>
               </Flyout>
@@ -637,7 +632,7 @@
 
             <controls:DataGrid.Columns>
               <controls:DataGridTextColumn 
-                Header="スコア" 
+                Header="{i18nExt:Localize Key=CustomFieldType_Score}" 
                 Binding="{Binding Score, Mode=OneWay}" Tag="Score" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Score, Mode=OneWay}"           
                 >
@@ -649,106 +644,106 @@
               </controls:DataGridTextColumn>
 
               <controls:DataGridTextColumn 
-                Header="取得番号" 
+                Header="{i18nExt:Localize Key=CustomFieldType_Index}" 
                 Binding="{Binding Index, Mode=OneWay}" Tag="Index" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Index, Mode=OneWay}" 
                 />
               <controls:DataGridTextColumn 
-                Header="動画ID" 
+                Header="{i18nExt:Localize Key=SearchFieldType.ContentId}"
                 Binding="{Binding ContentId, Mode=OneWay}" Tag="ContentId" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=ContentId, Mode=OneWay}"
                 />
               <controls:DataGridTextColumn 
-                Header="タイトル" 
+                Header="{i18nExt:Localize Key=SearchFieldType.Title}"
                 Binding="{Binding Title, Mode=OneWay}" Tag="Title" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Title, Mode=OneWay}" 
                 FontSize="12" 
                 />
               <controls:DataGridTextColumn 
-                Header="投稿時間" 
+                Header="{i18nExt:Localize Key=SearchFieldType.StartTime}"
                 Binding="{Binding StartTime, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}}" 
                 Tag="StartTime" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=StartTime, Mode=OneWay}" 
                 />
               <controls:DataGridTextColumn 
-                Header="再生時間" 
+                Header="{i18nExt:Localize Key=SearchFieldType.LengthSeconds}"
                 Binding="{Binding LengthSeconds, Mode=OneWay, Converter={StaticResource SecondsToReadableTimeConverter}}" 
                 Tag="LengthSeconds" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=LengthSeconds, Mode=OneWay}" 
                 />
               <controls:DataGridTextColumn 
-                Header="再生数" 
+                Header="{i18nExt:Localize Key=SearchFieldType.ViewCounter}"
                 Binding="{Binding ViewCounter, Mode=OneWay}"
                 Tag="ViewCounter" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=ViewCounter, Mode=OneWay}" 
                 />
               <controls:DataGridTextColumn 
-                Header="マイリスト数" 
+                Header="{i18nExt:Localize Key=SearchFieldType.MylistCounter}"
                 Binding="{Binding MylistCounter, Mode=OneWay}"
                 Tag="MylistCounter" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=MylistCounter, Mode=OneWay}" 
                 />
               <controls:DataGridTextColumn 
-                Header="コメント数" 
+                Header="{i18nExt:Localize Key=SearchFieldType.CommentCounter}"
                 Binding="{Binding CommentCounter, Mode=OneWay}" 
                 Tag="CommentCounter" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=CommentCounter, Mode=OneWay}" 
                 />
               <controls:DataGridTextColumn 
-                Header="いいね！数" 
+                Header="{i18nExt:Localize Key=SearchFieldType.LikeCounter}"
                 Binding="{Binding LikeCounter, Mode=OneWay}" 
                 Tag="LikeCounter" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=LikeCounter, Mode=OneWay}" 
                 />
               <controls:DataGridTextColumn 
-                Header="ジャンル" 
+                Header="{i18nExt:Localize Key=SearchFieldType.Genre}"
                 Binding="{Binding Genre, Mode=OneWay}" 
                 Tag="Genre" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Genre, Mode=OneWay}" 
                 CanUserSort="False" 
                 />
               <controls:DataGridTextColumn
-                Header="カテゴリタグ" 
+                Header="{i18nExt:Localize Key=SearchFieldType.CategoryTags}"
                 Binding="{Binding CategoryTags, Mode=OneWay}" 
                 Tag="CategoryTags" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=CategoryTags, Mode=OneWay}" 
                 CanUserSort="False" 
                 />
               <controls:DataGridTextColumn 
-                Header="タグ" 
+                Header="{i18nExt:Localize Key=SearchFieldType.Tags}"
                 Binding="{Binding Tags, Mode=OneWay}"
                 Tag="Tags" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Tags, Mode=OneWay}" 
                 CanUserSort="False"  
                 />
               <controls:DataGridTextColumn 
-                Header="動画説明文" 
+                Header="{i18nExt:Localize Key=SearchFieldType.Description}"
                 Binding="{Binding Description, Mode=OneWay}" 
                 Tag="Description" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Description, Mode=OneWay}" 
                 CanUserSort="False" 
                 />
               <controls:DataGridTextColumn 
-                Header="最新コメント" 
+                Header="{i18nExt:Localize Key=SearchFieldType.LastResBody}"
                 Binding="{Binding LastResBody, Mode=OneWay}" 
                 Tag="LastResBody" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=LastResBody, Mode=OneWay}" 
                 CanUserSort="False" 
                 />
               <controls:DataGridTextColumn 
-                Header="ユーザーID" 
+                Header="{i18nExt:Localize Key=SearchFieldType.UserId}"
                 Binding="{Binding UserId, Mode=OneWay}" 
                 Tag="UserId" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=UserId, Mode=OneWay}" 
                 />
               <controls:DataGridTextColumn 
-                Header="チャンネルID" 
+                Header="{i18nExt:Localize Key=SearchFieldType.ChannelId}"
                 Binding="{Binding ChannelId, Mode=OneWay}" 
                 Tag="ChannelId" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=ChannelId, Mode=OneWay}" 
                 />
               <controls:DataGridTextColumn 
-                Header="サムネイルURL"
+                Header="{i18nExt:Localize Key=SearchFieldType.ThumbnailUrl}"
                 Binding="{Binding ThumbnailUrl.OriginalString, Mode=OneWay}" 
                 Tag="ThumbnailUrl" 
                 Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=ThumbnailUrl, Mode=OneWay}" 

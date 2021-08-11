@@ -34,6 +34,7 @@ using Unity.Injection;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Infrastructure;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
 using System.Web;
+using System.Diagnostics;
 
 namespace NicoVideoSnapshotSearchAssistanceTools
 {
@@ -128,7 +129,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools
             Resources["IsDebug"] = false;
 #endif
 
-
+            InitialzieLocalization();
             InitializeUIShell();
 
             var messenger = Container.Resolve<IMessenger>();
@@ -150,6 +151,27 @@ namespace NicoVideoSnapshotSearchAssistanceTools
             {
                 _ = messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(QueryEditPage))));
             }
+        }
+
+        private void InitialzieLocalization()
+        {
+            // ローカリゼーション用のライブラリを初期化
+            try
+            {
+                I18NPortable.I18N.Current
+#if DEBUG
+                //.SetLogger(text => System.Diagnostics.Debug.WriteLine(text))
+                .SetNotFoundSymbol("🍣")
+#endif
+                .SetFallbackLocale("ja")
+                .Init(GetType().Assembly);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+            }
+
+            Resources["Strings"] = I18NPortable.I18N.Current;
         }
 
         private void InitializeUIShell()

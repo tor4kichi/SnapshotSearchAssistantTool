@@ -15,12 +15,14 @@
   xmlns:winTriggers="using:Microsoft.Toolkit.Uwp.UI.Triggers" 
   xmlns:conv="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Converters"
   xmlns:ts="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.TemplateSelector"
+  xmlns:i18nConv="using:I18NPortable.Xaml.Converters"
+  xmlns:i18nExt="using:I18NPortable.Xaml.Extensions"
   mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
   <Page.Resources>
     <DataTemplate x:Key="SearchFiledTypeSelectableItemTemplate" x:DataType="viewModels:SearchFieldTypeSelectableItem">
-      <CheckBox Content="{x:Bind Content}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
+      <CheckBox Content="{x:Bind Content, Converter={StaticResource LocalizeConverter}}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" />
     </DataTemplate>
   </Page.Resources>
   <Grid>
@@ -34,7 +36,7 @@
                             >
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <SymbolIcon Symbol="Find" />
-                <TextBlock Text="検索（テスト含む）" />
+                <TextBlock Text="{i18nExt:Localize Key=DoSearch_Command}" />
               </StackPanel>
             </Button>
             <CommandBar DefaultLabelPosition="Right"
@@ -45,16 +47,16 @@
 
               </CommandBar.PrimaryCommands>
               <CommandBar.SecondaryCommands>
-                <AppBarButton Label="現在の条件をテンプレートとして保存" />
+                <AppBarButton Label="{i18nExt:Localize Key=SaveCurrentlySearchQueryAsTemplate}" />
                 <AppBarSeparator />
-                <AppBarButton Label="テンプレートから読み込み" />
-                <AppBarButton Label="クエリ文字列から読み込み" />
+                <AppBarButton Label="{i18nExt:Localize Key=LoadSearchQueryFromTemplate}" />
+                <AppBarButton Label="{i18nExt:Localize Key=LoadSearchQueryFromText}" />
               </CommandBar.SecondaryCommands>
             </CommandBar>
 
           </StackPanel>
           <StackPanel Orientation="Horizontal" Margin="24 0" >
-            <TextBlock Text="検索条件" Style="{StaticResource TitleTextBlockStyle}" />
+            <TextBlock Text="{i18nExt:Localize Key=SearchQueryCondition}" Style="{StaticResource TitleTextBlockStyle}" />
           </StackPanel>
         </uwpControls:DockPanel>
       </Grid>
@@ -70,7 +72,7 @@
             </Style>
           </StackPanel.Resources>
 
-          <TextBlock Text="編集中の検索条件は自動保存されます"
+          <TextBlock Text="{i18nExt:Localize Key=QueryEditPage_AutoSaveDescription}"
                      Margin="16 0" 
                      Opacity="0.75"
                      HorizontalAlignment="Right"
@@ -86,25 +88,24 @@
             
             <winui:Expander.Header>
               <StackPanel>
-                <TextBlock Text="コンテキストID（必須）" 
+                <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Context_Title}" 
                         />
               </StackPanel>
             </winui:Expander.Header>
             <winui:Expander.Content>
               <StackPanel Spacing="16">
                 <TextBox Text="{Binding ContextQueryParameter.Value, Mode=TwoWay}" MaxLength="40"
-                      PlaceholderText="例）月刊○○ランキング"
+                      PlaceholderText=""
                       x:Name="ContextTextBox"
                       />
-                <TextBlock Text="検索パラメータの「_context」に指定する文字列です" />
-                <TextBlock Text="企画名や動画シリーズ名などを指定することをこのアプリの開発者として推奨" />
+                <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Context_Description}" />
               </StackPanel>
             </winui:Expander.Content>
           </winui:Expander>
           
           <StackPanel>
             <Border Margin="16 0">
-              <TextBlock Text="キーワード" Style="{StaticResource SubtitleTextBlockStyle}" />
+              <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Keyword_Title}" Style="{StaticResource SubtitleTextBlockStyle}" />
             </Border>
             <Border Style="{ThemeResource MicaCardBorderStyle}">
               <TextBox Text="{Binding SearchQueryVM.Keyword, Mode=TwoWay}" />
@@ -113,7 +114,7 @@
 
           <StackPanel>
             <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
-              <TextBlock Text="検索対象（必須）" Style="{StaticResource SubtitleTextBlockStyle}" />
+              <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Target_Title}" Style="{StaticResource SubtitleTextBlockStyle}" />
             </Border>
             
             <Border Style="{ThemeResource MicaCardBorderStyle}">
@@ -131,7 +132,7 @@
 
           <StackPanel>
             <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
-              <TextBlock Text="取得項目" Style="{StaticResource SubtitleTextBlockStyle}" />
+              <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Field_Title}" Style="{StaticResource SubtitleTextBlockStyle}" />
             </Border>
             <Border Style="{ThemeResource MicaCardBorderStyle}">
               <ItemsControl x:Name="FieldCheckboxItems" ItemsSource="{Binding FieldSelectableItems}"
@@ -148,13 +149,13 @@
 
           <StackPanel>
             <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
-              <TextBlock Text="並び順（必須）" Style="{StaticResource SubtitleTextBlockStyle}" />
+              <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Sort_Title}" Style="{StaticResource SubtitleTextBlockStyle}" />
             </Border>
             <Border Style="{ThemeResource MicaCardBorderStyle}">
               <ComboBox ItemsSource="{Binding SortItems}" SelectedItem="{Binding SearchQueryVM.Sort, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
                   <DataTemplate x:DataType="niconicoToolkitSnapshot:SearchSort">
-                    <TextBlock Text="{x:Bind ToString()}" />
+                    <TextBlock Text="{Binding Converter={StaticResource LocalizeConverter}}" />
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
@@ -165,7 +166,7 @@
           <StackPanel>
             <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
               <StackPanel Orientation="Horizontal">
-                <TextBlock Text="絞り込み条件" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <TextBlock Text="" Style="{StaticResource SubtitleTextBlockStyle}" />
                 <Button >
                   <Button.Content>
                     <SymbolIcon Symbol="Add" />
@@ -173,18 +174,18 @@
 
                   <Button.Flyout>
                     <MenuFlyout>
-                      <MenuFlyoutItem Text="投稿日時" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
-                      <MenuFlyoutItem Text="再生数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
-                      <MenuFlyoutItem Text="マイリスト数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
-                      <MenuFlyoutItem Text="いいね！数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
-                      <MenuFlyoutItem Text="再生時間（秒）" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
-                      <MenuFlyoutItem Text="コメント数" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
-                      <MenuFlyoutItem Text="最終コメント時間" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
-                      <MenuFlyoutItem Text="カテゴリタグ" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
-                      <MenuFlyoutItem Text="タグ" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
-                      <MenuFlyoutItem Text="タグ完全一致" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
-                      <MenuFlyoutItem Text="ジャンル" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
-                      <MenuFlyoutItem Text="ジャンル完全一致" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.StartTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.ViewCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.MylistCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LikeCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LengthSeconds}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CommentCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LastCommentTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CategoryTags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Tags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.TagsExact}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Genre}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
+                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.GenreKeyword}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
                     </MenuFlyout>
                   </Button.Flyout>
                 </Button>
@@ -199,11 +200,12 @@
                     <DataTemplate x:DataType="viewModels:DateTimeOffsetSimpleFilterViewModel">
                       <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
                         <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType}" />
+                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
                           <StackPanel Orientation="Horizontal" Spacing="16">
 
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
                                     MinWidth="200"
                                   >
                             </ComboBox>
@@ -230,7 +232,7 @@
                           </Button.Content>
                           <Button.Flyout>
                             <MenuFlyout>
-                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
+                              <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
                             </MenuFlyout>
                           </Button.Flyout>
                         </Button>
@@ -241,11 +243,12 @@
                     <DataTemplate x:DataType="viewModels:TimeSpanSimpleFilterViewModel">
                       <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
                         <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType}" />
+                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
                           <StackPanel Orientation="Horizontal" Spacing="16">
 
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
                                     MinWidth="200"
                                   >
                             </ComboBox>
@@ -266,7 +269,7 @@
                           </Button.Content>
                           <Button.Flyout>
                             <MenuFlyout>
-                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
+                              <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
                             </MenuFlyout>
                           </Button.Flyout>
                         </Button>
@@ -278,11 +281,12 @@
                     <DataTemplate x:DataType="viewModels:IntSimpleFilterViewModel">
                       <Grid Style="{ThemeResource MicaCardGirdStyle}"  Margin="16 0">
                         <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType}" />
+                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
                           <StackPanel Orientation="Horizontal" Spacing="16">
 
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
                                     MinWidth="200"
                                   >
                             </ComboBox>
@@ -297,7 +301,7 @@
                           </Button.Content>
                           <Button.Flyout>
                             <MenuFlyout>
-                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
+                              <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
                             </MenuFlyout>
                           </Button.Flyout>
                         </Button>
@@ -308,12 +312,12 @@
                     <DataTemplate x:DataType="viewModels:StringSimpleFilterViewModel">
                       <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
                         <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType}" />
+                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
                           <StackPanel Orientation="Horizontal" Spacing="16">
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
                                   IsEnabled="False"
-                                  ToolTipService.ToolTip="文字列は一致のみ"
                                     MinWidth="200"
                                   >
                             </ComboBox>
@@ -341,7 +345,7 @@
                           </Button.Content>
                           <Button.Flyout>
                             <MenuFlyout>
-                              <MenuFlyoutItem Text="削除" Icon="Remove" Command="{Binding RemoveCommand}" />
+                              <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
                             </MenuFlyout>
                           </Button.Flyout>
                         </Button>
