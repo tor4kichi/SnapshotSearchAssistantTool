@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Scoring
+namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Expressions
 {
   
     public class InvalidCulcRPNTokenizingException : Exception
@@ -276,7 +276,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Scoring
             // 1. トーカナイズ
             // 2. 逆ポーランド記法でスタックに積む
             // 3. スタックから取り出してNodeに変換
-            return ToNode(ToRPN(CulcStringTokenizer.Tokenize(input), methodNodeFactoryFactory), methodNodeFactoryFactory);
+            return ToNode(ToRPN(ExpressionTokenizer.Tokenize(input), methodNodeFactoryFactory), methodNodeFactoryFactory);
         }
 
         public static ICulcExpressionTreeNode CreateCulcExpressionTree(string input)

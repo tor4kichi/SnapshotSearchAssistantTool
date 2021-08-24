@@ -76,7 +76,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             set { SetProperty(ref _fields, value); }
         }
 
-
         private ISearchFilter _Filters;
         public ISearchFilter Filters
         {
@@ -204,7 +203,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 CompositeSearchFilter compositeSearchFilter = new CompositeSearchFilter();
                 foreach (var filter in filters)
                 {
-                    var value = nvc.Get(filter);
                     var split = filter.Split(new char[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
                     var field = _fieldTypeDescriptionMap[split[1]];
                     var condition = _conditionTypeDescriptionMap.GetValueOrDefault(split[2]);
@@ -214,21 +212,24 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
                     var targetType = targetTypeAttr.Type;
                     Dictionary<SearchFieldType, int> containsCountMap = new();
-                    if (targetType == typeof(int))
+                    foreach (var value in nvc.GetValues(filter))
                     {
-                        compositeSearchFilter.AddCompareFilter(field, int.Parse(value), condition);
-                    }
-                    else if (targetType == typeof(string))
-                    {
-                        compositeSearchFilter.AddCompareFilter(field, value, condition);
-                    }
-                    else if (targetType == typeof(DateTimeOffset))
-                    {
-                        compositeSearchFilter.AddCompareFilter(field, DateTimeOffset.Parse(value), condition);
-                    }
-                    else
-                    {
-                        throw new NotSupportedException();
+                        if (targetType == typeof(int))
+                        {
+                            compositeSearchFilter.AddCompareFilter(field, int.Parse(value), condition);
+                        }
+                        else if (targetType == typeof(string))
+                        {
+                            compositeSearchFilter.AddCompareFilter(field, value, condition);
+                        }
+                        else if (targetType == typeof(DateTimeOffset))
+                        {
+                            compositeSearchFilter.AddCompareFilter(field, DateTimeOffset.Parse(value), condition);
+                        }
+                        else
+                        {
+                            throw new NotSupportedException();
+                        }
                     }
                 }
 
@@ -238,7 +239,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             var jsonFilters = nvc.Get(SearchConstants.JsonFilterParameter);
             if (jsonFilters != null)
             {
-                var data = JsonSerializer.Deserialize<IJsonSearchFilterData>(jsonFilters);
+                var data = JsonSerializer.Deserialize<IJsonSearchFilterData>(jsonFilters, JsonFilterSerializeHelper.SerializerOptions);
                 Filters = RecursiveBuildJsonSearchFilter(data);
             }
         }
@@ -268,17 +269,17 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 {
                     object to = rangeFilter.To != null ? int.Parse(rangeFilter.To) : null;
                     object from = rangeFilter.From != null ? int.Parse(rangeFilter.From) : null;
-                    return new RangeJsonFilter<int>(fieldType, from, to, rangeFilter.IncludeLower ?? true, rangeFilter.IncludeUpper ?? true);
+                    return new RangeJsonFilter(fieldType, from, to, rangeFilter.IncludeLower ?? true, rangeFilter.IncludeUpper ?? true);
                 }
                 else if (targetType == typeof(string))
                 {
-                    return new RangeJsonFilter<string>(fieldType, rangeFilter.From, rangeFilter.To, rangeFilter.IncludeLower ?? true, rangeFilter.IncludeUpper ?? true);
+                    return new RangeJsonFilter(fieldType, rangeFilter.From, rangeFilter.To, rangeFilter.IncludeLower ?? true, rangeFilter.IncludeUpper ?? true);
                 }
-                else if (targetType == typeof(DateTime))
+                else if (targetType == typeof(DateTimeOffset))
                 {
-                    object to = rangeFilter.To != null ? DateTime.Parse(rangeFilter.To) : null;
-                    object from = rangeFilter.From != null ? DateTime.Parse(rangeFilter.From) : null;
-                    return new RangeJsonFilter<DateTime>(fieldType, from, to, rangeFilter.IncludeLower ?? true, rangeFilter.IncludeUpper ?? true);
+                    object to = rangeFilter.To != null ? DateTimeOffset.Parse(rangeFilter.To) : null;
+                    object from = rangeFilter.From != null ? DateTimeOffset.Parse(rangeFilter.From) : null;
+                    return new RangeJsonFilter(fieldType, from, to, rangeFilter.IncludeLower ?? true, rangeFilter.IncludeUpper ?? true);
                 }
                 else
                 {
@@ -294,15 +295,15 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 var targetType = targetTypeAttr.Type;
                 if (targetType == typeof(int))
                 {
-                    return new EqaulJsonFilter<int>(fieldType, int.Parse(equalFilter.Value));
+                    return new EqualJsonFilter(fieldType, int.Parse(equalFilter.Value));
                 }
                 else if (targetType == typeof(string))
                 {
-                    return new EqaulJsonFilter<string>(fieldType, equalFilter.Value);
+                    return new EqualJsonFilter(fieldType, equalFilter.Value);
                 }
-                else if (targetType == typeof(DateTime))
+                else if (targetType == typeof(DateTimeOffset))
                 {
-                    return new EqaulJsonFilter<DateTime>(fieldType, DateTime.Parse(equalFilter.Value));
+                    return new EqualJsonFilter(fieldType, DateTimeOffset.Parse(equalFilter.Value));
                 }
                 else
                 {

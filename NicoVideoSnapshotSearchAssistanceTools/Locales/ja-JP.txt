@@ -32,6 +32,9 @@ SimpleFilterComparison.GreaterThanOrEqual = 超過
 SimpleFilterComparison.LessThan = 未満
 SimpleFilterComparison.LessThenOrEqual = 以下
 
+JsonFilterComparison.Equal = 一致
+JsonFilterComparison.Range = 範囲
+
 -viewCounter = 再生数が多い順
 +viewCounter = 再生数が少ない順
 -mylistCounter = マイリスト数が多い順
@@ -74,6 +77,8 @@ SearchQuery_Target_Title = 検索対象（必須）
 SearchQuery_Field_Title = 取得項目
 
 SearchQuery_Sort_Title = 並び順（必須）
+
+SearchQuery_Filter_Title = フィルタ指定
 
 ## SearchResultPage
 

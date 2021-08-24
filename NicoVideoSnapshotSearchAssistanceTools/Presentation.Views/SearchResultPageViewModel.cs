@@ -8,7 +8,7 @@ using NiconicoToolkit.SnapshotSearch.Filters;
 using NiconicoToolkit.User;
 using NiconicoToolkit.Video;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
-using NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Scoring;
+using NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Expressions;
 using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
 using Prism.Commands;
 using Prism.Mvvm;

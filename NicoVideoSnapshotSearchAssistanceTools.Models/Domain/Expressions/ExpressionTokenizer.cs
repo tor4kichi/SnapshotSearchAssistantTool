@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Scoring
+namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Expressions
 {
     public interface IToken { int Position { get; } }
 
@@ -90,14 +90,14 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Scoring
         Div,
     }
 
-    public class InvalidSocreCulcStringTokenExpcetion : Exception
+    public class InvalidExpressionTokenExpcetion : Exception
     {
-        public InvalidSocreCulcStringTokenExpcetion(string message) : base(message)
+        public InvalidExpressionTokenExpcetion(string message) : base(message)
         {
         }
     }
 
-    public static class CulcStringTokenizer
+    public static class ExpressionTokenizer
     {
         readonly static HashSet<char> _operatorSymbols = "+-*/".ToHashSet();
         readonly static HashSet<char> _prioritizingSymbols = "()".ToHashSet();
@@ -121,12 +121,12 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Scoring
 
             static void ThrowParseErrorException(char c, int currentPos)
             {
-                throw MakeStringParseExpcetion(c, currentPos);
+                throw MakeExpressionParseExpcetion(c, currentPos);
             }
 
-            static InvalidSocreCulcStringTokenExpcetion MakeStringParseExpcetion(char c, int currentPos)
+            static InvalidExpressionTokenExpcetion MakeExpressionParseExpcetion(char c, int currentPos)
             {
-                return new InvalidSocreCulcStringTokenExpcetion($"Invalid character detected: character = {c}, Position = {currentPos}");
+                return new InvalidExpressionTokenExpcetion($"Invalid character detected: character = {c}, Position = {currentPos}");
             }
             
             foreach (var c in input)
@@ -139,7 +139,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Scoring
                         {
                             BufferStackingMode.String => new StringToken(currentPosition, buffer.ToString()),
                             BufferStackingMode.Number => new NumberToken(currentPosition, double.Parse(buffer.ToString())),
-                            _ => throw MakeStringParseExpcetion(c, currentPosition),
+                            _ => throw MakeExpressionParseExpcetion(c, currentPosition),
                         };
 
                         buffer.Clear();
@@ -154,7 +154,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Scoring
                             '-' => OperatorType.Minus,
                             '*' => OperatorType.Mul,
                             '/' => OperatorType.Div,
-                            _ => throw MakeStringParseExpcetion(c, currentPosition),
+                            _ => throw MakeExpressionParseExpcetion(c, currentPosition),
                         };
 
                         yield return new OperatorToken(currentPosition, operatorType);
@@ -222,7 +222,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Scoring
                 {
                     BufferStackingMode.String => new StringToken(currentPosition, buffer.ToString()),
                     BufferStackingMode.Number => new NumberToken(currentPosition, double.Parse(buffer.ToString())),
-                    _ => throw MakeStringParseExpcetion('\n', currentPosition),
+                    _ => throw MakeExpressionParseExpcetion('\n', currentPosition),
                 };
             }
         }

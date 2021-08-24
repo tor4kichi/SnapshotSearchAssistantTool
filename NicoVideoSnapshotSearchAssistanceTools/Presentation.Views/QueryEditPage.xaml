@@ -163,215 +163,819 @@
           </StackPanel>
 
 
-          <StackPanel>
-            <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="" Style="{StaticResource SubtitleTextBlockStyle}" />
-                <Button >
-                  <Button.Content>
-                    <SymbolIcon Symbol="Add" />
-                  </Button.Content>
 
-                  <Button.Flyout>
-                    <MenuFlyout>
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.StartTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.ViewCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.MylistCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LikeCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LengthSeconds}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CommentCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LastCommentTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CategoryTags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Tags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.TagsExact}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Genre}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
-                      <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.GenreKeyword}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
-                    </MenuFlyout>
-                  </Button.Flyout>
-                </Button>
 
-              </StackPanel>
-            </Border>
-            <Border>
-              <Border.Resources>
-                
-                <ts:SimpleFilterTemplateSelector x:Key="SimpleFilterTemplateSelector">
-                  <ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
-                    <DataTemplate x:DataType="viewModels:DateTimeOffsetSimpleFilterViewModel">
-                      <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
-                        <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
-                          <StackPanel Orientation="Horizontal" Spacing="16">
 
-                            <ComboBox ItemsSource="{x:Bind Comparisons}"
+          <StackPanel Spacing="16">
+            
+
+            <uwpControls:SwitchPresenter Value="{Binding FilterType}">
+              <uwpControls:Case Value="{x:Bind viewModels:FilterType.SimpleFilter}" IsDefault="True">
+                <StackPanel>
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+                    <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
+                      <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Filter_Title}" Style="{StaticResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
+                    </Border>
+
+                    <ComboBox ItemsSource="{Binding FilterTypeItems}"
+                        SelectedItem="{Binding FilterType, Mode=TwoWay}"
+                        />
+
+                    <Button >
+                      <Button.Content>
+                        <SymbolIcon Symbol="Add" />
+                      </Button.Content>
+
+                      <Button.Flyout>
+                        <MenuFlyout>
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.StartTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.ViewCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.MylistCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LikeCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LengthSeconds}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CommentCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LastCommentTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CategoryTags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Tags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.TagsExact}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Genre}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.GenreKeyword}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
+                        </MenuFlyout>
+                      </Button.Flyout>
+                    </Button>
+                  </StackPanel>
+
+                  <Border>
+                    <Border.Resources>
+
+                      <ts:SimpleFilterTemplateSelector x:Key="SimpleFilterTemplateSelector">
+                        <ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
+                          <DataTemplate x:DataType="viewModels:DateTimeOffsetSimpleFilterViewModel">
+                            <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
+                              <StackPanel Spacing="8">
+                                <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
+                                <StackPanel Orientation="Horizontal" Spacing="16">
+
+                                  <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
                                       ItemTemplate="{StaticResource LocalizedTextBlock}"
                                     MinWidth="200"
                                   >
-                            </ComboBox>
+                                  </ComboBox>
 
-                            <TextBox Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
-                            <Button>
-                              <Button.Flyout>
-                                <DatePickerFlyout Date="{x:Bind Date, Mode=TwoWay}" />
-                              </Button.Flyout>
-                              <SymbolIcon Symbol="Calendar" />
-                            </Button>
-                            <Button>
-                              <Button.Flyout>
-                                <TimePickerFlyout Time="{x:Bind Time, Mode=TwoWay}" />
-                              </Button.Flyout>
-                              <SymbolIcon Symbol="Clock" />
-                            </Button>
-                          </StackPanel>
-                        </StackPanel>
+                                  <TextBox Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
+                                  <Button>
+                                    <Button.Flyout>
+                                      <DatePickerFlyout Date="{x:Bind Date, Mode=TwoWay}" />
+                                    </Button.Flyout>
+                                    <SymbolIcon Symbol="Calendar" />
+                                  </Button>
+                                  <Button>
+                                    <Button.Flyout>
+                                      <TimePickerFlyout Time="{x:Bind Time, Mode=TwoWay}" />
+                                    </Button.Flyout>
+                                    <SymbolIcon Symbol="Clock" />
+                                  </Button>
+                                </StackPanel>
+                              </StackPanel>
 
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
-                          <Button.Content>
-                            <SymbolIcon Symbol="More" />
-                          </Button.Content>
-                          <Button.Flyout>
-                            <MenuFlyout>
-                              <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
-                            </MenuFlyout>
-                          </Button.Flyout>
-                        </Button>
-                      </Grid>
-                    </DataTemplate>
-                  </ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
-                  <ts:SimpleFilterTemplateSelector.TimeSpanTemplate>
-                    <DataTemplate x:DataType="viewModels:TimeSpanSimpleFilterViewModel">
-                      <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
-                        <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
-                          <StackPanel Orientation="Horizontal" Spacing="16">
+                              <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button.Content>
+                                  <SymbolIcon Symbol="More" />
+                                </Button.Content>
+                                <Button.Flyout>
+                                  <MenuFlyout>
+                                    <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
+                                  </MenuFlyout>
+                                </Button.Flyout>
+                              </Button>
+                            </Grid>
+                          </DataTemplate>
+                        </ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
+                        <ts:SimpleFilterTemplateSelector.TimeSpanTemplate>
+                          <DataTemplate x:DataType="viewModels:TimeSpanSimpleFilterViewModel">
+                            <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
+                              <StackPanel Spacing="8">
+                                <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
+                                <StackPanel Orientation="Horizontal" Spacing="16">
 
-                            <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                  <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
                                       ItemTemplate="{StaticResource LocalizedTextBlock}"
                                     MinWidth="200"
                                   >
-                            </ComboBox>
+                                  </ComboBox>
 
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                              <winui:NumberBox Value="{x:Bind Hours, Mode=TwoWay}" Minimum="0" Maximum="24" SmallChange="1" ToolTipService.ToolTip="時" />
-                              <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
-                              <winui:NumberBox Value="{x:Bind Minutes, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="分" />
-                              <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
-                              <winui:NumberBox Value="{x:Bind Seconds, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="秒" />
-                            </StackPanel>
-                          </StackPanel>
-                        </StackPanel>
+                                  <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <winui:NumberBox Value="{x:Bind Hours, Mode=TwoWay}" Minimum="0" Maximum="24" SmallChange="1" ToolTipService.ToolTip="時" />
+                                    <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
+                                    <winui:NumberBox Value="{x:Bind Minutes, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="分" />
+                                    <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
+                                    <winui:NumberBox Value="{x:Bind Seconds, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="秒" />
+                                  </StackPanel>
+                                </StackPanel>
+                              </StackPanel>
 
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
-                          <Button.Content>
-                            <SymbolIcon Symbol="More" />
-                          </Button.Content>
-                          <Button.Flyout>
-                            <MenuFlyout>
-                              <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
-                            </MenuFlyout>
-                          </Button.Flyout>
-                        </Button>
-                      </Grid>
-                    </DataTemplate>
-                  </ts:SimpleFilterTemplateSelector.TimeSpanTemplate>
+                              <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button.Content>
+                                  <SymbolIcon Symbol="More" />
+                                </Button.Content>
+                                <Button.Flyout>
+                                  <MenuFlyout>
+                                    <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
+                                  </MenuFlyout>
+                                </Button.Flyout>
+                              </Button>
+                            </Grid>
+                          </DataTemplate>
+                        </ts:SimpleFilterTemplateSelector.TimeSpanTemplate>
 
-                  <ts:SimpleFilterTemplateSelector.IntTemplate>
-                    <DataTemplate x:DataType="viewModels:IntSimpleFilterViewModel">
-                      <Grid Style="{ThemeResource MicaCardGirdStyle}"  Margin="16 0">
-                        <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
-                          <StackPanel Orientation="Horizontal" Spacing="16">
+                        <ts:SimpleFilterTemplateSelector.IntTemplate>
+                          <DataTemplate x:DataType="viewModels:IntSimpleFilterViewModel">
+                            <Grid Style="{ThemeResource MicaCardGirdStyle}"  Margin="16 0">
+                              <StackPanel Spacing="8">
+                                <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
+                                <StackPanel Orientation="Horizontal" Spacing="16">
 
-                            <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                  <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
                                       ItemTemplate="{StaticResource LocalizedTextBlock}"
                                     MinWidth="200"
                                   >
-                            </ComboBox>
+                                  </ComboBox>
 
-                            <winui:NumberBox Value="{x:Bind Value, Mode=TwoWay}" Minimum="0" LargeChange="1000" SmallChange="100" />
-                          </StackPanel>
-                        </StackPanel>
+                                  <winui:NumberBox Value="{x:Bind Value, Mode=TwoWay}" Minimum="0" LargeChange="1000" SmallChange="100" />
+                                </StackPanel>
+                              </StackPanel>
 
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
-                          <Button.Content>
-                            <SymbolIcon Symbol="More" />
-                          </Button.Content>
-                          <Button.Flyout>
-                            <MenuFlyout>
-                              <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
-                            </MenuFlyout>
-                          </Button.Flyout>
-                        </Button>
-                      </Grid>
-                    </DataTemplate>
-                  </ts:SimpleFilterTemplateSelector.IntTemplate>
-                  <ts:SimpleFilterTemplateSelector.StringTemplate>
-                    <DataTemplate x:DataType="viewModels:StringSimpleFilterViewModel">
-                      <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
-                        <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
-                          <StackPanel Orientation="Horizontal" Spacing="16">
-                            <ComboBox ItemsSource="{x:Bind Comparisons}"
+                              <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button.Content>
+                                  <SymbolIcon Symbol="More" />
+                                </Button.Content>
+                                <Button.Flyout>
+                                  <MenuFlyout>
+                                    <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
+                                  </MenuFlyout>
+                                </Button.Flyout>
+                              </Button>
+                            </Grid>
+                          </DataTemplate>
+                        </ts:SimpleFilterTemplateSelector.IntTemplate>
+                        <ts:SimpleFilterTemplateSelector.StringTemplate>
+                          <DataTemplate x:DataType="viewModels:StringSimpleFilterViewModel">
+                            <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
+                              <StackPanel Spacing="8">
+                                <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" />
+                                <StackPanel Orientation="Horizontal" Spacing="16">
+                                  <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison}"
                                       ItemTemplate="{StaticResource LocalizedTextBlock}"
                                   IsEnabled="False"
                                     MinWidth="200"
                                   >
-                            </ComboBox>
+                                  </ComboBox>
 
-                            <AutoSuggestBox Text="{x:Bind Value, Mode=TwoWay}"
+                                  <AutoSuggestBox Text="{x:Bind Value, Mode=TwoWay}"
                                             ItemsSource="{x:Bind SuggestionItems}"
                                             MinWidth="120"
                                             >
-                              <i:Interaction.Behaviors>
-                                <core:EventTriggerBehavior EventName="GotFocus">
-                                  <core:ChangePropertyAction PropertyName="IsSuggestionListOpen" Value="True" />
-                                </core:EventTriggerBehavior>
-                              </i:Interaction.Behaviors>
-                              <AutoSuggestBox.TextBoxStyle>
-                                <Style TargetType="TextBox"></Style>
-                              </AutoSuggestBox.TextBoxStyle>
-                            </AutoSuggestBox>
-                          </StackPanel>
+                                    <i:Interaction.Behaviors>
+                                      <core:EventTriggerBehavior EventName="GotFocus">
+                                        <core:ChangePropertyAction PropertyName="IsSuggestionListOpen" Value="True" />
+                                      </core:EventTriggerBehavior>
+                                    </i:Interaction.Behaviors>
+                                    <AutoSuggestBox.TextBoxStyle>
+                                      <Style TargetType="TextBox"></Style>
+                                    </AutoSuggestBox.TextBoxStyle>
+                                  </AutoSuggestBox>
+                                </StackPanel>
 
-                        </StackPanel>
+                              </StackPanel>
 
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top">
-                          <Button.Content>
-                            <SymbolIcon Symbol="More" />
-                          </Button.Content>
-                          <Button.Flyout>
-                            <MenuFlyout>
-                              <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
-                            </MenuFlyout>
-                          </Button.Flyout>
-                        </Button>
-                      </Grid>
-                    </DataTemplate>
-                  </ts:SimpleFilterTemplateSelector.StringTemplate>
-                </ts:SimpleFilterTemplateSelector>
-              </Border.Resources>
+                              <Button HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button.Content>
+                                  <SymbolIcon Symbol="More" />
+                                </Button.Content>
+                                <Button.Flyout>
+                                  <MenuFlyout>
+                                    <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
+                                  </MenuFlyout>
+                                </Button.Flyout>
+                              </Button>
+                            </Grid>
+                          </DataTemplate>
+                        </ts:SimpleFilterTemplateSelector.StringTemplate>
+                      </ts:SimpleFilterTemplateSelector>
+                    </Border.Resources>
 
-              <ItemsControl ItemsSource="{Binding SimpleFilters}"
+                    <ItemsControl ItemsSource="{Binding SimpleFilters}"
                             ItemTemplateSelector="{StaticResource SimpleFilterTemplateSelector}"
                             Margin="0 16 0 16"
                             >
 
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <StackPanel Spacing="16">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <StackPanel Spacing="16">
 
-                    </StackPanel>
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-              </ItemsControl>
+                          </StackPanel>
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                    </ItemsControl>
 
 
-            </Border>
+                  </Border>
+                </StackPanel>
+              </uwpControls:Case>
+
+              <uwpControls:Case Value="{x:Bind viewModels:FilterType.JsonFilter}">
+
+                
+                <StackPanel Spacing="16">
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+
+                    <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
+                      <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Filter_Title}" Style="{StaticResource SubtitleTextBlockStyle}"
+                                 VerticalAlignment="Center"
+                                 />
+                    </Border>
+                    
+
+                    <ComboBox ItemsSource="{Binding FilterTypeItems}"
+                      SelectedItem="{Binding FilterType, Mode=TwoWay}"
+                      />
+
+                    <Button >
+                      <Button.Content>
+                        <SymbolIcon Symbol="Add" />
+                      </Button.Content>
+
+                      <Button.Flyout>
+                        <MenuFlyout>
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.StartTime}" Command="{Binding AddJsonFilterCommand}" CommandParameter="StartTime" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.ViewCounter}" Command="{Binding AddJsonFilterCommand}" CommandParameter="ViewCounter" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.MylistCounter}" Command="{Binding AddJsonFilterCommand}" CommandParameter="MylistCounter" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LikeCounter}" Command="{Binding AddJsonFilterCommand}" CommandParameter="LikeCounter" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LengthSeconds}" Command="{Binding AddJsonFilterCommand}" CommandParameter="LengthSeconds" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CommentCounter}" Command="{Binding AddJsonFilterCommand}" CommandParameter="CommentCounter" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LastCommentTime}" Command="{Binding AddJsonFilterCommand}" CommandParameter="LastCommentTime" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CategoryTags}" Command="{Binding AddJsonFilterCommand}" CommandParameter="CategoryTags" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Tags}" Command="{Binding AddJsonFilterCommand}" CommandParameter="Tags" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.TagsExact}" Command="{Binding AddJsonFilterCommand}" CommandParameter="TagsExact" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Genre}" Command="{Binding AddJsonFilterCommand}" CommandParameter="Genre" />
+                          <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.GenreKeyword}" Command="{Binding AddJsonFilterCommand}" CommandParameter="GenreKeyword" />
+                        </MenuFlyout>
+                      </Button.Flyout>
+                    </Button>
+                  </StackPanel>
+
+                  <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
+                    <TextBox Text="{Binding JsonFilterExpression, Mode=TwoWay}" 
+                           Margin="0 16 0 0"
+                           >
+                      <TextBox.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                          <TextBlock Text="フィルタ条件の論理式" Style="{StaticResource SubtitleTextBlockStyle}"  VerticalAlignment="Center" />
+
+                          <Button >
+                            <Button.Content>
+                              <SymbolIcon Symbol="Help" />
+                            </Button.Content>
+
+                            <Button.Flyout>
+                              <Flyout>
+                                <StackPanel>
+                                  <TextBlock TextWrapping="Wrap" MaxWidth="240">
+                                    <Run Text="利用できる論理演算" /> <LineBreak />
+                                    <Run Text="and or not" /><LineBreak />
+                                    
+                                    <Run Text="・変数名(StartTime1 等)と論理演算（ and または or ）を使って条件式を完成させます。"></Run> <LineBreak />
+                                    <Run Text="・丸括弧 () で囲むことで優先処理を指定できます。" /><LineBreak />
+                                    <Run Text="・変数名または丸括弧()の手前に not を配置すると論理否定を指定できます。" /><LineBreak />
+                                    <Run Text="・結合記号は or > and の順で解釈されます。" /><LineBreak />
+                                    <Run Text="例） StartTime1 and (Tag1 and not Tag2) or Tag3" /><LineBreak />
+                                  </TextBlock>
+                                </StackPanel>
+                              </Flyout>
+                            </Button.Flyout>
+                          </Button>
+                        </StackPanel>
+                      </TextBox.Header>
+                    </TextBox>
+                  </Border>
+
+
+                  <Border x:Name="JsonFilterExpressionErrorMessageUIContainer" Visibility="Collapsed"
+                          Style="{ThemeResource MicaCardBorderStyle}"
+                          BorderBrush="Red"
+                          >
+                    <TextBlock Text="{Binding JsonFilterExpressionErrorMessage}" IsTextSelectionEnabled="True" />
+                  </Border>
+
+
+                  <Border>
+                    <Border.Resources>
+
+                      <Style TargetType="winui:NumberBox">
+                        <Setter Property="Height" Value="32" />
+                      </Style>
+                      
+                      <ts:JsonFilterTemplateSelector x:Key="JsonFilterTemplateSelector">
+                        <ts:JsonFilterTemplateSelector.DateTimeOffsetTemplate>
+                          <DataTemplate x:DataType="viewModels:DateTimeOffsetJsonFilterViewModel">
+                            <StackPanel>
+                              <Border Style="{ThemeResource MicaCardTopBorderStyle}" >
+                                <uwpControls:DockPanel>
+
+                                  <Button uwpControls:DockPanel.Dock="Right">
+                                    <Button.Content>
+                                      <SymbolIcon Symbol="More" />
+                                    </Button.Content>
+                                    <Button.Flyout>
+                                      <MenuFlyout>
+                                        <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
+                                      </MenuFlyout>
+                                    </Button.Flyout>
+                                  </Button>
+
+                                  <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="16">
+                                    <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+
+                                    <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                        SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                        ItemTemplate="{StaticResource LocalizedTextBlock}"
+                                        MinWidth="80"
+                                        >
+                                    </ComboBox>
+
+                                    <TextBlock VerticalAlignment="Center">
+                                      変数名: <Run Text="{x:Bind VariableName}" />
+                                    </TextBlock>
+                                  </uwpControls:WrapPanel>
+                                </uwpControls:DockPanel>
+                              </Border>
+                              <Border Style="{ThemeResource MicaCardBottomBorderStyle}" >
+
+                                <uwpControls:SwitchPresenter Value="{x:Bind Comparison, Mode=OneWay}">
+                                  <uwpControls:Case Value="{x:Bind viewModels:JsonFilterComparison.Equal}">
+
+                                    <uwpControls:DockPanel>
+                                      <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="8">
+                                        <TextBlock  VerticalAlignment="Center" Width="40" TextAlignment="Right">
+                                            <Run Text="value:" />
+                                        </TextBlock>
+                                        <TextBlock  VerticalAlignment="Center" Width="120">
+                                            <Run Text="{x:Bind FromValue, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
+                                        </TextBlock>
+                                        <Button ToolTipService.ToolTip="{i18nExt:Localize Key=Date}">
+                                          <Button.Flyout>
+                                            <DatePickerFlyout Date="{x:Bind FromDate, Mode=TwoWay}" />
+                                          </Button.Flyout>
+                                          <SymbolIcon Symbol="Calendar" />
+                                        </Button>
+                                        <Button ToolTipService.ToolTip="{i18nExt:Localize Key=Time}">
+                                          <Button.Flyout>
+                                            <TimePickerFlyout Time="{x:Bind FromTime, Mode=TwoWay}" />
+                                          </Button.Flyout>
+                                          <SymbolIcon Symbol="Clock" />
+                                        </Button>
+                                      </uwpControls:WrapPanel>
+                                    </uwpControls:DockPanel>
+
+                                  </uwpControls:Case>
+
+                                  <uwpControls:Case Value="{x:Bind viewModels:JsonFilterComparison.Range}">
+                                    <StackPanel Spacing="8">
+                                      <uwpControls:DockPanel>
+                                        <Button Content="Clear" uwpControls:DockPanel.Dock="Right">
+                                          <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                              <core:ChangePropertyAction TargetObject="{x:Bind}" PropertyName="FromValue" Value="{x:Null}" />
+
+                                            </core:EventTriggerBehavior>
+                                          </i:Interaction.Behaviors>
+                                        </Button>
+
+
+                                        <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="8">
+                                          <TextBlock  VerticalAlignment="Center" Width="40" TextAlignment="Right">
+                                            <Run Text="from:" />
+                                          </TextBlock>
+                                          <TextBlock  VerticalAlignment="Center" Width="120">
+                                            <Run Text="{x:Bind FromValue, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
+                                          </TextBlock>
+                                          <Button ToolTipService.ToolTip="{i18nExt:Localize Key=Date}">
+                                            <Button.Flyout>
+                                              <DatePickerFlyout Date="{x:Bind FromDate, Mode=TwoWay}" />
+                                            </Button.Flyout>
+                                            <SymbolIcon Symbol="Calendar" />
+                                          </Button>
+                                          <Button ToolTipService.ToolTip="{i18nExt:Localize Key=Time}">
+                                            <Button.Flyout>
+                                              <TimePickerFlyout Time="{x:Bind FromTime, Mode=TwoWay}" />
+                                            </Button.Flyout>
+                                            <SymbolIcon Symbol="Clock" />
+                                          </Button>
+
+                                          <ToggleSwitch IsOn="{x:Bind IncludeLower, Mode=TwoWay}">
+                                            <ToggleSwitch.OffContent>
+                                              <TextBlock Text="境界値を含めない" />
+                                            </ToggleSwitch.OffContent>
+                                            <ToggleSwitch.OnContent>
+                                              <TextBlock Text="境界値を含める" />
+                                            </ToggleSwitch.OnContent>
+                                          </ToggleSwitch>
+                                          
+                                        </uwpControls:WrapPanel>
+                                      </uwpControls:DockPanel>
+
+                                      <uwpControls:DockPanel>
+                                        <Button Content="Clear" uwpControls:DockPanel.Dock="Right">
+                                          <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                              <core:ChangePropertyAction TargetObject="{x:Bind}" PropertyName="FromValue" Value="{x:Null}" />
+
+                                            </core:EventTriggerBehavior>
+                                          </i:Interaction.Behaviors>
+                                        </Button>
+
+                                        <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="8">
+                                          <TextBlock  VerticalAlignment="Center" Width="40" TextAlignment="Right">
+                                            <Run Text="to:" />
+                                          </TextBlock>
+                                          <TextBlock  VerticalAlignment="Center" Width="120">
+                                            <Run Text="{x:Bind ToValue, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
+                                          </TextBlock>
+                                          <Button ToolTipService.ToolTip="{i18nExt:Localize Key=Date}">
+                                            <Button.Flyout>
+                                              <DatePickerFlyout Date="{x:Bind ToDate, Mode=TwoWay}" />
+                                            </Button.Flyout>
+                                            <SymbolIcon Symbol="Calendar" />
+                                          </Button>
+                                          <Button ToolTipService.ToolTip="{i18nExt:Localize Key=Time}">
+                                            <Button.Flyout>
+                                              <TimePickerFlyout Time="{x:Bind ToTime, Mode=TwoWay}" />
+                                            </Button.Flyout>
+                                            <SymbolIcon Symbol="Clock" />
+                                          </Button>
+                                          <ToggleSwitch IsOn="{x:Bind IncludeUpper, Mode=TwoWay}">
+                                            <ToggleSwitch.OffContent>
+                                              <TextBlock Text="境界値を含めない" />
+                                            </ToggleSwitch.OffContent>
+                                            <ToggleSwitch.OnContent>
+                                              <TextBlock Text="境界値を含める" />
+                                            </ToggleSwitch.OnContent>
+                                          </ToggleSwitch>
+                                        </uwpControls:WrapPanel>
+                                      </uwpControls:DockPanel>
+                                    </StackPanel>
+                                  </uwpControls:Case>
+                                </uwpControls:SwitchPresenter>
+                              </Border>
+
+                            </StackPanel>
+                          </DataTemplate>
+                        </ts:JsonFilterTemplateSelector.DateTimeOffsetTemplate>
+                        <ts:JsonFilterTemplateSelector.TimeSpanTemplate>
+                          <DataTemplate x:DataType="viewModels:TimeSpanJsonFilterViewModel">
+                            <StackPanel>
+                              <Border Style="{ThemeResource MicaCardTopBorderStyle}" >
+                                <uwpControls:DockPanel>
+                                  <Button uwpControls:DockPanel.Dock="Right">
+                                    <Button.Content>
+                                      <SymbolIcon Symbol="More" />
+                                    </Button.Content>
+                                    <Button.Flyout>
+                                      <MenuFlyout>
+                                        <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
+                                      </MenuFlyout>
+                                    </Button.Flyout>
+                                  </Button>
+
+                                  <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="16">
+                                    <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+
+                                    <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                        SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                        ItemTemplate="{StaticResource LocalizedTextBlock}"
+                                        MinWidth="80"
+                                        >
+                                    </ComboBox>
+
+                                    <TextBlock VerticalAlignment="Center">
+                                      変数名: <Run Text="{x:Bind VariableName}" />
+                                    </TextBlock>
+                                  </uwpControls:WrapPanel>
+                                </uwpControls:DockPanel>
+                              </Border>
+                              <Border Style="{ThemeResource MicaCardBottomBorderStyle}">
+                                <uwpControls:SwitchPresenter Value="{x:Bind Comparison, Mode=OneWay}">
+                                  <uwpControls:Case Value="{x:Bind viewModels:JsonFilterComparison.Equal}">
+                                    <StackPanel>
+                                      <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="8">
+                                        <TextBlock  VerticalAlignment="Center" Width="40" TextAlignment="Right">
+                                            <Run Text="value:" />
+                                        </TextBlock>
+                                        <TextBlock  VerticalAlignment="Center" Width="120">
+                                            <Run Text="{x:Bind FromValue, Mode=OneWay}"/>
+                                        </TextBlock>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                          <winui:NumberBox Value="{x:Bind FromHours, Mode=TwoWay}" Minimum="0" Maximum="24" SmallChange="1" ToolTipService.ToolTip="時" />
+                                          <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
+                                          <winui:NumberBox Value="{x:Bind FromMinutes, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="分" />
+                                          <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
+                                          <winui:NumberBox Value="{x:Bind FromSeconds, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="秒" />
+                                        </StackPanel>
+                                      </uwpControls:WrapPanel>
+                                    </StackPanel>
+
+                                  </uwpControls:Case>
+
+                                  <uwpControls:Case Value="{x:Bind viewModels:JsonFilterComparison.Range}">
+                                    <StackPanel Spacing="8">
+
+                                      <uwpControls:DockPanel>
+
+                                        <Button Content="Clear" uwpControls:DockPanel.Dock="Right">
+                                          <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                              <core:ChangePropertyAction TargetObject="{x:Bind}" PropertyName="FromValue" Value="{x:Null}" />
+                                            </core:EventTriggerBehavior>
+                                          </i:Interaction.Behaviors>
+                                        </Button>
+
+
+                                        <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="8">
+                                          <TextBlock  VerticalAlignment="Center" Width="40" TextAlignment="Right">
+                                            <Run Text="from:" />
+                                          </TextBlock>
+                                          <TextBlock  VerticalAlignment="Center" Width="120">
+                                            <Run Text="{x:Bind FromValue, Mode=OneWay}"/>
+                                          </TextBlock>
+                                          <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <winui:NumberBox Value="{x:Bind FromHours, Mode=TwoWay}" Minimum="0" Maximum="24" SmallChange="1" ToolTipService.ToolTip="時" />
+                                            <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" Height="32" />
+                                            <winui:NumberBox Value="{x:Bind FromMinutes, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="分" />
+                                            <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" Height="32" />
+                                            <winui:NumberBox Value="{x:Bind FromSeconds, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="秒" />
+                                          </StackPanel>
+                                          <ToggleSwitch IsOn="{x:Bind IncludeLower, Mode=TwoWay}">
+                                            <ToggleSwitch.OffContent>
+                                              <TextBlock Text="境界値を含めない" />
+                                            </ToggleSwitch.OffContent>
+                                            <ToggleSwitch.OnContent>
+                                              <TextBlock Text="境界値を含める" />
+                                            </ToggleSwitch.OnContent>
+                                          </ToggleSwitch>
+                                        </uwpControls:WrapPanel>
+
+                                      </uwpControls:DockPanel>
+
+                                      <uwpControls:DockPanel>
+
+                                        <Button Content="Clear" uwpControls:DockPanel.Dock="Right">
+                                          <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                              <core:ChangePropertyAction TargetObject="{x:Bind}" PropertyName="ToValue" Value="{x:Null}" />
+                                            </core:EventTriggerBehavior>
+                                          </i:Interaction.Behaviors>
+                                        </Button>
+                                        <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="8">
+                                          <TextBlock  VerticalAlignment="Center" Width="40" TextAlignment="Right">
+                                            <Run Text="to:" />
+                                          </TextBlock>
+                                          <TextBlock  VerticalAlignment="Center" Width="120">
+                                            <Run Text="{x:Bind ToValue, Mode=OneWay}"/>
+                                          </TextBlock>
+
+                                          <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <winui:NumberBox Value="{x:Bind ToHours, Mode=TwoWay}" Minimum="0" Maximum="24" SmallChange="1" ToolTipService.ToolTip="時" />
+                                            <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" Height="32" />
+                                            <winui:NumberBox Value="{x:Bind ToMinutes, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="分" />
+                                            <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" Height="32" />
+                                            <winui:NumberBox Value="{x:Bind ToSeconds, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="秒" />
+                                          </StackPanel>
+                                          <ToggleSwitch IsOn="{x:Bind IncludeUpper, Mode=TwoWay}">
+                                            <ToggleSwitch.OffContent>
+                                              <TextBlock Text="境界値を含めない" />
+                                            </ToggleSwitch.OffContent>
+                                            <ToggleSwitch.OnContent>
+                                              <TextBlock Text="境界値を含める" />
+                                            </ToggleSwitch.OnContent>
+                                          </ToggleSwitch>
+                                        </uwpControls:WrapPanel>
+                                      </uwpControls:DockPanel>
+                                    </StackPanel>
+                                  </uwpControls:Case>
+
+                                </uwpControls:SwitchPresenter>
+                              </Border>
+                            </StackPanel>
+                          </DataTemplate>
+                        </ts:JsonFilterTemplateSelector.TimeSpanTemplate>
+
+                        <ts:JsonFilterTemplateSelector.IntTemplate>
+                          <DataTemplate x:DataType="viewModels:IntJsonFilterViewModel">
+                            <StackPanel>
+                              <Border Style="{ThemeResource MicaCardTopBorderStyle}" >
+                                <uwpControls:DockPanel>
+                                  <Button uwpControls:DockPanel.Dock="Right">
+                                    <Button.Content>
+                                      <SymbolIcon Symbol="More" />
+                                    </Button.Content>
+                                    <Button.Flyout>
+                                      <MenuFlyout>
+                                        <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
+                                      </MenuFlyout>
+                                    </Button.Flyout>
+                                  </Button>
+
+                                  <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="16">
+                                    <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+
+                                    <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                        SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                        ItemTemplate="{StaticResource LocalizedTextBlock}"
+                                        MinWidth="80"
+                                        >
+                                    </ComboBox>
+
+                                    <TextBlock VerticalAlignment="Center">
+                                      変数名: <Run Text="{x:Bind VariableName}" />
+                                    </TextBlock>
+                                  </uwpControls:WrapPanel>
+                                </uwpControls:DockPanel>
+                              </Border>
+
+                              <Border Style="{ThemeResource MicaCardBottomBorderStyle}">
+                                <uwpControls:SwitchPresenter Value="{x:Bind Comparison, Mode=OneWay}">
+                                  <uwpControls:Case Value="{x:Bind viewModels:JsonFilterComparison.Equal}">
+                                    <StackPanel>
+                                      <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="8">
+                                        <TextBlock  VerticalAlignment="Center" Width="40" TextAlignment="Right">
+                                            <Run Text="from:" />
+                                        </TextBlock>
+
+                                        <TextBlock  VerticalAlignment="Center" Width="120">
+                                            <Run Text="{x:Bind FromValue, Mode=OneWay}"/>
+                                        </TextBlock>
+                                        <winui:NumberBox Value="{x:Bind BindFromValue, Mode=TwoWay}" Minimum="0" LargeChange="1000" SmallChange="100" />
+                                      </uwpControls:WrapPanel>
+
+                                    </StackPanel>
+                                  </uwpControls:Case>
+
+                                  <uwpControls:Case Value="{x:Bind viewModels:JsonFilterComparison.Range}">
+                                    <StackPanel Spacing="8">
+                                      <uwpControls:DockPanel>
+
+                                        <Button Content="Clear" uwpControls:DockPanel.Dock="Right">
+                                          <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                              <core:ChangePropertyAction TargetObject="{x:Bind}" PropertyName="FromValue" Value="{x:Null}" />
+                                            </core:EventTriggerBehavior>
+                                          </i:Interaction.Behaviors>
+                                        </Button>
+                                        <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="8">
+                                          <TextBlock  VerticalAlignment="Center" Width="40" TextAlignment="Right">
+                                            <Run Text="from:" />
+                                          </TextBlock>
+                                          <TextBlock  VerticalAlignment="Center" Width="120">
+                                            <Run Text="{x:Bind FromValue, Mode=OneWay}"/>
+                                          </TextBlock>
+
+                                          <winui:NumberBox Value="{x:Bind BindFromValue, Mode=TwoWay}" Minimum="0" LargeChange="1000" SmallChange="100" />
+
+                                          <ToggleSwitch IsOn="{x:Bind IncludeLower, Mode=TwoWay}">
+                                            <ToggleSwitch.OffContent>
+                                              <TextBlock Text="境界値を含めない" />
+                                            </ToggleSwitch.OffContent>
+                                            <ToggleSwitch.OnContent>
+                                              <TextBlock Text="境界値を含める" />
+                                            </ToggleSwitch.OnContent>
+                                          </ToggleSwitch>
+                                        </uwpControls:WrapPanel>
+                                      </uwpControls:DockPanel>
+
+                                      <uwpControls:DockPanel>
+
+                                        <Button Content="Clear" uwpControls:DockPanel.Dock="Right">
+                                          <i:Interaction.Behaviors>
+                                            <core:EventTriggerBehavior EventName="Tapped">
+                                              <core:ChangePropertyAction TargetObject="{x:Bind}" PropertyName="FromValue" Value="{x:Null}" />
+                                            </core:EventTriggerBehavior>
+                                          </i:Interaction.Behaviors>
+                                        </Button>
+                                        <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="8">
+                                          <TextBlock  VerticalAlignment="Center" Width="40" TextAlignment="Right">
+                                            <Run Text="to:" />
+                                          </TextBlock>
+
+                                          <TextBlock  VerticalAlignment="Center" Width="120">
+                                            <Run Text="{x:Bind ToValue, Mode=OneWay}"/>
+                                          </TextBlock>
+                                          <winui:NumberBox Value="{x:Bind BindToValue, Mode=TwoWay}" Minimum="0" LargeChange="1000" SmallChange="100" />
+
+                                          <ToggleSwitch IsOn="{x:Bind IncludeUpper, Mode=TwoWay}">
+                                            <ToggleSwitch.OffContent>
+                                              <TextBlock Text="境界値を含めない" />
+                                            </ToggleSwitch.OffContent>
+                                            <ToggleSwitch.OnContent>
+                                              <TextBlock Text="境界値を含める" />
+                                            </ToggleSwitch.OnContent>
+                                          </ToggleSwitch>
+                                        </uwpControls:WrapPanel>
+                                      </uwpControls:DockPanel>
+                                    </StackPanel>
+                                  </uwpControls:Case>
+                                </uwpControls:SwitchPresenter>
+                              </Border>
+                            </StackPanel>
+                          </DataTemplate>
+                        </ts:JsonFilterTemplateSelector.IntTemplate>
+                        <ts:JsonFilterTemplateSelector.StringTemplate>
+                          <DataTemplate x:DataType="viewModels:StringJsonFilterViewModel">
+                            <StackPanel>
+                              <Border Style="{ThemeResource MicaCardTopBorderStyle}" >
+                                <uwpControls:DockPanel>
+                                  <Button uwpControls:DockPanel.Dock="Right">
+                                    <Button.Content>
+                                      <SymbolIcon Symbol="More" />
+                                    </Button.Content>
+                                    <Button.Flyout>
+                                      <MenuFlyout>
+                                        <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
+                                      </MenuFlyout>
+                                    </Button.Flyout>
+                                  </Button>
+
+                                  <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="16">
+                                    <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+
+                                    <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                        SelectedItem="{x:Bind Comparison}"
+                                        ItemTemplate="{StaticResource LocalizedTextBlock}"
+                                        MinWidth="80"
+                                                IsEnabled="False"
+                                        >
+                                    </ComboBox>
+
+                                    <TextBlock VerticalAlignment="Center">
+                                      変数名: <Run Text="{x:Bind VariableName}" />
+                                    </TextBlock>
+                                  </uwpControls:WrapPanel>
+                                </uwpControls:DockPanel>
+                              </Border>
+
+                              <Border Style="{ThemeResource MicaCardBottomBorderStyle}">
+                                <uwpControls:WrapPanel Orientation="Horizontal" VerticalSpacing="8" HorizontalSpacing="8">
+
+                                  <TextBlock  VerticalAlignment="Center" Width="40" TextAlignment="Right">
+                                            <Run Text="value:" />
+                                  </TextBlock>
+
+                                  <AutoSuggestBox Text="{x:Bind FromValue, Mode=TwoWay}"
+                                            ItemsSource="{x:Bind SuggestionItems}"
+                                            MinWidth="120"
+                                            >
+                                    <i:Interaction.Behaviors>
+                                      <core:EventTriggerBehavior EventName="GotFocus">
+                                        <core:ChangePropertyAction PropertyName="IsSuggestionListOpen" Value="True" />
+                                      </core:EventTriggerBehavior>
+                                    </i:Interaction.Behaviors>
+                                    <AutoSuggestBox.TextBoxStyle>
+                                      <Style TargetType="TextBox"></Style>
+                                    </AutoSuggestBox.TextBoxStyle>
+                                  </AutoSuggestBox>
+                                </uwpControls:WrapPanel>
+                              </Border>
+                            </StackPanel>
+                          </DataTemplate>
+                        </ts:JsonFilterTemplateSelector.StringTemplate>
+                      </ts:JsonFilterTemplateSelector>
+                    </Border.Resources>
+
+                    <ItemsControl ItemsSource="{Binding JsonFilters}"
+                            ItemTemplateSelector="{StaticResource JsonFilterTemplateSelector}"
+                            >
+
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <ItemsStackPanel>
+
+                          </ItemsStackPanel>
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+
+
+                  </Border>
+                </StackPanel>
+              </uwpControls:Case>
+            </uwpControls:SwitchPresenter>
+
             
+
           </StackPanel>
          
 
@@ -388,6 +992,18 @@
           </VisualState.StateTriggers>
           <VisualState.Setters>
             <Setter Target="ContextTextBox.BorderBrush" Value="Red" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+
+
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
+            <wst:NotEqualStateTrigger Value="{Binding JsonFilterExpressionErrorMessage}" NotEqualTo="{x:Null}" />
+          </VisualState.StateTriggers>
+          <VisualState.Setters>
+            <Setter Target="JsonFilterExpressionErrorMessageUIContainer.Visibility" Value="Visible" />
           </VisualState.Setters>
         </VisualState>
       </VisualStateGroup>

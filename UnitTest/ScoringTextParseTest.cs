@@ -1,5 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Scoring;
+using NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,7 +17,7 @@ namespace UnitTest
         [DataRow("Max(5 + 6, 1 * 10)")]
         public void Tokenize(string input)
         {
-            var tokens = CulcStringTokenizer.Tokenize(input);
+            var tokens = ExpressionTokenizer.Tokenize(input);
 
             Debug.WriteLine(string.Join(' ', tokens.Select(x => x.ToString())));
         }
@@ -29,7 +29,7 @@ namespace UnitTest
         {
             var methodNodeFactoryFactory = MethodNodeFactoryFactory.CreateDefault();
 
-            var tokens = CulcStringTokenizer.Tokenize(input);
+            var tokens = ExpressionTokenizer.Tokenize(input);
             var rpnTokens = CulcExpressionTree.ToRPN(tokens, methodNodeFactoryFactory);
 
             Debug.WriteLine(string.Join(' ', tokens.Select(x => x.ToString())));
@@ -44,7 +44,7 @@ namespace UnitTest
         {
             var methodNodeFactoryFactory = MethodNodeFactoryFactory.CreateDefault();
 
-            var tokens = CulcStringTokenizer.Tokenize(input);
+            var tokens = ExpressionTokenizer.Tokenize(input);
             var rpnTokens = CulcExpressionTree.ToRPN(tokens, methodNodeFactoryFactory);
             var node = CulcExpressionTree.ToNode(rpnTokens, methodNodeFactoryFactory);
 
