@@ -47,7 +47,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 HistoryItems.SortDescriptions.Add(new (nameof(SearchQueryResultMetaViewModel.SnapshotVersion), SortDirection.Descending));
                 await foreach (var meta in SnapshotResultFileHelper.GetAllQueryResultMetaAsync(ct))
                 {
-                    HistoryItems.Add(new SearchQueryResultMetaViewModel(meta, _messenger));
+                    HistoryItems.Add(new SearchQueryResultMetaViewModel(meta));
                 }
 
                 if (parameters.TryGetValue("query", out string query))
@@ -77,20 +77,62 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             HistoryItems.Filter = (item) => (item as SearchQueryResultMetaViewModel).SearchQueryId == query;
             //HistoryItems.RefreshFilter();
         }
+
+
+
+        private DelegateCommand<SearchQueryViewModel> _OpenEditPageCommand;
+        public DelegateCommand<SearchQueryViewModel> OpenEditPageCommand =>
+            _OpenEditPageCommand ?? (_OpenEditPageCommand = new DelegateCommand<SearchQueryViewModel>(ExecuteOpenEditPageCommand));
+
+        void ExecuteOpenEditPageCommand(SearchQueryViewModel searchQueryVM)
+        {
+            _messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(QueryEditPage), ("query", searchQueryVM.SeriaizeParameters()))));
+        }
+
+
+        private DelegateCommand<SearchQueryViewModel> _OpenSnapshotResultHistoryPageCommand;
+        public DelegateCommand<SearchQueryViewModel> OpenSnapshotResultHistoryPageCommand =>
+            _OpenSnapshotResultHistoryPageCommand ?? (_OpenSnapshotResultHistoryPageCommand = new DelegateCommand<SearchQueryViewModel>(ExecuteOpenSnapshotResultHistoryPageCommand));
+
+        void ExecuteOpenSnapshotResultHistoryPageCommand(SearchQueryViewModel searchQueryVM)
+        {
+            _messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(SearchResultPage), ("query", searchQueryVM.SeriaizeParameters()))));
+        }
+
+        private DelegateCommand<SearchQueryResultMetaViewModel> _OpenSnapshotResultPageCommand;
+        public DelegateCommand<SearchQueryResultMetaViewModel> OpenSnapshotResultPageCommand =>
+            _OpenSnapshotResultPageCommand ??= new DelegateCommand<SearchQueryResultMetaViewModel>(ExecuteOpenSnapshotResultPageCommand);
+
+        async void ExecuteOpenSnapshotResultPageCommand(SearchQueryResultMetaViewModel searchQueryResultMetaVM)
+        {
+            if (searchQueryResultMetaVM.TotalCount == 0) { return; }
+
+            try
+            {
+                var req = await _messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(SearchResultPage), ("query", searchQueryResultMetaVM.SearchQueryId), ("version", searchQueryResultMetaVM.SnapshotVersion))));
+                if (req.Success is false)
+                {
+                    throw req.Exception ?? new Exception();
+                }
+            }
+            catch (Exception ex)
+            {
+                searchQueryResultMetaVM.IsOpenFailed = true;
+                searchQueryResultMetaVM.OpenFailedMessage = ex.Message;
+            }
+        }
     }
 
     public sealed class SearchQueryResultMetaViewModel : SearchQueryViewModel
     {
         private readonly SearchQueryResultMeta _meta;
-        private readonly IMessenger _messenger;
-
+        
         public SearchQueryViewModel Query { get; }
 
-        public SearchQueryResultMetaViewModel(SearchQueryResultMeta meta, IMessenger messenger)
-            : base(meta.SearchQueryId, messenger)
+        public SearchQueryResultMetaViewModel(SearchQueryResultMeta meta)
+            : base(meta.SearchQueryId)
         {
             _meta = meta;
-            _messenger = messenger;
         }
 
         public string SearchQueryId => _meta.SearchQueryId;
@@ -117,27 +159,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             set { SetProperty(ref _OpenFailedMessage, value); }
         }
 
-        private DelegateCommand _OpenSnapshotResultPageCommand;
-        public DelegateCommand OpenSnapshotResultPageCommand =>
-            _OpenSnapshotResultPageCommand ??= new DelegateCommand(ExecuteOpenSnapshotResultPageCommand);
-
-        async void ExecuteOpenSnapshotResultPageCommand()
-        {
-            if (TotalCount == 0) { return; }
-
-            try
-            {
-                var req = await _messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(SearchResultPage), ("query", _meta.SearchQueryId), ("version", SnapshotVersion))));
-                if (req.Success is false)
-                {
-                    throw req.Exception ?? new Exception();
-                }
-            }
-            catch (Exception ex)
-            {
-                IsOpenFailed = true;
-                OpenFailedMessage = ex.Message;
-            }
-        }
+        
     }
 }

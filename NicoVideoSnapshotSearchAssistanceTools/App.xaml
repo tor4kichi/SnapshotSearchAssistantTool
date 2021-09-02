@@ -29,13 +29,15 @@
       <myConv:SecondsToReadableTimeConverter x:Key="SecondsToReadableTimeConverter" />
       <myConv:UrlEncodeConverter x:Key="UrlEncodeConverter" />
       <myConv:ComparisonToCharacterSymbolConverter x:Key="ComparisonToCharacterSymbolConverter" />
+      <myConv:ItemClickEventArgsConverter x:Key="ItemClickEventArgsConverter" />
+
 
       <i18nConv:LocalizeConverter x:Key="LocalizeConverter" />
 
       <DataTemplate x:Key="LocalizedTextBlock">
         <TextBlock Text="{Binding Converter={StaticResource LocalizeConverter}}" />
       </DataTemplate>
-      
+
       <ResourceDictionary.MergedDictionaries>
         <controls:XamlControlsResources />
         <!-- Other app resources here -->

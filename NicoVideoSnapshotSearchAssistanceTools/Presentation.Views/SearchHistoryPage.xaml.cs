@@ -26,14 +26,5 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views
         {
             this.InitializeComponent();
         }
-
-        private void ListView_ItemClick(object sender, ItemClickEventArgs e)
-        {
-            var listView = sender as ListView;
-            if (e.ClickedItem is ViewModels.SearchQueryResultMetaViewModel vm)
-            {
-                vm.OpenSnapshotResultPageCommand.Execute();
-            }
-        }
     }
 }

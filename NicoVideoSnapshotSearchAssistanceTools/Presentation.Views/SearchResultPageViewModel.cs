@@ -326,7 +326,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 _applicationInternalSettings.SaveLastOpenPage(nameof(SearchResultPage), ("query", queryParameters), ("version", version.ToString()));
 
                 Guard.IsNotNull(ResultMeta, nameof(ResultMeta));
-                SearchQueryVM = new SearchQueryViewModel(queryParameters, _messenger);
+                SearchQueryVM = new SearchQueryViewModel(queryParameters);
 
                 var fieldHashSet = SearchQueryVM.Fields.Select(x => x.ToString()).ToHashSet();
                 foreach (var pair in VisibilityMap.ToArray())

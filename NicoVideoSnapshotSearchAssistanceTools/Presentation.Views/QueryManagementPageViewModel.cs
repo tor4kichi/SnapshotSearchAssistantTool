@@ -43,7 +43,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 {
                     try
                     {
-                        SearchQueryItems.Add(new SearchQueryTemplateViewModel(item.Id, item.Title, item.QueryParameters, _messenger));
+                        SearchQueryItems.Add(new SearchQueryTemplateViewModel(item.Id, item.Title, item.QueryParameters));
                     }
                     catch
                     {
@@ -51,6 +51,18 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     }
                 }
             }
+        }
+
+
+
+
+        private DelegateCommand<SearchQueryViewModel> _OpenEditPageCommand;
+        public DelegateCommand<SearchQueryViewModel> OpenEditPageCommand =>
+            _OpenEditPageCommand ?? (_OpenEditPageCommand = new DelegateCommand<SearchQueryViewModel>(ExecuteOpenEditPageCommand));
+
+        void ExecuteOpenEditPageCommand(SearchQueryViewModel searchQueryVM)
+        {
+            _messenger.Send(new NavigationAppCoreFrameRequestMessage(new(nameof(QueryEditPage), ("query", searchQueryVM.SeriaizeParameters()))));
         }
     }
 

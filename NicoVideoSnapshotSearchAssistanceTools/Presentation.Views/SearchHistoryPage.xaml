@@ -5,12 +5,14 @@
   xmlns:local="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:i="using:Microsoft.Xaml.Interactivity" 
+  xmlns:core="using:Microsoft.Xaml.Interactions.Core" 
   xmlns:uwpControls="using:Microsoft.Toolkit.Uwp.UI.Controls" 
   xmlns:viewModels="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels"
   mc:Ignorable="d"
   Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-  <Grid>
+  <Grid x:Name="RootGrid">
     <uwpControls:DockPanel>
       <Grid uwpControls:DockPanel.Dock="Top" Margin="16 48 16 4" MaxWidth="720">
         <uwpControls:DockPanel>
@@ -49,15 +51,23 @@
                   Margin="32 0 32 32" 
                   HorizontalAlignment="Center"
                   SelectionMode="None"
-                  ItemClick="ListView_ItemClick"
                   IsItemClickEnabled="True"
                   >
+          <i:Interaction.Behaviors>
+            <core:EventTriggerBehavior EventName="ItemClick">
+              <core:InvokeCommandAction Command="{Binding OpenSnapshotResultPageCommand}" InputConverter="{StaticResource ItemClickEventArgsConverter}" />
+            </core:EventTriggerBehavior>
+          </i:Interaction.Behaviors>
+          
           <ListView.Resources>
             <MenuFlyout x:Key="MetaVMItemFlyout" 
+                        x:Name="MetaVMItemFlyout"
                         xmlns:myInteractions="using:NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Interactions"
                         myInteractions:FlyoutExtensions.DataContextPropagationToFlyoutChild="True"
                         >
-              <MenuFlyoutItem Text="検索条件を開く" Command="{Binding OpenEditPageCommand}"/>
+              <MenuFlyoutItem Text="検索条件を開く" Command="{x:Bind ((viewModels:SearchHistoryPageViewModel)RootGrid.DataContext).OpenEditPageCommand, Mode=OneWay}"
+                              CommandParameter="{Binding}"
+                              />
             </MenuFlyout>
           </ListView.Resources>
           

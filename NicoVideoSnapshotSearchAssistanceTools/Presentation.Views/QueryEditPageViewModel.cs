@@ -518,7 +518,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     IsLoadingFailed = false;
                     try
                     {
-                        SearchQueryVM = new SearchQueryViewModel(queryParameters, _messenger);
+                        SearchQueryVM = new SearchQueryViewModel(queryParameters);
 
                         _applicationInternalSettings.SaveLastOpenPage(nameof(QueryEditPage));
 

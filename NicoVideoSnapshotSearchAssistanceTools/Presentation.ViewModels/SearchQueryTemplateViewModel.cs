@@ -5,8 +5,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 {
     public class SearchQueryTemplateViewModel : SearchQueryViewModel
     {
-        public SearchQueryTemplateViewModel(Guid id, string title, string queryParameters, IMessenger messenger)
-            : base(queryParameters, messenger)
+        public SearchQueryTemplateViewModel(Guid id, string title, string queryParameters)
+            : base(queryParameters)
         {
             Id = id;
             Title = title;

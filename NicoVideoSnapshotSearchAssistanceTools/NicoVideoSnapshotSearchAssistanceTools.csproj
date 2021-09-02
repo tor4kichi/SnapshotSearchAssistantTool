@@ -135,6 +135,7 @@
     <Compile Include="Presentation.ViewModels\SimpleFilterViewModel.cs" />
     <Compile Include="Presentation.Views.Converters\ComparisonToCharacterSymbolConverter.cs" />
     <Compile Include="Presentation.Views.Converters\HumanReadbleDateTimeConverter.cs" />
+    <Compile Include="Presentation.Views.Converters\ItemClickEventArgsConverter.cs" />
     <Compile Include="Presentation.Views.Converters\SecondsToReadableTimeConverter.cs" />
     <Compile Include="Presentation.Views.Converters\UrlEncodeConverter.cs" />
     <Compile Include="Presentation.Views.Interactions\DataContextPropagationToFlyoutChild.cs" />

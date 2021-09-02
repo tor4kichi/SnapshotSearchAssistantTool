@@ -2,6 +2,9 @@
 using Microsoft.Toolkit.Mvvm.Messaging;
 using NiconicoToolkit;
 using NiconicoToolkit.SnapshotSearch;
+using NiconicoToolkit.SnapshotSearch.Filters;
+using NiconicoToolkit.SnapshotSearch.JsonFilters;
+using NiconicoToolkit.Video;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
 using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels.Messages;
 using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
@@ -124,7 +127,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             {
                 if (parameters.TryGetValue("query", out string queryParameters))
                 {
-                    SearchQueryVM = new SearchQueryViewModel(queryParameters, _messenger);
+                    SearchQueryVM = new SearchQueryViewModel(queryParameters);
 
                     _applicationInternalSettings.SaveLastOpenPage(nameof(SearchRunningManagementPage), ("query", queryParameters));
                 }
@@ -360,7 +363,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     ThrowNiconicoWebExceptionIfNotSuccess(firstResult.Meta);
 
                     meta = await SnapshotResultFileHelper.CreateSearchQueryResultMetaAsync(searchQueryWithoutContext, CurrentApiVersion.Value, firstResult.Meta.TotalCount);
-                    
                     SearchConditionValidationState.IsValid = true;
                 }
                 catch (NiconicoWebException ex)
@@ -404,12 +406,204 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             }
             else if (ResultPageItems == null)
             {
-                ResultPageItems = Enumerable.Range(0, ToPageCount((int)meta.TotalCount))
-                .Select(x => new SnapshotSearchResultPageItemViewModel(_niconicoContext.VideoSnapshotSearch, meta, SearchQueryVM, _applicationInternalSettings.ContextQueryParameter, x))
-                .ToArray();
-
+                if (meta.TotalCount > NiconicoToolkit.SnapshotSearch.SearchConstants.MaxSearchOffset)
+                {
+                    var plan = MakeSplitSearchPlan(meta, SearchQueryVM);
+                }
+                else
+                {
+                    ResultPageItems = Enumerable.Range(0, ToPageCount((int)meta.TotalCount))
+                        .Select(x => new SnapshotSearchResultPageItemViewModel(_niconicoContext.VideoSnapshotSearch, meta, SearchQueryVM, _applicationInternalSettings.ContextQueryParameter, x))
+                        .ToArray();
+                }
             }
         }
+
+
+        static readonly long MaxSearchOffset = 25_000;
+
+        private async Task<SplitSearchPlanData> MakeSplitSearchPlan(SearchQueryResultMeta meta, ISearchQuery searchQueryVM)
+        {
+            DateTimeOffset? startTime = null;
+            DateTimeOffset? endTime = null;
+            bool includeStartTime = true;
+            bool includeEndTime = true;
+
+            var filter = searchQueryVM.Filters;
+            if (filter is CompositeSearchFilter simpleFilters)
+            {
+                var timefilters = simpleFilters.Filters.Where(x => x is CompareSimpleSearchFilter<DateTimeOffset> timeFilter && timeFilter.FilterType is SearchFieldType.StartTime).Cast<CompareSimpleSearchFilter<DateTimeOffset>>();
+
+                Guard.IsLessThanOrEqualTo(timefilters.Count(), 2, nameof(timefilters));
+                foreach (var timeFilter in timefilters)
+                {
+                    Guard.IsTrue(timeFilter.Condition != SimpleFilterComparison.Equal, nameof(timeFilter.Condition));
+                }
+
+                var startTimeFilter = timefilters.FirstOrDefault(x => x.Condition is SimpleFilterComparison.GreaterThan or SimpleFilterComparison.GreaterThanOrEqual);
+                var endTimeFilter = timefilters.FirstOrDefault(x => x.Condition is SimpleFilterComparison.LessThan or SimpleFilterComparison.LessThenOrEqual);
+
+                if (startTimeFilter is not null && endTimeFilter is not null)
+                {
+                    startTime = startTimeFilter.Value;
+                    endTime = endTimeFilter.Value;
+                }
+                else if (startTimeFilter is not null)
+                {
+                    startTime = startTimeFilter.Value;
+                }
+                else if (endTimeFilter is not null)
+                {
+                    endTime = endTimeFilter.Value;
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+            else if (filter is IJsonSearchFilter jsonSearchFilter)
+            {
+                // RangeJsonFilterのStartTimeを含むものだけを抽出
+                // たった一つだけのRangeJsonFilterを許容し、orやandで複数結合しているケースは非対応とする（それだけで99%のケースに対応できるはず）
+                static IEnumerable<RangeJsonFilter> RecursiveExtractStartTimeRangeJsonFilter(IJsonSearchFilter filter)
+                {
+                    if (filter is AndJsonFilter andFilter)
+                    {
+                        foreach (var childFilter in andFilter.Filters)
+                        {
+                            foreach (var rangeFilter in RecursiveExtractStartTimeRangeJsonFilter(childFilter))
+                            {
+                                yield return rangeFilter;
+                            }
+                        }
+                    }
+                    else if (filter is OrJsonFilter orFilter)
+                    {
+                        foreach (var childFilter in orFilter.Filters)
+                        {
+                            foreach (var rangeFilter in RecursiveExtractStartTimeRangeJsonFilter(childFilter))
+                            {
+                                throw new NotSupportedException();
+                            }
+                        }
+                    }
+                    else if (filter is RangeJsonFilter rangeFilter && rangeFilter.FieldType == SearchFieldType.StartTime)
+                    {
+                        yield return rangeFilter;
+                    }
+                }
+
+                var rangeFilter = RecursiveExtractStartTimeRangeJsonFilter(jsonSearchFilter).Single();
+                startTime = (DateTimeOffset?)rangeFilter.From;
+                endTime = (DateTimeOffset?)rangeFilter.To;
+                includeStartTime = rangeFilter.IncludeLower;
+                includeEndTime = rangeFilter.IncludeUpper;
+            }
+
+            if (startTime.HasValue is false)
+            {
+                startTime = VideoConstants.MostOldestVideoPostedAt;
+            }
+
+            if (endTime.HasValue is false)
+            {
+                endTime = meta.SnapshotVersion;
+            }
+
+            async Task<List<SplitSearchPlan>> SplitTimeAsync(long count, DateTimeOffset startTime, DateTimeOffset endTime, bool includeStartTime, bool includeEndTime)
+            {
+                int divide = (int)Math.Ceiling(count / (double)MaxSearchOffset);
+                TimeSpan dividedTime = (endTime - startTime) / divide;
+                List<SplitSearchPlan> plans = new();
+                foreach (var i in Enumerable.Range(0, divide))
+                {
+                    SplitSearchPlan plan;
+                    if (i == 0)
+                    {
+                        plan = new SplitSearchPlan() { StartTime = startTime, EndTime = startTime + dividedTime * (i + 1), IncludeStartTime = includeStartTime, IncludeEndTime = true };
+                    }
+                    else if (i == divide)
+                    {
+                        plan = new SplitSearchPlan() { StartTime = startTime + dividedTime * i, EndTime = endTime, IncludeStartTime = false, IncludeEndTime = includeEndTime };
+                    }
+                    else
+                    {
+                        plan = new SplitSearchPlan() { StartTime = startTime + dividedTime * i, EndTime = startTime + dividedTime * (i + 1), IncludeStartTime = false, IncludeEndTime = true };
+                    }
+
+                    var cloneFilter = CloneSearchFilter(searchQueryVM.Filters);
+                    var changedFilter = ChangeStartTimeSearchFilterWithPlan(cloneFilter, plan);
+
+                    var result = await GetSnapshotSearchResultOnCurrentConditionAsync(_niconicoContext.VideoSnapshotSearch, searchQueryVM, _applicationInternalSettings.ContextQueryParameter, 0, 10, changedFilter);
+                    if (result.IsSuccess is false)
+                    {
+                        if (result.Meta.TotalCount > MaxSearchOffset)
+                        {
+                            var splitTimes = await SplitTimeAsync(result.Meta.TotalCount, plan.StartTime, plan.EndTime, plan.IncludeStartTime, plan.IncludeEndTime);
+                            plans.AddRange(splitTimes);
+                        }
+                        else
+                        {
+                            plans.Add(plan);
+                        }
+                    }
+                }
+
+                return plans;
+            }
+            
+            var plans = await SplitTimeAsync(meta.TotalCount, startTime.Value, endTime.Value, includeStartTime, includeEndTime);
+            return new SplitSearchPlanData() { Plans = plans.ToArray() };
+        }
+
+
+        static ISearchFilter CloneSearchFilter(ISearchFilter searchFilter)
+        {
+            var s = SearchQuarySerializeHelper.SeriaizeParameters("", new SearchFieldType[0], new SearchSort(SearchFieldType.StartTime, SearchSortOrder.Asc), new SearchFieldType[0], searchFilter, "");
+            var (_, _, _, _, filter) = SearchQuarySerializeHelper.ParseQueryParameters(s);
+            return filter;
+        }
+
+        static ISearchFilter ChangeStartTimeSearchFilterWithPlan(ISearchFilter searchFilter, SplitSearchPlan plan)
+        {
+            if (searchFilter is CompositeSearchFilter simpleSearchFilter)
+            {
+                var timeFilters = simpleSearchFilter.Filters.Where(x => x is CompareSimpleSearchFilter<DateTimeOffset> timeFilter && timeFilter.FilterType == SearchFieldType.StartTime);
+                foreach (var timeFilter in timeFilters)
+                {
+                    simpleSearchFilter.Filters.Remove(timeFilter);
+                }
+
+                simpleSearchFilter.Filters.Add(new CompareSimpleSearchFilter<DateTimeOffset>(SearchFieldType.StartTime, plan.StartTime, plan.IncludeStartTime ? SimpleFilterComparison.GreaterThanOrEqual : SimpleFilterComparison.GreaterThan));
+                simpleSearchFilter.Filters.Add(new CompareSimpleSearchFilter<DateTimeOffset>(SearchFieldType.StartTime, plan.EndTime, plan.IncludeEndTime? SimpleFilterComparison.LessThenOrEqual : SimpleFilterComparison.LessThan));
+            }
+            else if (searchFilter is IJsonSearchFilter jsonSearchFilter)
+            {
+                if (jsonSearchFilter is AndJsonFilter andJsonFilter)
+                {
+                    if (andJsonFilter.Filters.FirstOrDefault(x => x is RangeJsonFilter rangeJsonFilter && rangeJsonFilter.FieldType == SearchFieldType.StartTime) is not null and var timeFilter)
+                    {
+                        andJsonFilter.Filters.Remove(timeFilter);
+                    }
+
+                    andJsonFilter.Filters.Add(new RangeJsonFilter(SearchFieldType.StartTime, plan.StartTime, plan.EndTime, plan.IncludeStartTime, plan.IncludeEndTime));
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+            }
+            else
+            {
+                CompositeSearchFilter compositeSearchFilter = new CompositeSearchFilter();
+                compositeSearchFilter.Filters.Add(new CompareSimpleSearchFilter<DateTimeOffset>(SearchFieldType.StartTime, plan.StartTime, plan.IncludeStartTime ? SimpleFilterComparison.GreaterThanOrEqual : SimpleFilterComparison.GreaterThan));
+                compositeSearchFilter.Filters.Add(new CompareSimpleSearchFilter<DateTimeOffset>(SearchFieldType.StartTime, plan.EndTime, plan.IncludeEndTime ? SimpleFilterComparison.LessThenOrEqual : SimpleFilterComparison.LessThan));
+                searchFilter = compositeSearchFilter;
+            }
+
+            return searchFilter;
+        }
+
 
         private AsyncReactiveCommand _GoRunnningStateCommand = new AsyncReactiveCommand();
         public AsyncReactiveCommand GoRunnningStateCommand
@@ -666,18 +860,22 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             await _messenger.Send<NavigationAppCoreFrameRequestMessage>(new(new(nameof(Views.QueryEditPage))));
         }
 
+        internal static Task<SnapshotResponse> GetSnapshotSearchResultOnCurrentConditionAsync(VideoSnapshotSearchClient client, SearchQueryViewModel searchQueryVM, string context, int offset, int limit, ISearchFilter overrideFilter = null)
+        {
+            return GetSnapshotSearchResultOnCurrentConditionAsync(client, searchQueryVM.Keyword, searchQueryVM.Targets, searchQueryVM.Fields, searchQueryVM.Sort, overrideFilter ?? searchQueryVM.Filters, context, offset, limit);
+        }
 
-        internal static async Task<SnapshotResponse> GetSnapshotSearchResultOnCurrentConditionAsync(VideoSnapshotSearchClient client, SearchQueryViewModel searchQueryViewModel, string context, int offset, int limit)
+        internal static async Task<SnapshotResponse> GetSnapshotSearchResultOnCurrentConditionAsync(VideoSnapshotSearchClient client, string keyword, SearchFieldType[] fields, SearchFieldType[] targets, SearchSort searchSort, ISearchFilter searchFilter, string context, int offset, int limit)
         {
             return await client.GetVideoSnapshotSearchAsync(
-                searchQueryViewModel.Keyword,
-                searchQueryViewModel.Targets,
-                searchQueryViewModel.Sort,
+                keyword,
+                targets,
+                searchSort,
                 context,
                 offset,
                 limit,
-                searchQueryViewModel.Fields,
-                searchQueryViewModel.Filters
+                fields,
+                searchFilter
                 );
         }
 
@@ -762,6 +960,18 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             Page = page;
         }
 
+        public SnapshotSearchResultPageItemViewModel(VideoSnapshotSearchClient searchClient, SearchQueryResultMeta meta, SearchQueryViewModel searchQueryVM, string context, SplitSearchPageItemToken splitedSearchFilter, int page, int downloadedCount = 0)
+        {
+            _searchClient = searchClient;
+            _meta = meta;
+            _searchQueryVM = searchQueryVM;
+            _context = context;
+            SplitedSearchFilter = splitedSearchFilter;
+            Page = page;
+        }
+
+        public SplitSearchPageItemToken SplitedSearchFilter { get; }
+
         public int Page { get; }
 
         private bool _IsDownloaded;
@@ -795,14 +1005,22 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         {
             (CsvFile, DownloadedCount) = await Task.Run(async () => 
             {
-                var response = await SearchRunningManagementPageViewModel.GetSnapshotSearchResultOnCurrentConditionAsync(_searchClient, _searchQueryVM, _context, Page * 100, 100);
+                var response = await SearchRunningManagementPageViewModel.GetSnapshotSearchResultOnCurrentConditionAsync(_searchClient, _searchQueryVM, _context, Page * 100, 100, SplitedSearchFilter.SplitedSearchFilter);
                 SearchRunningManagementPageViewModel.ThrowNiconicoWebExceptionIfNotSuccess(response.Meta);
-                return (await SnapshotResultFileHelper.Temporary.SaveTemporarySearchResultRangeItemsAsync(_meta, Page, response.Items, ct), response.Items.Length);
+                return (await SnapshotResultFileHelper.Temporary.SaveTemporarySearchResultRangeItemsAsync(_meta, Page + (SplitedSearchFilter?.PageCountOffset ?? 0), response.Items, ct), response.Items.Length);
             });
             
         }
         
     }
+
+    public class SplitSearchPageItemToken
+    {
+        public ISearchFilter SplitedSearchFilter { get; init; }
+
+        public int PageCountOffset { get; init; }
+    }
+
 
     public sealed class NiconicoWebException : Exception
     {
