@@ -122,10 +122,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Domain\ApplicationInternalSettings.cs" />
-    <Compile Include="Domain\BigSearchPlan\BigSearchPlanHelper.cs" />
+    <Compile Include="Domain\BigSearchPlan\SearchPlanFactory.cs" />
     <Compile Include="Domain\Expressions\CulcExpressionTree.cs" />
     <Compile Include="Domain\Expressions\ExpressionTokenizer.cs" />
     <Compile Include="Domain\Expressions\LogicalOperatorExpressionTree.cs" />
+    <Compile Include="Domain\ISearchQuery.cs" />
+    <Compile Include="Domain\SearchQuarySerializeHelper.cs" />
     <Compile Include="Domain\SearchResultSettings.cs" />
     <Compile Include="Domain\SearchRunningSettings.cs" />
     <Compile Include="IsExternalInit.cs" />

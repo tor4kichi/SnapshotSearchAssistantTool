@@ -28,7 +28,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
     {
         internal SearchQueryViewModel(string queryParameters)
         {
-            SearchQuarySerializeHelper.ParseQueryParameters(queryParameters);
+            (_keyword, _sort, _fields, _targets, _Filters) = SearchQuarySerializeHelper.ParseQueryParameters(queryParameters);
         }
 
         #region Query Parameter Property

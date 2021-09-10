@@ -1,6 +1,6 @@
 ﻿using NiconicoToolkit.SnapshotSearch;
 
-namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
+namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
 {
     public interface ISearchQuery
     {

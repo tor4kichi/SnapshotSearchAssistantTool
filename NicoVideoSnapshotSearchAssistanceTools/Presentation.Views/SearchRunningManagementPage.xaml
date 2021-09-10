@@ -242,9 +242,12 @@
               <ContentControl Content="{Binding SearchConditionValidationState, Mode=OneTime}" ContentTemplate="{StaticResource PrepareStateValidationControlTemplate}"
                               HorizontalContentAlignment="Stretch"
                               />
+              <ContentControl Content="{Binding MoreThan100000SearchValidationState, Mode=OneTime}" ContentTemplate="{StaticResource PrepareStateValidationControlTemplate}"
+                              HorizontalContentAlignment="Stretch"
+                              />
 
               <TextBlock HorizontalAlignment="Right" IsTextSelectionEnabled="True">
-                取得件数:  <Run Text="{Binding ResultMeta.TotalCount}" />
+                トータル件数:  <Run Text="{Binding ResultMeta.TotalCount}" /> (取得済み: <Run Text="{Binding ProcessedCount}" />)
               </TextBlock>
 
               <Button Content="検索を実行" 
@@ -310,6 +313,7 @@
                 <Run Text="{Binding ProcessedCount}"/> / <Run Text="{Binding ResultMeta.TotalCount}" />
               </TextBlock>
 
+              <Button Content="中断" Command="{Binding CancelDownloadCommand}" />
             </StackPanel>
           </Grid>
 

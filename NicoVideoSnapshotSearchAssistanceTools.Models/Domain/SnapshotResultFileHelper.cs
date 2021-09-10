@@ -323,7 +323,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
                 var tempFolder = await folder.CreateFolderAsync($"{meta.SnapshotVersion:yyyy-MM-dd}", CreationCollisionOption.OpenIfExists);
                 Guard.IsNotNull(tempFolder, nameof(tempFolder));
 
-                var file = await tempFolder.CreateFileAsync(MakeTempSearchResultFileName(meta, page));
+                var file = await tempFolder.CreateFileAsync(MakeTempSearchResultFileName(meta, page), CreationCollisionOption.ReplaceExisting);
                 using (var reader = await file.OpenStreamForWriteAsync())
                 using (var textReader = new StreamWriter(reader))
                 using (var csv = new CsvWriter(textReader, _csvConfiguration_ForTemp))

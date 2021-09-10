@@ -76,8 +76,14 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
             var fieldValues = nvc.GetValues(SearchConstants.FieldsParameter);
             if (fieldValues?.Any() ?? false)
             {
-                fields = fieldValues[0].Split(',').Select(x => _fieldTypeDescriptionMap[x]).ToArray();
-
+                if (fieldValues.Length == 1 && fieldValues[0] == string.Empty)
+                {
+                    fields = new SearchFieldType[0];
+                }
+                else
+                {
+                    fields = fieldValues[0].Split(',').Select(x => _fieldTypeDescriptionMap[x]).ToArray();
+                }
             }
             else
             {

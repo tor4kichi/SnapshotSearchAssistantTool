@@ -27,11 +27,18 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Infrastructure
             return _LocalStorageHelper.Read<T>(propertyName, @default);
         }
 
-        protected async Task<T> ReadFileAsync<T>(T value, [CallerMemberName] string propertyName = null)
+        protected async Task<T> ReadFileAsync<T>(T defaultValue, [CallerMemberName] string propertyName = null)
         {
             using (await _fileUpdateLock.LockAsync(default))
             {
-                return await _LocalStorageHelper.ReadFileAsync(propertyName, value);
+                if (await _LocalStorageHelper.FileExistsAsync(propertyName))
+                {
+                    return await _LocalStorageHelper.ReadFileAsync(propertyName, defaultValue);
+                }
+                else
+                {
+                    return defaultValue;
+                }
             }
         }
 

@@ -22,16 +22,28 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
         }
 
 
-        public SplitSearchPlanData SplitSearchPlanData
+        public async Task SaveSplitSearchPlanDataAsync(SplitSearchPlanData data)
         {
-            get => Read(default(SplitSearchPlanData));
-            set => Save(value);
+            await SaveFileAsync(data, nameof(SplitSearchPlanData));
+        }
+
+        public async Task<SplitSearchPlanData> ReadSplitSearchPlanDataAsync()
+        {
+            return await ReadFileAsync(default(SplitSearchPlanData), nameof(SplitSearchPlanData));
+        }
+
+        public async Task ClearSplitSearchPlanDataAsync()
+        {
+            await SaveFileAsync(default(SplitSearchPlanData), nameof(SplitSearchPlanData));
         }
     }
 
 
     public class SplitSearchPlanData
     {
+        public DateTimeOffset SnapshotVersion { get; set; }
+        public string SearchQueryId { get; set; }
+
         public SplitSearchPlan[] Plans { get; set; }
     }
 
@@ -43,7 +55,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
         public bool IncludeStartTime { get; set; }
         public bool IncludeEndTime { get; set; }
 
-        public int RangeItemsCount { get; set; }
+        public long RangeItemsCount { get; set; }
     }
 
 
