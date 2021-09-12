@@ -2,6 +2,9 @@
 Delete = 削除
 Add = 追加
 UnDo = 元に戻す
+Close = 閉じる
+
+
 
 ## NiconicoToolkit
 
@@ -57,6 +60,9 @@ SnapshotAPIVersion = Snapshot API Version
 SearchQueryCondition = 検索条件
 
 
+
+
+
 ## QueryEditPage
 
 DoSearch_Command = 検索（テスト含む）
@@ -80,6 +86,10 @@ SearchQuery_Sort_Title = 並び順（必須）
 
 SearchQuery_Filter_Title = フィルタ指定
 
+
+
+
+
 ## SearchResultPage
 
 SearchFilter = 絞り込み
@@ -94,3 +104,11 @@ ScoreCulcExpression_Edit = スコア計算式を編集
 ScoreCulcExprettion_Currently = 現在適用されている計算式
 ScoreCulcExprettion_ReCulcWhenPopupClosed = ポップアップを閉じると再計算します
 ScoreSettingItem_Title = 表示名
+
+ExportSearchResultTitle = エクスポート
+ExportFieldNameTitle = 出力項目
+ExportFormatTitle = 出力フォーマット
+ExecuteExport = エクスポート
+
+ExportSupportType.Json = Json
+ExportSupportType.Csv = Csv

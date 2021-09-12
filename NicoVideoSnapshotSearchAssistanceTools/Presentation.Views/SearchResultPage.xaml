@@ -66,6 +66,14 @@
               </Flyout>
             </Button.Flyout>
           </Button>
+
+          <Button Content="Export" >
+            <i:Interaction.Behaviors>
+              <core:EventTriggerBehavior EventName="Tapped">
+                <core:GoToStateAction StateName="VS_ShowExportPane" />
+              </core:EventTriggerBehavior>
+            </i:Interaction.Behaviors>
+          </Button>
         </StackPanel>
 
 
@@ -180,6 +188,7 @@
             <core:InvokeCommandAction Command="{x:Bind ViewModel.ReCulcScoreCommand, Mode=OneWay}" />
             <core:ChangePropertyAction TargetObject="{x:Bind FilterEdittingUIContainer}" PropertyName="Visibility" Value="Collapsed" />
             <core:ChangePropertyAction TargetObject="{x:Bind ScoreEdittingUIContainer}" PropertyName="Visibility" Value="Collapsed" />
+            <core:ChangePropertyAction TargetObject="{x:Bind ExportUIContainer}" PropertyName="Visibility" Value="Collapsed" />
           </core:EventTriggerBehavior>
         </i:Interaction.Behaviors>
         
@@ -576,6 +585,86 @@
               </ScrollViewer>
 
             </controls:DockPanel>
+
+            <controls:DockPanel x:Name="ExportUIContainer" Visibility="Collapsed">
+
+              <controls:DockPanel controls:DockPanel.Dock="Top" Margin="16 16 16 8">
+                <Button controls:DockPanel.Dock="Right" Margin="0 0 0 0"
+                      ToolTipService.ToolTip="{i18nExt:Localize Key=Close}"
+                      >
+                  <Button.Content>
+                    <SymbolIcon Symbol="ClosePane" />
+                  </Button.Content>
+
+                  <i:Interaction.Behaviors>
+                    <core:EventTriggerBehavior EventName="Tapped">
+                      <core:GoToStateAction TargetObject="{x:Bind PageRoot}" StateName="VS_ClosePane" />
+                    </core:EventTriggerBehavior>
+                  </i:Interaction.Behaviors>
+                </Button>
+
+
+                <TextBlock Text="{i18nExt:Localize Key=ExportSearchResultTitle}"
+                           Style="{StaticResource SubtitleTextBlockStyle}"
+                           />
+              </controls:DockPanel>
+
+              <Border controls:DockPanel.Dock="Bottom" Padding="16"
+                BorderThickness="0 1 0 0" BorderBrush="{ThemeResource ButtonDisabledBorderThemeBrush}"
+                >
+                <controls:DockPanel 
+                                  
+                                  >
+
+                  <ComboBox ItemsSource="{Binding ExportSupportTypeItems}"
+                        SelectedItem="{Binding ExportSupportType, Mode=TwoWay}"
+                        ItemTemplate="{StaticResource LocalizedTextBlock}"
+                        Header="{i18nExt:Localize Key=ExportFormatTitle}"
+                          controls:DockPanel.Dock="Left"
+                        >
+
+                  </ComboBox>
+
+                  <Button Content="{i18nExt:Localize Key=ExecuteExport}" Style="{ThemeResource AccentButtonStyle}" Command="{x:Bind ViewModel.ExportCommand}"
+                        controls:DockPanel.Dock="Right"
+                        MinWidth="120"
+                        >
+
+                  </Button>
+
+                  <Border />
+
+
+                </controls:DockPanel>
+
+              </Border>
+
+
+
+              <ScrollViewer>
+
+                <StackPanel Spacing="16" Margin="16">
+                  
+
+
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="{i18nExt:Localize Key=ExportFieldNameTitle}" />
+                    <ItemsControl ItemsSource="{Binding ExportSettingItems}" Margin="16 0 0 0">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <CheckBox Content="{Binding Label}"
+                                  IsChecked="{Binding IsExport, Mode=TwoWay}"
+                                  />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                  
+                </StackPanel>
+              </ScrollViewer>
+              
+              
+            </controls:DockPanel>
           </Grid>
           
         </SplitView.Pane>
@@ -783,6 +872,13 @@
           <VisualState.Setters>
             <Setter Target="ScoreEdittingUIContainer.Visibility" Value="Visible" />
             <Setter Target="ScoringPaneSplitView.IsPaneOpen" Value="True" />
+          </VisualState.Setters>
+        </VisualState>
+        <VisualState x:Name="VS_ShowExportPane">
+          <VisualState.Setters>
+            <Setter Target="ExportUIContainer.Visibility" Value="Visible" />
+            <Setter Target="ScoringPaneSplitView.IsPaneOpen" Value="True" />
+            <Setter Target="ScoringPaneSplitView.PanePlacement" Value="Right" />
           </VisualState.Setters>
         </VisualState>
         <VisualState x:Name="VS_ClosePane">

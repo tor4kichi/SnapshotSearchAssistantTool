@@ -1,4 +1,5 @@
-﻿using Microsoft.Toolkit.Diagnostics;
+﻿using I18NPortable;
+using Microsoft.Toolkit.Diagnostics;
 using Microsoft.Toolkit.Mvvm.Messaging;
 using Microsoft.Toolkit.Uwp.UI.Custom;
 using NiconicoToolkit;
@@ -24,8 +25,15 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using System.IO;
+using System.Globalization;
+using System.Text.Json.Serialization;
+using Windows.System;
 
 namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 {
@@ -115,8 +123,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         public Dictionary<string, bool> VisibilityMap { get; } = 
             Enumerable.Concat(
-                SearchFieldTypeExtensions.FieldTypes.Select(x => x.ToString()),
-                CustomFieldTypeNames
+                CustomFieldTypeNames,
+                SearchFieldTypeExtensions.FieldTypes.Select(x => x.ToString())
                 )
                 .ToDictionary(x => x, x => true);
 
@@ -350,6 +358,31 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     }
                 }
 
+
+                static string LocalizeKey(string key)
+                {
+                    if (key == CustomFieldTypeName_Index)
+                    {
+                        return "CustomFieldType_Index".Translate();
+                    }
+                    else if (key == CustomFieldTypeName_Score)
+                    {
+                        return "CustomFieldType_Score".Translate();
+                    }
+                    else if (Enum.TryParse<SearchFieldType>(key, out var fieldType))
+                    {
+                        return fieldType.Translate();
+                    }
+                    else
+                    {
+                        throw new NotSupportedException(key);
+                    }
+                }
+
+                ExportSettingItems = 
+                    VisibilityMap.Where(x => x.Value).Select(x => new ExportSettingItem(x.Key, LocalizeKey(x.Key)))
+                    .ToArray();
+
                 RaisePropertyChanged(nameof(VisibilityMap));
 
                 ct.ThrowIfCancellationRequested();
@@ -442,8 +475,230 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
             Debug.WriteLine("スコア再計算 完了");
         }
+
+
+
+        #region Export
+
+        private DelegateCommand _ExportCommand;
+        public DelegateCommand ExportCommand =>
+            _ExportCommand ?? (_ExportCommand = new DelegateCommand(ExecuteExportCommand));
+
+
+        public ExportSupportType[] ExportSupportTypeItems { get; } = 
+            Enum.GetValues(typeof(ExportSupportType)).Cast<ExportSupportType>().ToArray();
+
+        private ExportSupportType _ExportSupportType;
+        public ExportSupportType ExportSupportType
+        {
+            get { return _ExportSupportType; }
+            set { SetProperty(ref _ExportSupportType, value); }
+        }
+
+
+
+        private ExportSettingItem[] _ExportSettingItems;
+        public ExportSettingItem[] ExportSettingItems
+        {
+            get { return _ExportSettingItems; }
+            private set { SetProperty(ref _ExportSettingItems, value); }
+        }
+
+        async void ExecuteExportCommand()
+        {
+            // 出力先を取得
+            if (ExportSupportType is ExportSupportType.Json)
+            {
+                var picker = new FileSavePicker()
+                {
+                    CommitButtonText = "Export".Translate(),
+                    SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+                    DefaultFileExtension = ".json",
+                    SuggestedFileName = $"{ResultMeta.SnapshotVersion.ToString("d").Replace('/', '-')}.json"
+
+                };
+
+                picker.FileTypeChoices.Add("Json", new[] { ".json" });
+
+                if (await picker.PickSaveFileAsync() is not null and StorageFile file)
+                {
+                    await ExportWithJsonAsync(file, _navigationCts.Token);
+
+                    await Launcher.LaunchFolderPathAsync(Path.GetDirectoryName(file.Path), new FolderLauncherOptions() { ItemsToSelect = { file } });
+                }
+            }
+            else if (ExportSupportType is ExportSupportType.Csv)
+            {
+                var picker = new FileSavePicker()
+                {
+                    CommitButtonText = "Export".Translate(),
+                    SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
+                    DefaultFileExtension = ".csv",
+                    SuggestedFileName = $"{ResultMeta.SnapshotVersion.ToString("d").Replace('/', '-')}.csv"
+                };
+
+                picker.FileTypeChoices.Add("CSV", new[] { ".csv" });
+
+                if (await picker.PickSaveFileAsync() is not null and StorageFile file)
+                {
+                    await ExportWithCsvAsync(file, _navigationCts.Token);
+
+                    await Launcher.LaunchFolderPathAsync(Path.GetDirectoryName(file.Path), new FolderLauncherOptions() { ItemsToSelect = { file } });
+                }
+            }
+        }
+
+        async Task ExportWithJsonAsync(StorageFile file, CancellationToken ct)
+        {
+            using (var writeStream = await file.OpenStreamForWriteAsync())
+            {
+                writeStream.SetLength(0);
+                JsonSerializerOptions options = new() 
+                {
+                    WriteIndented = true,
+                    Converters = 
+                    {
+                        new SnapshotItemViewModelJsonConverter(ExportSettingItems),
+                    }
+                };
+
+                await JsonSerializer.SerializeAsync(writeStream, ItemsView.Cast<SnapshotItemViewModel>(), options: options, cancellationToken: ct);
+            }
+        }
+
+        async Task ExportWithCsvAsync(StorageFile file, CancellationToken ct)
+        {
+            var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.CurrentCulture)
+            {
+                MissingFieldFound = null,
+            };
+
+
+            Action<SerializeSnapshotItem, SnapshotItemViewModel>[] items = ExportSettingItems.Where(x => x.IsExport)
+                .Select(x => (Action<SerializeSnapshotItem, SnapshotItemViewModel>)(x.Key switch
+                {
+                    CustomFieldTypeName_Index => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.Index = source.Index,
+                    CustomFieldTypeName_Score => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.Score = source.Score,
+                    nameof(SearchFieldType.ContentId) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.ContentId = source.ContentId,
+                    nameof(SearchFieldType.Title) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.Title = source.Title,
+                    nameof(SearchFieldType.Description) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.Description = source.Description,
+                    nameof(SearchFieldType.UserId) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.UserId = source.UserId,
+                    nameof(SearchFieldType.ChannelId) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.ChannelId = source.ChannelId,
+                    nameof(SearchFieldType.ViewCounter) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.ViewCounter = source.ViewCounter,
+                    nameof(SearchFieldType.MylistCounter) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.MylistCounter = source.MylistCounter,
+                    nameof(SearchFieldType.LikeCounter) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.LikeCounter = source.LikeCounter,
+                    nameof(SearchFieldType.LengthSeconds) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.LengthSeconds = source.LengthSeconds,
+                    nameof(SearchFieldType.ThumbnailUrl) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.ThumbnailUrl = source.ThumbnailUrl,
+                    nameof(SearchFieldType.StartTime) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.StartTime = source.StartTime,
+                    nameof(SearchFieldType.LastResBody) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.LastResBody = source.LastResBody,
+                    nameof(SearchFieldType.CommentCounter) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.CommentCounter = source.CommentCounter,
+                    nameof(SearchFieldType.LastCommentTime) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.LastCommentTime = source.LastCommentTime,
+                    nameof(SearchFieldType.CategoryTags) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.CategoryTags = source.CategoryTags,
+                    nameof(SearchFieldType.Tags) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.Tags = source.Tags,
+                    nameof(SearchFieldType.Genre) => (SerializeSnapshotItem dest, SnapshotItemViewModel source) => dest.Genre = source.Genre,
+                    _ => throw new NotSupportedException(x.Key),
+                }))
+                .ToArray();
+
+            SerializeSnapshotItem temp = new SerializeSnapshotItem();
+            using (var fileStream = await file.OpenStreamForWriteAsync())
+            using (var textWriter = new StreamWriter(fileStream))
+            using (var cvsWriter = new CsvHelper.CsvWriter(textWriter, config))
+            {
+                fileStream.SetLength(0);
+
+                cvsWriter.WriteHeader<SerializeSnapshotItem>();
+                cvsWriter.NextRecord();
+                foreach (var item in ItemsView.Cast<SnapshotItemViewModel>())
+                {
+                    foreach (var mappingAct in items)
+                    {
+                        mappingAct(temp, item);
+                    }
+
+                    cvsWriter.WriteRecord(temp);
+                    cvsWriter.NextRecord();
+                }
+            }
+        }
+
+        #endregion Export
+    }
+
+
+    public class SnapshotItemViewModelJsonConverter : JsonConverter<SnapshotItemViewModel>
+    {
+        private readonly ExportSettingItem[] _settings;
+
+        public SnapshotItemViewModelJsonConverter(ExportSettingItem[] settings)
+        {
+            _settings = settings;
+        }
+
         
 
+        public override SnapshotItemViewModel Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Write(Utf8JsonWriter writer, SnapshotItemViewModel value, JsonSerializerOptions options)
+        {
+            writer.WriteStartObject();
+
+            foreach (var item in _settings)
+            {
+                if (item.IsExport is false)
+                {
+                    continue;
+                }
+
+                static void WriteNullableNumber(Utf8JsonWriter writer, string propertyName, long? value)
+                {
+                    if (value.HasValue)
+                        writer.WriteNumber(propertyName, value.Value);
+                    else
+                        writer.WriteNull(propertyName);
+                }
+
+                static void WriteNullableDateTimeOffset(Utf8JsonWriter writer, string propertyName, DateTimeOffset? value)
+                {
+                    if (value.HasValue)
+                        writer.WriteString(propertyName, value.Value);
+                    else
+                        writer.WriteNull(propertyName);
+                }
+
+                switch (item.Key)
+                {
+                    case nameof(SearchFieldType.ContentId): writer.WriteString(nameof(SearchFieldType.ContentId), value.ContentId); break;
+                    case nameof(SearchFieldType.Title): writer.WriteString(nameof(SearchFieldType.Title), value.Title); break;
+                    case nameof(SearchFieldType.Description): writer.WriteString(nameof(SearchFieldType.Description), value.Description); break;
+                    case nameof(SearchFieldType.UserId): WriteNullableNumber(writer, nameof(SearchFieldType.UserId), value.UserId); break;
+                    case nameof(SearchFieldType.ViewCounter): WriteNullableNumber(writer, nameof(SearchFieldType.ViewCounter), value.ViewCounter); break;
+                    case nameof(SearchFieldType.MylistCounter): WriteNullableNumber(writer, nameof(SearchFieldType.MylistCounter), value.MylistCounter); break;
+                    case nameof(SearchFieldType.LikeCounter): WriteNullableNumber(writer, nameof(SearchFieldType.LikeCounter), value.LikeCounter); break;
+                    case nameof(SearchFieldType.LengthSeconds): WriteNullableNumber(writer, nameof(SearchFieldType.LengthSeconds), value.LengthSeconds); break;
+                    case nameof(SearchFieldType.ThumbnailUrl): writer.WriteString(nameof(SearchFieldType.ThumbnailUrl), value.ThumbnailUrl.OriginalString); break;
+                    case nameof(SearchFieldType.StartTime): WriteNullableDateTimeOffset(writer, nameof(SearchFieldType.StartTime), value.StartTime); break;
+                    case nameof(SearchFieldType.LastResBody): writer.WriteString(nameof(SearchFieldType.LastResBody), value.LastResBody); break;
+                    case nameof(SearchFieldType.CommentCounter): WriteNullableNumber(writer, nameof(SearchFieldType.CommentCounter), value.CommentCounter); break;
+                    case nameof(SearchFieldType.LastCommentTime): WriteNullableDateTimeOffset(writer, nameof(SearchFieldType.LastCommentTime), value.LastCommentTime); break;
+                    case nameof(SearchFieldType.CategoryTags): writer.WriteString(nameof(SearchFieldType.CategoryTags), value.CategoryTags); break;
+                    case nameof(SearchFieldType.Tags): writer.WriteString(nameof(SearchFieldType.Tags), value.Tags); break;
+                    case nameof(SearchFieldType.Genre): writer.WriteString(nameof(SearchFieldType.Genre), value.Genre); break;
+                }
+
+            }
+
+            writer.WriteEndObject();
+        }
+    }
+
+    public enum ExportSupportType
+    {
+        Json,
+        Csv,
     }
 
 
@@ -741,8 +996,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             _snapshotVideoItem = snapshotVideoItem;
         }
 
+        [JsonIgnore]
         public int Index { get; }
-
 
         private long? _Score;
         public long? Score
@@ -751,42 +1006,66 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             set { SetProperty(ref _Score, value); }
         }
 
-
-        public long? MylistCounter => _snapshotVideoItem.MylistCounter;
-
-        public long? LengthSeconds => _snapshotVideoItem.LengthSeconds;
-
-        public string CategoryTags => _snapshotVideoItem.CategoryTags;
-
+        public string ContentId => _snapshotVideoItem.ContentId;
+        public string Title => _snapshotVideoItem.Title;
+        public string Description => _snapshotVideoItem.Description;
+        public long? UserId => _snapshotVideoItem.UserId.HasValue ? (long)_snapshotVideoItem.UserId.Value.RawId : null;
+        public string ChannelId => _snapshotVideoItem.ChannelId;
         public long? ViewCounter => _snapshotVideoItem.ViewCounter;
-
-        public long? CommentCounter => _snapshotVideoItem.CommentCounter;
-
+        public long? MylistCounter => _snapshotVideoItem.MylistCounter;
         public long? LikeCounter => _snapshotVideoItem.LikeCounter;
-
+        public long? LengthSeconds => _snapshotVideoItem.LengthSeconds;
+        public Uri ThumbnailUrl => _snapshotVideoItem.ThumbnailUrl;
+        public DateTimeOffset? StartTime => _snapshotVideoItem.StartTime;
+        public string LastResBody => _snapshotVideoItem.LastResBody;
+        public long? CommentCounter => _snapshotVideoItem.CommentCounter;
+        public DateTimeOffset? LastCommentTime => _snapshotVideoItem.LastCommentTime;
+        public string CategoryTags => _snapshotVideoItem.CategoryTags;
+        public string Tags => _snapshotVideoItem.Tags;
         public string Genre => _snapshotVideoItem.Genre;
 
-        public DateTimeOffset? StartTime => _snapshotVideoItem.StartTime;
-
-        public DateTimeOffset? LastCommentTime => _snapshotVideoItem.LastCommentTime;
-
-        public string Description => _snapshotVideoItem.Description;
-
-        public string Tags => _snapshotVideoItem.Tags;
-
-        public string LastResBody => _snapshotVideoItem.LastResBody;
-
-        public string ContentId => _snapshotVideoItem.ContentId;
-
-        public long? UserId => _snapshotVideoItem.UserId.HasValue ? (long)_snapshotVideoItem.UserId.Value.RawId : null;
-
-        public string Title => _snapshotVideoItem.Title;
-
-        public string ChannelId => _snapshotVideoItem.ChannelId;
-
-        public Uri ThumbnailUrl => _snapshotVideoItem.ThumbnailUrl;
 
         string[] _Tags_Separated;
+        
+        [JsonIgnore]
         public string[] Tags_Separated => _Tags_Separated ??= Tags?.Split(' ') ?? new string[0];
+    }
+
+    public sealed class SerializeSnapshotItem
+    {
+        public int? Index { get; set; }
+        public long? Score { get; set; }
+        public string ContentId { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public long? UserId { get; set; }
+        public string ChannelId { get; set; }
+        public long? ViewCounter { get; set; }
+        public long? MylistCounter { get; set; }
+        public long? LikeCounter { get; set; }
+        public long? LengthSeconds { get; set; }
+        public Uri ThumbnailUrl { get; set; }
+        public DateTimeOffset? StartTime { get; set; }
+        public string LastResBody { get; set; }
+        public long? CommentCounter { get; set; }
+        public DateTimeOffset? LastCommentTime { get; set; }
+        public string CategoryTags { get; set; }
+        public string Tags { get; set; }
+        public string Genre { get; set; }
+    }
+
+    public sealed class ExportSettingItem
+    {
+        public ExportSettingItem(string key, string label)
+        {
+            Key = key;
+            Label = label;
+        }
+
+        public string Key { get; }
+
+        public string Label { get; }
+
+        public bool IsExport { get; set; } = true;
     }
 }
