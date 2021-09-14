@@ -130,6 +130,8 @@
     <Compile Include="Locales\LocalizeConverter.cs" />
     <Compile Include="Locales\LocalizeExtension.cs" />
     <Compile Include="Locales\LocalizeWithParameterConverter.cs" />
+    <Compile Include="Presentation.Services\DialogService.cs" />
+    <Compile Include="Presentation.Services\IDialogService.cs" />
     <Compile Include="Presentation.ViewModels\SearchQueryTemplateViewModel.cs" />
     <Compile Include="Presentation.ViewModels\SearchQueryViewModel.cs" />
     <Compile Include="Presentation.ViewModels\SimpleFilterViewModel.cs" />
@@ -138,6 +140,12 @@
     <Compile Include="Presentation.Views.Converters\ItemClickEventArgsConverter.cs" />
     <Compile Include="Presentation.Views.Converters\SecondsToReadableTimeConverter.cs" />
     <Compile Include="Presentation.Views.Converters\UrlEncodeConverter.cs" />
+    <Compile Include="Presentation.Views.Dialogs\SingleChoiceDialog.xaml.cs">
+      <DependentUpon>SingleChoiceDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Presentation.Views.Dialogs\TextInputDialog.xaml.cs">
+      <DependentUpon>TextInputDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Presentation.Views.Interactions\DataContextPropagationToFlyoutChild.cs" />
     <Compile Include="Presentation.Views.TemplateSelector\JsonFilterTemplateSelector.cs" />
     <Compile Include="Presentation.Views.TemplateSelector\SimpleFilterTemplateSelector.cs" />
@@ -186,6 +194,14 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="AppCoreFrameHost.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Presentation.Views.Dialogs\SingleChoiceDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Presentation.Views.Dialogs\TextInputDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

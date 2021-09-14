@@ -3,7 +3,9 @@ Delete = 削除
 Add = 追加
 UnDo = 元に戻す
 Close = 閉じる
-
+Confirm = 決定
+Save = 保存
+Cancel = キャンセル
 
 
 ## NiconicoToolkit

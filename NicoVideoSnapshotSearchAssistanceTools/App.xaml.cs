@@ -35,6 +35,7 @@ using NicoVideoSnapshotSearchAssistanceTools.Models.Infrastructure;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
 using System.Web;
 using System.Diagnostics;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.Services;
 
 namespace NicoVideoSnapshotSearchAssistanceTools
 {
@@ -119,6 +120,9 @@ namespace NicoVideoSnapshotSearchAssistanceTools
             NiconicoToolkit.NiconicoContext niconicoContext = new NiconicoToolkit.NiconicoContext("https://github.com/tor4kichi/TimeMachine2525");
             niconicoContext.SetupDefaultRequestHeaders();
             containerRegistry.RegisterInstance(niconicoContext);
+
+
+            containerRegistry.Register<IDialogService, DialogService>();
         }
 
         public override async void OnInitialized()

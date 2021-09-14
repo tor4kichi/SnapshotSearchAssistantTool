@@ -9,8 +9,10 @@ using NiconicoToolkit.SnapshotSearch.Filters;
 using NiconicoToolkit.SnapshotSearch.JsonFilters;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain;
 using NicoVideoSnapshotSearchAssistanceTools.Models.Domain.Expressions;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.Services;
 using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels.Messages;
 using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.Dialogs;
 using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Navigation;
@@ -35,9 +37,23 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         JsonFilter,
     }
 
+
+    public class SearchQueryParameterTemplateViewModel : IDialogSelectableItem
+    {
+        public SearchQueryParameterTemplateViewModel(SearchQueryEntity_V0 searchQueryEntity)
+        {
+            SearchQueryEntity = searchQueryEntity;
+        }
+
+        public string Name => SearchQueryEntity.Title;
+
+        public SearchQueryEntity_V0 SearchQueryEntity { get; }
+    }
+
     public sealed class QueryEditPageViewModel : ViewModelBase
     {
         private readonly IMessenger _messenger;
+        private readonly IDialogService _dialogService;
         private readonly SearchQueryDatabase_V0 _searchQueryDatabase;
         private readonly SearchQueryEditSettings _searchQueryEditSettings;
         private readonly ApplicationInternalSettings _applicationInternalSettings;
@@ -65,12 +81,14 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         public QueryEditPageViewModel(
             IMessenger messenger,
+            IDialogService dialogService,
             SearchQueryDatabase_V0 searchQueryDatabase,
             SearchQueryEditSettings searchQueryEditSettings,
             ApplicationInternalSettings applicationInternalSettings
             )
         {
             _messenger = messenger;
+            _dialogService = dialogService;
             _searchQueryDatabase = searchQueryDatabase;
             _searchQueryEditSettings = searchQueryEditSettings;
             _applicationInternalSettings = applicationInternalSettings;
@@ -520,8 +538,6 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     {
                         SearchQueryVM = new SearchQueryViewModel(queryParameters);
 
-                        _applicationInternalSettings.SaveLastOpenPage(nameof(QueryEditPage));
-
                         foreach (var selectableItem in TargetSelectableItems)
                         {
                             selectableItem.IsSelected = SearchQueryVM.Targets.Any(x => x == selectableItem.Content);
@@ -547,7 +563,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                                 {
                                     SimpleFilters.Add(new DateTimeOffsetSimpleFilterViewModel(RemoveSimpleFilterItem, dateTimeFilter.FilterType, dateTimeFilter.Condition, dateTimeFilter.Value));
                                 }
-                                else if (simpleFilter is  CompareSimpleSearchFilter<int> numberFilter)
+                                else if (simpleFilter is CompareSimpleSearchFilter<int> numberFilter)
                                 {
                                     if (numberFilter.FilterType == SearchFieldType.LengthSeconds)
                                     {
@@ -628,6 +644,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                         FailedMessage = e.Message;
                         throw;
                     }
+                    _applicationInternalSettings.SaveLastOpenPage(nameof(QueryEditPage));
                 }
             }
             catch
@@ -636,6 +653,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 _navigationDisposables = null;
             }
         }
+
 
         private bool ValidateJsonFilterExpression()
         {
@@ -751,7 +769,23 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         async Task<string> GetSearchQueryTemplateNameAsync(string queryParameters)
         {
-            throw new NotImplementedException();
+            return await _dialogService.GetInputTextAsync("検索条件を名前を付けて保存", "", "");
+        }
+
+
+        private DelegateCommand _LoadSearchQueryFromTemplateCommand;
+        public DelegateCommand LoadSearchQueryFromTemplateCommand =>
+            _LoadSearchQueryFromTemplateCommand ?? (_LoadSearchQueryFromTemplateCommand = new DelegateCommand(ExecuteLoadSearchQueryFromTemplateCommand));
+
+        async void ExecuteLoadSearchQueryFromTemplateCommand()
+        {
+            var searchQueryTemplateItems = _searchQueryDatabase.ReadAllItems().Select(x => new SearchQueryParameterTemplateViewModel(x));
+            if (await _dialogService.GetItemAsync("検索条件をテンプレートから読み込み", searchQueryTemplateItems) is not null 
+                and var searchQueryTemplateVM)
+            {
+                var queryParameters = (searchQueryTemplateVM as SearchQueryParameterTemplateViewModel).SearchQueryEntity.QueryParameters;
+                _ = _messenger.Send<NavigationAppCoreFrameRequestMessage>(new (new (nameof(QueryEditPage), ("query", queryParameters))));
+            }
         }
 
 
