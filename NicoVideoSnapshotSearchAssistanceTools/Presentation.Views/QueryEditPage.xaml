@@ -50,7 +50,9 @@
                 <AppBarButton Label="{i18nExt:Localize Key=SaveCurrentlySearchQueryAsTemplate}" Command="{Binding SaveCommand}" />
                 <AppBarSeparator />
                 <AppBarButton Label="{i18nExt:Localize Key=LoadSearchQueryFromTemplate}" Command="{Binding LoadSearchQueryFromTemplateCommand}" />
+                <!--
                 <AppBarButton Label="{i18nExt:Localize Key=LoadSearchQueryFromText}" />
+                -->
               </CommandBar.SecondaryCommands>
             </CommandBar>
 
