@@ -68,26 +68,43 @@
               <MenuFlyoutItem Text="検索条件を開く" Command="{x:Bind ((viewModels:SearchHistoryPageViewModel)RootGrid.DataContext).OpenEditPageCommand, Mode=OneWay}"
                               CommandParameter="{Binding}"
                               />
+              <MenuFlyoutSeparator />
+              <MenuFlyoutItem Text="この検索結果を削除" Command="{x:Bind ((viewModels:SearchHistoryPageViewModel)RootGrid.DataContext).DeleteSearchQueryResultCommand, Mode=OneWay}"
+                              CommandParameter="{Binding}"
+                              />
+
             </MenuFlyout>
           </ListView.Resources>
           
           <ListView.ItemTemplate>
             <DataTemplate x:DataType="viewModels:SearchQueryResultMetaViewModel">
               <Grid>
-                <StackPanel>
-                  <uwpControls:DockPanel>
-                    <TextBlock Text="{x:Bind SnapshotVersion, Converter={StaticResource HumanReadableDateTimeConverter}}"  uwpControls:DockPanel.Dock="Right" VerticalAlignment="Top" />
-                    <TextBlock   uwpControls:DockPanel.Dock="Right" VerticalAlignment="Top" Margin="8 0">
-                      <Run Text="{x:Bind TotalCount}" />件
-                    </TextBlock>
-                    <TextBlock Text="{x:Bind Keyword}" Style="{StaticResource SubtitleTextBlockStyle}" />
-                  </uwpControls:DockPanel>
-                  <TextBlock Text="{x:Bind SearchQueryId, Converter={StaticResource UrlEncodeConverter}}" FontSize="11" TextWrapping="Wrap" />
 
-                  <StackPanel Visibility="{Binding IsOpenFailed, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0 8">
-                    <TextBlock Text="{Binding OpenFailedMessage}" Foreground="Red" />
+                <uwpControls:DockPanel>
+
+                  <Border Width="64">
+                    <SymbolIcon Symbol="Download" 
+                            Margin="16"
+                            Visibility="{x:Bind IsDownloaded}"
+                              uwpControls:DockPanel.Dock="Left"
+                            />
+                  </Border>
+
+                  <StackPanel>
+                    <uwpControls:DockPanel>
+                      <TextBlock Text="{x:Bind SnapshotVersion, Converter={StaticResource HumanReadableDateTimeConverter}}"  uwpControls:DockPanel.Dock="Right" VerticalAlignment="Top" />
+                      <TextBlock   uwpControls:DockPanel.Dock="Right" VerticalAlignment="Top" Margin="8 0">
+                      <Run Text="{x:Bind TotalCount}" />件
+                      </TextBlock>
+                      <TextBlock Text="{x:Bind Keyword}" Style="{StaticResource SubtitleTextBlockStyle}" />
+                    </uwpControls:DockPanel>
+                    <TextBlock Text="{x:Bind SearchQueryId, Converter={StaticResource UrlEncodeConverter}}" FontSize="11" TextWrapping="Wrap" />
+
+                    <StackPanel Visibility="{Binding IsOpenFailed, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0 8">
+                      <TextBlock Text="{Binding OpenFailedMessage}" Foreground="Red" />
+                    </StackPanel>
                   </StackPanel>
-                </StackPanel>
+                </uwpControls:DockPanel>
               </Grid>
             </DataTemplate>
           </ListView.ItemTemplate>

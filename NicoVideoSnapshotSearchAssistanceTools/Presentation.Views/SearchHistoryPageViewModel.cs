@@ -45,9 +45,12 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             {
                 HistoryItems.SortDescriptions.Clear();
                 HistoryItems.SortDescriptions.Add(new (nameof(SearchQueryResultMetaViewModel.SnapshotVersion), SortDirection.Descending));
-                await foreach (var meta in SnapshotResultFileHelper.GetAllQueryResultMetaAsync(ct))
+                await foreach (var metaAndFile in SnapshotResultFileHelper.GetAllQueryResultMetaAsync(ct))
                 {
-                    HistoryItems.Add(new SearchQueryResultMetaViewModel(meta));
+                    var meta = metaAndFile.Item1;
+                    var file = metaAndFile.Item2;
+                    var existItems = await SnapshotResultFileHelper.IsExistQueryResultItemsAsync(meta);
+                    HistoryItems.Add(new SearchQueryResultMetaViewModel(meta, existItems, file));
                 }
 
                 if (parameters.TryGetValue("query", out string query))
@@ -106,6 +109,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         async void ExecuteOpenSnapshotResultPageCommand(SearchQueryResultMetaViewModel searchQueryResultMetaVM)
         {
             if (searchQueryResultMetaVM.TotalCount == 0) { return; }
+            if (searchQueryResultMetaVM.IsDownloaded is false) { return; }
 
             try
             {
@@ -121,28 +125,53 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 searchQueryResultMetaVM.OpenFailedMessage = ex.Message;
             }
         }
+
+
+        private DelegateCommand<SearchQueryResultMetaViewModel> _DeleteSearchQueryResultCommand;
+        public DelegateCommand<SearchQueryResultMetaViewModel> DeleteSearchQueryResultCommand =>
+            _DeleteSearchQueryResultCommand ?? (_DeleteSearchQueryResultCommand = new DelegateCommand<SearchQueryResultMetaViewModel>(ExecuteDeleteSearchQueryResultCommand));
+
+        async void ExecuteDeleteSearchQueryResultCommand(SearchQueryResultMetaViewModel parameter)
+        {
+            var meta = parameter.Meta;
+            await parameter.MetaFile.DeleteAsync(Windows.Storage.StorageDeleteOption.PermanentDelete);
+            //await SnapshotResultFileHelper.DeleteSearchQueryResultMetaFileAsync(meta.SearchQueryId, meta.SnapshotVersion);
+            try
+            {
+                await SnapshotResultFileHelper.DeleteSearchResultItemsAsync(meta);
+            }
+            catch { }
+
+            HistoryItems.Remove(parameter);
+
+            HistoryItems.Refresh();
+        }
     }
 
     public sealed class SearchQueryResultMetaViewModel : SearchQueryViewModel
     {
-        private readonly SearchQueryResultMeta _meta;
+        public SearchQueryResultMeta Meta { get; }
         
         public SearchQueryViewModel Query { get; }
 
-        public SearchQueryResultMetaViewModel(SearchQueryResultMeta meta)
+        public SearchQueryResultMetaViewModel(SearchQueryResultMeta meta, bool isDownloaded, Windows.Storage.StorageFile metaFile)
             : base(meta.SearchQueryId)
         {
-            _meta = meta;
+            Meta = meta;
+            IsDownloaded = isDownloaded;
+            MetaFile = metaFile;
         }
 
-        public string SearchQueryId => _meta.SearchQueryId;
+        public string SearchQueryId => Meta.SearchQueryId;
 
-        public DateTimeOffset SnapshotVersion => _meta.SnapshotVersion;
+        public DateTimeOffset SnapshotVersion => Meta.SnapshotVersion;
 
-        public long TotalCount => _meta.TotalCount;
+        public long TotalCount => Meta.TotalCount;
 
-        public int CsvFormat => _meta.CsvFormat;
+        public int CsvFormat => Meta.CsvFormat;
 
+        public bool IsDownloaded { get; }
+        public Windows.Storage.StorageFile MetaFile { get; }
 
         private bool _IsOpenFailed;
         public bool IsOpenFailed

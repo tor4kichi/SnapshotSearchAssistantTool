@@ -112,7 +112,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
             return hashed;
         }
 
-        public static async IAsyncEnumerable<SearchQueryResultMeta> GetAllQueryResultMetaAsync([EnumeratorCancellation] CancellationToken ct = default)
+        public static async IAsyncEnumerable<(SearchQueryResultMeta, StorageFile)> GetAllQueryResultMetaAsync([EnumeratorCancellation] CancellationToken ct = default)
         {
             var fileQueryOptions = new Windows.Storage.Search.QueryOptions(Windows.Storage.Search.CommonFileQuery.DefaultQuery, new string[] { ".json" });
             fileQueryOptions.FolderDepth = Windows.Storage.Search.FolderDepth.Deep;
@@ -126,7 +126,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
                 {
                     using (var stream = await file.OpenStreamForReadAsync())
                     {
-                        yield return await JsonSerializer.DeserializeAsync<SearchQueryResultMeta>(stream, cancellationToken: ct);
+                        yield return (await JsonSerializer.DeserializeAsync<SearchQueryResultMeta>(stream, cancellationToken: ct), file);
                     }
                 }
             }
@@ -146,7 +146,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
                 var folder = await GetSearchQueryFolderAsync(meta.SearchQueryId);
                 Guard.IsNotNull(folder, nameof(folder));
 
-                var file = await folder.GetFileAsync(MakeSearchResultFinalFileName(meta));
+                var file = await folder.TryGetItemAsync(MakeSearchResultFinalFileName(meta));
                 return file != null;
             }
             catch
@@ -177,6 +177,44 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
             }
 
             return metaItems;
+        }
+
+
+        static async Task<StorageFile> GetSearchQueryResultMetaFileAsync(string query, DateTimeOffset version)
+        {
+            try
+            {
+                var folder = await GetSearchQueryFolderAsync(query);
+                if (folder == null)
+                {
+                    return null;
+                }
+
+                return await folder.GetFileAsync(MakeMetaFileName(version));
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
+            catch (JsonException jsonEx)
+            {
+                throw;
+            }
+        }
+
+
+        public static async Task<bool> DeleteSearchQueryResultMetaFileAsync(string query, DateTimeOffset version)
+        {
+            if (await GetSearchQueryResultMetaFileAsync(query, version) is not null and var file)
+            {
+                try
+                {
+                    await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                    return true;
+                }
+                catch { return false; }
+            }
+            else { return false; }
         }
 
         public static async Task<SearchQueryResultMeta> GetSearchQueryResultMetaAsync(string query, DateTimeOffset version)
@@ -230,7 +268,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
             return meta;
         }
 
-        public static async IAsyncEnumerable<SnapshotVideoItem> GetSearchResultItemsAsync(SearchQueryResultMeta meta, [EnumeratorCancellation] CancellationToken ct = default)
+        static async Task<StorageFile> GetSearchResultItemsFileAsync(SearchQueryResultMeta meta)
         {
             var folder = await GetSearchQueryFolderAsync(meta.SearchQueryId);
             Guard.IsNotNull(folder, nameof(folder));
@@ -238,10 +276,27 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
             var file = await folder.GetFileAsync(MakeSearchResultFinalFileName(meta));
             Guard.IsNotNull(file, nameof(file));
 
+            return file;
+        }
+
+        public static async IAsyncEnumerable<SnapshotVideoItem> GetSearchResultItemsAsync(SearchQueryResultMeta meta, [EnumeratorCancellation] CancellationToken ct = default)
+        {
+            var file = await GetSearchResultItemsFileAsync(meta);
             await foreach (var item in LoadCsvAsync(meta, file, _csvConfiguration_ForFinal, ct))
             {
                 yield return item;
             }
+        }
+
+        public static async Task<bool> DeleteSearchResultItemsAsync(SearchQueryResultMeta meta)
+        {
+            try
+            {
+                var file = await GetSearchResultItemsFileAsync(meta);
+                await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                return true;
+            }
+            catch { return false; }
         }
 
         public static IAsyncEnumerable<SnapshotVideoItem> LoadTemporaryCsvAsync(SearchQueryResultMeta meta, StorageFile csvFile, CancellationToken ct = default)
