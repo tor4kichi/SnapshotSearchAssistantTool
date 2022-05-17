@@ -910,7 +910,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         {
             (CsvFile, DownloadedCount) = await Task.Run(async () => 
             {
-                var response = await SearchPlanFactory.GetSnapshotSearchResultOnCurrentConditionAsync(_searchClient, _searchQueryVM, _context, Page * 100, 100, SplitedSearchFilter.SplitedSearchFilter, ct);
+                var response = await SearchPlanFactory.GetSnapshotSearchResultOnCurrentConditionAsync(_searchClient, _searchQueryVM, _context, Page * 100, 100, SplitedSearchFilter?.SplitedSearchFilter ?? _searchQueryVM.Filters, ct);
                 SearchRunningManagementPageViewModel.ThrowNiconicoWebExceptionIfNotSuccess(response.Meta);
                 return (await SnapshotResultFileHelper.Temporary.SaveTemporarySearchResultRangeItemsAsync(_meta, Page + (SplitedSearchFilter?.PageCountOffset ?? 0), response.Items, ct), response.Items.Length);
             }, ct);
