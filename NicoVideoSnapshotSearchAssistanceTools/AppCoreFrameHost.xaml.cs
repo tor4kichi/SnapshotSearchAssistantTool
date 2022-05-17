@@ -10,6 +10,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -72,6 +73,11 @@ namespace NicoVideoSnapshotSearchAssistanceTools
         {
             var pageName = (sender as FrameworkElement).Tag as string;
             _ = NavigationAsync(pageName, null, null);
+        }
+
+        private void LaunchSnapshotApiGuideWebPage(object sender, TappedRoutedEventArgs e)
+        {
+            _ = Launcher.LaunchUriAsync(new Uri("https://site.nicovideo.jp/search-api-docs/snapshot"));
         }
     }
 }
