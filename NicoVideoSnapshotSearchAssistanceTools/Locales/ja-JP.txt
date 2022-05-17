@@ -6,7 +6,9 @@ Close = 閉じる
 Confirm = 決定
 Save = 保存
 Cancel = キャンセル
+Export = エクスポート
 
+ToggleSelectionAll = 全て選択切替
 
 ## NiconicoToolkit
 

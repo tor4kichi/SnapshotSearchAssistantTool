@@ -124,6 +124,21 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             yield return new SearchSort(fieldType, SearchSortOrder.Asc);
         }
 
+
+        private DelegateCommand _ToggleFieldSelectionCommand;
+        public DelegateCommand ToggleFieldSelectionCommand =>
+            _ToggleFieldSelectionCommand ??= new DelegateCommand(ExecuteToggleFieldSelectionCommand);
+
+
+        private void ExecuteToggleFieldSelectionCommand()
+        {            
+            bool itemSelected = !FieldSelectableItems.All(x => x.IsSelected);
+            foreach (var item in FieldSelectableItems)
+            {
+                item.IsSelected = itemSelected;
+            }
+        }
+
         #region Filters JsonFilter
 
         private FilterType _FilterType;

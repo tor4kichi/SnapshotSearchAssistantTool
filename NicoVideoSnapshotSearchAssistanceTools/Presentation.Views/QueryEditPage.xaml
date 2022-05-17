@@ -134,7 +134,10 @@
 
           <StackPanel>
             <Border Style="{StaticResource ItemTitleHeaderBorderStyle}">
-              <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Field_Title}" Style="{StaticResource SubtitleTextBlockStyle}" />
+              <StackPanel Orientation="Horizontal" Spacing="16">
+                <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Field_Title}" Style="{StaticResource SubtitleTextBlockStyle}" />
+                <Button Content="{i18nExt:Localize Key=ToggleSelectionAll}" Command="{Binding ToggleFieldSelectionCommand}" />
+              </StackPanel>
             </Border>
             <Border Style="{ThemeResource MicaCardBorderStyle}">
               <ItemsControl x:Name="FieldCheckboxItems" ItemsSource="{Binding FieldSelectableItems}"
