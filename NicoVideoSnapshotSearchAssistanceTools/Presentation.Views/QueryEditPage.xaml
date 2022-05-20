@@ -28,8 +28,15 @@
   <Grid>
     <uwpControls:DockPanel>
 
-      <Grid uwpControls:DockPanel.Dock="Top" Margin="16 48 16 4" MaxWidth="720">
-        <uwpControls:DockPanel>
+      <Grid uwpControls:DockPanel.Dock="Top" Background="{StaticResource ApplicationPageHeaderBackground}">
+        <uwpControls:DockPanel MaxWidth="720" Margin="16 8 16 4" >
+          <TextBlock Text="{i18nExt:Localize Key=QueryEditPage_AutoSaveDescription}"
+                     Margin="16 0" 
+                     Opacity="0.75"
+                     HorizontalAlignment="Right"
+                     uwpControls:DockPanel.Dock="Top"
+                     />
+
           <StackPanel Orientation="Horizontal" uwpControls:DockPanel.Dock="Right">
             <Button Command="{Binding StartSearchProcessCommand}" 
                         Style="{ThemeResource AccentButtonStyle}"
@@ -47,18 +54,21 @@
 
               </CommandBar.PrimaryCommands>
               <CommandBar.SecondaryCommands>
-                <AppBarButton Label="{i18nExt:Localize Key=SaveCurrentlySearchQueryAsTemplate}" Command="{Binding SaveCommand}" />
-                <AppBarSeparator />
-                <AppBarButton Label="{i18nExt:Localize Key=LoadSearchQueryFromTemplate}" Command="{Binding LoadSearchQueryFromTemplateCommand}" />
                 <!--
-                <AppBarButton Label="{i18nExt:Localize Key=LoadSearchQueryFromText}" />
+                <AppBarButton Label="{i18nExt:Localize Key=SaveCurrentlySearchQueryAsTemplate}" Command="{Binding SaveCommand}" />
+                <AppBarButton Label="{i18nExt:Localize Key=LoadSearchQueryFromTemplate}" Command="{Binding LoadSearchQueryFromTemplateCommand}" />
+
+                <AppBarSeparator />
                 -->
+                <AppBarButton Label="{i18nExt:Localize Key=CopyQueryParametersToClipboard}" Command="{Binding QueryCopyToClipboardCommand}" />
+                <AppBarButton Label="{i18nExt:Localize Key=LoadSearchQueryFromText}" Command="{Binding LoadQueryFromTextCommand}" />
               </CommandBar.SecondaryCommands>
             </CommandBar>
 
           </StackPanel>
+          
           <StackPanel Orientation="Horizontal" Margin="24 0" >
-            <TextBlock Text="{i18nExt:Localize Key=SearchQueryCondition}" Style="{StaticResource TitleTextBlockStyle}" />
+            <TextBlock Text="{i18nExt:Localize Key=QueryEditPage_Title}" Style="{StaticResource TitleTextBlockStyle}" />
           </StackPanel>
         </uwpControls:DockPanel>
       </Grid>
@@ -67,44 +77,13 @@
       <!-- https://bleepcoder.com/ja/microsoft-ui-xaml/435622383/scrollviewer-jumps-to-top-most-textbox-uwp-app -->
       <ScrollViewer IsTabStop="True">
         
-        <StackPanel Margin="32 0 32 32" Spacing="16" MaxWidth="720">
+        <StackPanel Margin="32 16 32 32" Spacing="16" MaxWidth="720">
           <StackPanel.Resources>
             <Style x:Key="ItemTitleHeaderBorderStyle" TargetType="Border">
               <Setter Property="Margin" Value="16 0" />
             </Style>
           </StackPanel.Resources>
 
-          <TextBlock Text="{i18nExt:Localize Key=QueryEditPage_AutoSaveDescription}"
-                     Margin="16 0" 
-                     Opacity="0.75"
-                     HorizontalAlignment="Right"
-                     />
-
-          <winui:Expander Margin="16 0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
-
-            <i:Interaction.Behaviors>
-              <core:DataTriggerBehavior Binding="{Binding IsInvalidContext.Value}" Value="True" ComparisonCondition="Equal">
-                <core:ChangePropertyAction PropertyName="IsExpanded" Value="True" />
-              </core:DataTriggerBehavior>
-            </i:Interaction.Behaviors>
-            
-            <winui:Expander.Header>
-              <StackPanel>
-                <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Context_Title}" 
-                        />
-              </StackPanel>
-            </winui:Expander.Header>
-            <winui:Expander.Content>
-              <StackPanel Spacing="16">
-                <TextBox Text="{Binding ContextQueryParameter.Value, Mode=TwoWay}" MaxLength="40"
-                      PlaceholderText=""
-                      x:Name="ContextTextBox"
-                      />
-                <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Context_Description}" />
-              </StackPanel>
-            </winui:Expander.Content>
-          </winui:Expander>
-          
           <StackPanel>
             <Border Margin="16 0">
               <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Keyword_Title}" Style="{StaticResource SubtitleTextBlockStyle}" />
@@ -228,7 +207,7 @@
                                   >
                                   </ComboBox>
 
-                                  <TextBox Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
+                                  <TextBox Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" IsReadOnly="True" MinWidth="140" />
                                   <Button>
                                     <Button.Flyout>
                                       <DatePickerFlyout Date="{x:Bind Date, Mode=TwoWay}" />
@@ -457,7 +436,7 @@
                                     <Run Text="・丸括弧 () で囲むことで優先処理を指定できます。" /><LineBreak />
                                     <Run Text="・変数名または丸括弧()の手前に not を配置すると論理否定を指定できます。" /><LineBreak />
                                     <Run Text="・結合記号は or > and の順で解釈されます。" /><LineBreak />
-                                    <Run Text="例） StartTime1 and (Tag1 and not Tag2) or Tag3" /><LineBreak />
+                                    <Run Text="例） StartTime1 and ((Tag1 and not Tag2) or Tag3)" /><LineBreak />
                                   </TextBlock>
                                 </StackPanel>
                               </Flyout>
@@ -597,7 +576,7 @@
                                         <Button Content="Clear" uwpControls:DockPanel.Dock="Right">
                                           <i:Interaction.Behaviors>
                                             <core:EventTriggerBehavior EventName="Tapped">
-                                              <core:ChangePropertyAction TargetObject="{x:Bind}" PropertyName="FromValue" Value="{x:Null}" />
+                                              <core:ChangePropertyAction TargetObject="{x:Bind}" PropertyName="ToValue" Value="{x:Null}" />
 
                                             </core:EventTriggerBehavior>
                                           </i:Interaction.Behaviors>
@@ -867,7 +846,7 @@
                                         <Button Content="Clear" uwpControls:DockPanel.Dock="Right">
                                           <i:Interaction.Behaviors>
                                             <core:EventTriggerBehavior EventName="Tapped">
-                                              <core:ChangePropertyAction TargetObject="{x:Bind}" PropertyName="FromValue" Value="{x:Null}" />
+                                              <core:ChangePropertyAction TargetObject="{x:Bind}" PropertyName="ToValue" Value="{x:Null}" />
                                             </core:EventTriggerBehavior>
                                           </i:Interaction.Behaviors>
                                         </Button>

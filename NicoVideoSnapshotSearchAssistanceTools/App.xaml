@@ -38,6 +38,9 @@
         <TextBlock Text="{Binding Converter={StaticResource LocalizeConverter}}" />
       </DataTemplate>
 
+      <StaticResource x:Key="ApplicationPageHeaderBackground" ResourceKey="SystemAltMediumLowColor" />
+
+
       <ResourceDictionary.MergedDictionaries>
         <controls:XamlControlsResources />
         <!-- Other app resources here -->

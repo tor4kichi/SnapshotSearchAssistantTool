@@ -7,10 +7,14 @@ Confirm = 決定
 Save = 保存
 Cancel = キャンセル
 Export = エクスポート
-
 ToggleSelectionAll = 全て選択切替
 
+Date = 日付
+Time = 時間
+
 ## NiconicoToolkit
+
+SearchQueryString = クエリ文字列
 
 SearchFieldType.ContentId = コンテンツID
 SearchFieldType.Title = タイトル
@@ -69,27 +73,30 @@ SearchQueryCondition = 検索条件
 
 ## QueryEditPage
 
-DoSearch_Command = 検索（テスト含む）
-SaveCurrentlySearchQueryAsTemplate = 現在の条件をテンプレートとして保存
-LoadSearchQueryFromTemplate = テンプレートから読み込み
+QueryEditPage_Title = 検索クエリの構築
+DoSearch_Command = 全件取得
+SaveCurrentlySearchQueryAsTemplate = 現在の検索条件を保存
+LoadSearchQueryFromTemplate = 検索条件を読み込み
 LoadSearchQueryFromText = クエリ文字列から読み込み
 QueryEditPage_AutoSaveDescription = 編集中の検索条件は自動保存されます
+CopyQueryParametersToClipboard = クエリ文字列をコピー
 
 
-SearchQuery_Context_Title = コンテキストID（必須）
-SearchQuery_Context_Description = 検索パラメータの「_context」に指定する文字列です
+SearchQuery_Context_Title = コンテキスト文字列
+SearchQuery_Context_Description = 検索パラメータの _context に指定する文字列です
 
 SearchQuery_Keyword_Title = キーワード
 SearchQuery_Keyword_Description = 空欄も可
 
-SearchQuery_Target_Title = 検索対象（必須）
+SearchQuery_Target_Title = 検索対象（一つ以上選択）
 
 SearchQuery_Field_Title = 取得項目
 
-SearchQuery_Sort_Title = 並び順（必須）
+SearchQuery_Sort_Title = 並び順
 
 SearchQuery_Filter_Title = フィルタ指定
 
+SearchQuery_Filter_
 
 
 
@@ -100,6 +107,7 @@ SearchFilter = 絞り込み
 SearchFilterCondition = 絞り込み条件
 
 CustomFieldType_Index = 取得番号
+
 
 
 CustomFieldType_Score = スコア

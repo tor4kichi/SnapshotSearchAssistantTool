@@ -50,7 +50,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         public SearchQueryEntity_V0 SearchQueryEntity { get; }
     }
 
-    public sealed class QueryEditPageViewModel : ViewModelBase
+    public partial class QueryEditPageViewModel : ViewModelBase
     {
         private readonly IMessenger _messenger;
         private readonly IDialogService _dialogService;
@@ -551,107 +551,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                     IsLoadingFailed = false;
                     try
                     {
-                        SearchQueryVM = new SearchQueryViewModel(queryParameters);
-
-                        foreach (var selectableItem in TargetSelectableItems)
-                        {
-                            selectableItem.IsSelected = SearchQueryVM.Targets.Any(x => x == selectableItem.Content);
-                            selectableItem.ObserveProperty(x => x.IsSelected, isPushCurrentValueAtFirst: false)
-                                .Subscribe(x => SearchQueryVM.Targets = TargetSelectableItems.Where(x => x.IsSelected).Select(x => x.Content).ToArray())
-                                .AddTo(_navigationDisposables);
-                        }
-
-                        foreach (var selectableItem in FieldSelectableItems)
-                        {
-                            selectableItem.IsSelected = SearchQueryVM.Fields.Any(x => x == selectableItem.Content);
-                            selectableItem.ObserveProperty(x => x.IsSelected, isPushCurrentValueAtFirst: false)
-                                .Subscribe(x => SearchQueryVM.Fields = FieldSelectableItems.Where(x => x.IsSelected).Select(x => x.Content).ToArray())
-                                .AddTo(_navigationDisposables);
-                        }
-
-                        SimpleFilters.Clear();
-                        if (SearchQueryVM.Filters is CompositeSearchFilter compositeSearchFilter)
-                        {
-                            foreach (var simpleFilter in compositeSearchFilter.Filters)
-                            {
-                                if (simpleFilter is CompareSimpleSearchFilter<DateTimeOffset> dateTimeFilter)
-                                {
-                                    SimpleFilters.Add(new DateTimeOffsetSimpleFilterViewModel(RemoveSimpleFilterItem, dateTimeFilter.FilterType, dateTimeFilter.Condition, dateTimeFilter.Value));
-                                }
-                                else if (simpleFilter is CompareSimpleSearchFilter<int> numberFilter)
-                                {
-                                    if (numberFilter.FilterType == SearchFieldType.LengthSeconds)
-                                    {
-                                        SimpleFilters.Add(new TimeSpanSimpleFilterViewModel(RemoveSimpleFilterItem, numberFilter.FilterType, numberFilter.Condition, TimeSpan.FromSeconds(numberFilter.Value)));
-                                    }
-                                    else
-                                    {
-                                        SimpleFilters.Add(new IntSimpleFilterViewModel(RemoveSimpleFilterItem, numberFilter.FilterType, numberFilter.Condition, numberFilter.Value));
-                                    }
-                                }
-                                else if (simpleFilter is CompareSimpleSearchFilter<string> stringFilter)
-                                {
-                                    if (stringFilter.FilterType is SearchFieldType.Genre or SearchFieldType.GenreKeyword)
-                                    {
-                                        SimpleFilters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, stringFilter.FilterType, stringFilter.Value, GenreKeywords));
-                                    }
-                                    else
-                                    {
-                                        SimpleFilters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, stringFilter.FilterType, stringFilter.Value));
-                                    }
-                                }
-                            }
-
-                            FilterType = FilterType.SimpleFilter;
-                        }
-                        else if (SearchQueryVM.Filters is IJsonSearchFilter jsonFilter)
-                        {
-                            StringBuilder sb = new();
-                            RecursiveParseJsonFilter(jsonFilter, sb);
-                            JsonFilterExpression = sb.ToString();
-
-                            FilterType = FilterType.JsonFilter;
-                        }
-
-
-                        new[]
-                        {
-                            this.ObserveProperty(x => x.FilterType, isPushCurrentValueAtFirst: false).ToUnit(),
-                            SimpleFilters.CollectionChangedAsObservable().ToUnit(),
-                            SimpleFilters.ObserveElementPropertyChanged().ToUnit(),
-
-                            this.ObserveProperty(x => x.JsonFilterExpression).ToUnit(),
-                            //JsonFilters.CollectionChangedAsObservable().ToUnit(),
-                            JsonFilters.ObserveElementPropertyChanged().ToUnit(),
-                        }
-                        .Merge()
-                        .Subscribe(_ => RefreshFilterConditions())
-                        .AddTo(_navigationDisposables);
-
-
-
-
-
-                        IsInvalidTargets = SearchQueryVM.GetValidTargetsObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_navigationDisposables);
-                        IsInvalidSort = SearchQueryVM.GetValidSortObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_navigationDisposables);
-                        IsInvalidContext = ContextQueryParameter.Select(x => string.IsNullOrWhiteSpace(x)).ToReadOnlyReactivePropertySlim().AddTo(_navigationDisposables);
-
-                        StartSearchProcessCommand = new[]
-                        {
-                            IsInvalidTargets,
-                            IsInvalidSort,
-                            IsInvalidContext,
-                        }
-                        .CombineLatestValuesAreAllFalse()
-                        .ToReactiveCommand()
-                        .AddTo(_navigationDisposables);
-
-                        StartSearchProcessCommand.Subscribe(x => ExecuteStartSearchProcessCommand())
-                            .AddTo(_navigationDisposables);
-
-                        SearchQueryVM.PropertyChangedAsObservable()
-                            .Subscribe(_ => SaveEdittingQueryParameters())
-                            .AddTo(_navigationDisposables);
+                        ReloadSearchQueryVM(queryParameters);
                     }
                     catch (Exception e)
                     {
@@ -667,6 +567,114 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 _navigationDisposables.Dispose();
                 _navigationDisposables = null;
             }
+        }
+
+        CompositeDisposable _searchQueryVMDisposables;
+
+        private void ReloadSearchQueryVM(string queryParameters)
+        {
+            var newSearchQueryVM = new SearchQueryViewModel(queryParameters);
+            
+            _searchQueryVMDisposables?.Dispose();
+            _searchQueryVMDisposables = new CompositeDisposable();
+            SearchQueryVM = newSearchQueryVM;
+
+            foreach (var selectableItem in TargetSelectableItems)
+            {
+                selectableItem.IsSelected = SearchQueryVM.Targets.Any(x => x == selectableItem.Content);
+                selectableItem.ObserveProperty(x => x.IsSelected, isPushCurrentValueAtFirst: false)
+                    .Subscribe(x => SearchQueryVM.Targets = TargetSelectableItems.Where(x => x.IsSelected).Select(x => x.Content).ToArray())
+                    .AddTo(_searchQueryVMDisposables);
+            }
+
+            foreach (var selectableItem in FieldSelectableItems)
+            {
+                selectableItem.IsSelected = SearchQueryVM.Fields.Any(x => x == selectableItem.Content);
+                selectableItem.ObserveProperty(x => x.IsSelected, isPushCurrentValueAtFirst: false)
+                    .Subscribe(x => SearchQueryVM.Fields = FieldSelectableItems.Where(x => x.IsSelected).Select(x => x.Content).ToArray())
+                    .AddTo(_searchQueryVMDisposables);
+            }
+
+            SimpleFilters.Clear();
+            if (SearchQueryVM.Filters is CompositeSearchFilter compositeSearchFilter)
+            {
+                foreach (var simpleFilter in compositeSearchFilter.Filters)
+                {
+                    if (simpleFilter is CompareSimpleSearchFilter<DateTimeOffset> dateTimeFilter)
+                    {
+                        SimpleFilters.Add(new DateTimeOffsetSimpleFilterViewModel(RemoveSimpleFilterItem, dateTimeFilter.FilterType, dateTimeFilter.Condition, dateTimeFilter.Value));
+                    }
+                    else if (simpleFilter is CompareSimpleSearchFilter<int> numberFilter)
+                    {
+                        if (numberFilter.FilterType == SearchFieldType.LengthSeconds)
+                        {
+                            SimpleFilters.Add(new TimeSpanSimpleFilterViewModel(RemoveSimpleFilterItem, numberFilter.FilterType, numberFilter.Condition, TimeSpan.FromSeconds(numberFilter.Value)));
+                        }
+                        else
+                        {
+                            SimpleFilters.Add(new IntSimpleFilterViewModel(RemoveSimpleFilterItem, numberFilter.FilterType, numberFilter.Condition, numberFilter.Value));
+                        }
+                    }
+                    else if (simpleFilter is CompareSimpleSearchFilter<string> stringFilter)
+                    {
+                        if (stringFilter.FilterType is SearchFieldType.Genre or SearchFieldType.GenreKeyword)
+                        {
+                            SimpleFilters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, stringFilter.FilterType, stringFilter.Value, GenreKeywords));
+                        }
+                        else
+                        {
+                            SimpleFilters.Add(new StringSimpleFilterViewModel(RemoveSimpleFilterItem, stringFilter.FilterType, stringFilter.Value));
+                        }
+                    }
+                }
+
+                FilterType = FilterType.SimpleFilter;
+            }
+            else if (SearchQueryVM.Filters is IJsonSearchFilter jsonFilter)
+            {
+                JsonFilters.Clear();
+                StringBuilder sb = new();
+                RecursiveParseJsonFilter(jsonFilter, sb);
+                JsonFilterExpression = sb.ToString();
+
+                FilterType = FilterType.JsonFilter;
+            }
+
+            new[]
+            {
+                this.ObserveProperty(x => x.FilterType, isPushCurrentValueAtFirst: false).ToUnit(),
+                SimpleFilters.CollectionChangedAsObservable().ToUnit(),
+                SimpleFilters.ObserveElementPropertyChanged().ToUnit(),
+
+                this.ObserveProperty(x => x.JsonFilterExpression).ToUnit(),
+                //JsonFilters.CollectionChangedAsObservable().ToUnit(),
+                JsonFilters.ObserveElementPropertyChanged().ToUnit(),
+            }
+            .Merge()
+            .Subscribe(_ => RefreshFilterConditions())
+            .AddTo(_searchQueryVMDisposables);
+
+            IsInvalidTargets = SearchQueryVM.GetValidTargetsObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_searchQueryVMDisposables);
+            IsInvalidSort = SearchQueryVM.GetValidSortObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_searchQueryVMDisposables);
+            IsInvalidContext = ContextQueryParameter.Select(x => string.IsNullOrWhiteSpace(x)).ToReadOnlyReactivePropertySlim().AddTo(_searchQueryVMDisposables);
+
+            StartSearchProcessCommand = new[]
+            {
+                IsInvalidTargets,
+                IsInvalidSort,
+                IsInvalidContext,
+            }
+            .CombineLatestValuesAreAllFalse()
+            .ToReactiveCommand()
+            .AddTo(_searchQueryVMDisposables);
+
+            StartSearchProcessCommand.Subscribe(x => ExecuteStartSearchProcessCommand())
+                .AddTo(_searchQueryVMDisposables);
+
+
+            SearchQueryVM.PropertyChangedAsObservable()
+                .Subscribe(_ => SaveEdittingQueryParameters())
+                .AddTo(_searchQueryVMDisposables);
         }
 
 
@@ -759,6 +767,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         public override void OnNavigatedFrom(INavigationParameters parameters)
         {
+            _searchQueryVMDisposables?.Dispose();
+            _searchQueryVMDisposables = null;
             _navigationDisposables?.Dispose();
 
             base.OnNavigatedFrom(parameters);
@@ -822,6 +832,52 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
 
             return true;
+        }
+
+
+        [ICommand]
+        private void QueryCopyToClipboard()
+        {
+            var queryParameters = SearchQueryVM.SeriaizeParameters();
+            var data = new Windows.ApplicationModel.DataTransfer.DataPackage()
+            {
+
+            };
+
+            var uri = new Uri(SearchConstants.VideoSearchApiUrl + "?" + queryParameters);
+            data.SetWebLink(uri);
+            data.SetText(uri.OriginalString);
+
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(data);
+        }
+
+
+        [ICommand]
+        private async Task LoadQueryFromText()
+        {
+            string defaultText = string.Empty;
+
+            
+            var data = Windows.ApplicationModel.DataTransfer.Clipboard.GetContent();
+            var formats = data.AvailableFormats.ToList();
+            if (data.AvailableFormats.Contains("Text"))
+            {
+                var text = await data.GetTextAsync();
+                if (Uri.TryCreate(text, UriKind.Absolute, out Uri result))
+                {
+                    defaultText = result.Query;
+                }
+                else
+                {
+                    defaultText = text;
+                }
+            }
+            var resultText = await _dialogService.GetInputTextAsync("検索条件をテキストから読み込み", defaultText, "UriまたはUriクエリを入力");
+            if (string.IsNullOrEmpty(resultText) is false)
+            {
+                var query = resultText.Split('?').Last();
+                ReloadSearchQueryVM(query);
+            }
         }
     }
 

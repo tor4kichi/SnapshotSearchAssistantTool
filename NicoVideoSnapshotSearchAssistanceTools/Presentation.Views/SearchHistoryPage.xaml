@@ -14,8 +14,8 @@
 
   <Grid x:Name="RootGrid">
     <uwpControls:DockPanel>
-      <Grid uwpControls:DockPanel.Dock="Top" Margin="16 48 16 4" MaxWidth="720">
-        <uwpControls:DockPanel>
+      <Grid uwpControls:DockPanel.Dock="Top" Background="{StaticResource ApplicationPageHeaderBackground}">
+        <uwpControls:DockPanel Margin="16 24 16 4" MaxWidth="720" >
           <StackPanel Orientation="Horizontal" uwpControls:DockPanel.Dock="Right">
             <!--
             <Button Command="{Binding StartSearchProcessCommand}" 

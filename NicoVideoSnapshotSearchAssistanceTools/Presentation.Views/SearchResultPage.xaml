@@ -27,7 +27,7 @@
 
     <controls:DockPanel>
 
-      <controls:DockPanel controls:DockPanel.Dock="Top" Background="{ThemeResource SystemChromeBlackHighColor}"
+      <controls:DockPanel controls:DockPanel.Dock="Top" Background="{StaticResource ApplicationPageHeaderBackground}"
                           Padding="32 0"
                           >
 
@@ -57,6 +57,7 @@
             <Button.Flyout>
               <Flyout Placement="Bottom">
                 <StackPanel HorizontalAlignment="Stretch">
+                  <TextBlock Text="{i18nExt:Localize Key=SearchQueryString}" Opacity="0.7" />
                   <TextBlock Text="{x:Bind ViewModel.ResultMeta.SearchQueryId, Converter={StaticResource UrlEncodeConverter}, Mode=OneWay}" 
                              TextWrapping="WrapWholeWords" 
                              IsTextSelectionEnabled="True"
@@ -67,7 +68,7 @@
             </Button.Flyout>
           </Button>
 
-          <Button Content="Export" >
+          <Button Content="{i18nExt:Localize Key=Export}" >
             <i:Interaction.Behaviors>
               <core:EventTriggerBehavior EventName="Tapped">
                 <core:GoToStateAction StateName="VS_ShowExportPane" />
@@ -206,14 +207,14 @@
                   <ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
                     <DataTemplate x:DataType="viewModels:DateTimeOffsetSimpleFilterViewModel">
                       <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
-                        <StackPanel Spacing="8">
+                        <controls:WrapPanel HorizontalSpacing="8">
                           <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
                           <StackPanel Orientation="Horizontal" Spacing="16">
 
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
-                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
-                                    MinWidth="200"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"         
+                                      MinWidth="80"
                                   >
                             </ComboBox>
 
@@ -231,7 +232,7 @@
                               <SymbolIcon Symbol="Clock" />
                             </Button>
                           </StackPanel>
-                        </StackPanel>
+                        </controls:WrapPanel>
 
                         <Button HorizontalAlignment="Right" VerticalAlignment="Top"
                                 Flyout="{StaticResource FilterItemFlyout}"
@@ -246,14 +247,14 @@
                   <ts:SimpleFilterTemplateSelector.TimeSpanTemplate>
                     <DataTemplate x:DataType="viewModels:TimeSpanSimpleFilterViewModel">
                       <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
-                        <StackPanel Spacing="8">
+                        <controls:WrapPanel HorizontalSpacing="8">
                           <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
                           <StackPanel Orientation="Horizontal" Spacing="16">
 
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
                                       ItemTemplate="{StaticResource LocalizedTextBlock}"
-                                    MinWidth="200"
+                                    MinWidth="80"
                                   >
                             </ComboBox>
 
@@ -265,7 +266,7 @@
                               <winui:NumberBox Value="{x:Bind Seconds, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="秒" />
                             </StackPanel>
                           </StackPanel>
-                        </StackPanel>
+                        </controls:WrapPanel>
 
                         <Button HorizontalAlignment="Right" VerticalAlignment="Top"
                                 Flyout="{StaticResource FilterItemFlyout}"
@@ -288,7 +289,7 @@
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
                                   SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
                                       ItemTemplate="{StaticResource LocalizedTextBlock}"
-                                    MinWidth="200"
+                                    MinWidth="100"
                                   >
                             </ComboBox>
 
@@ -309,7 +310,7 @@
                   <ts:SimpleFilterTemplateSelector.StringTemplate>
                     <DataTemplate x:DataType="viewModels:StringSimpleFilterViewModel">
                       <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
-                        <StackPanel Spacing="8">
+                        <controls:WrapPanel HorizontalSpacing="8">
                           <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
                           <StackPanel Orientation="Horizontal" Spacing="16">
                             <ComboBox ItemsSource="{x:Bind Comparisons}"
@@ -317,7 +318,7 @@
                                       ItemTemplate="{StaticResource LocalizedTextBlock}"
                                   IsEnabled="False"
                                   
-                                    MinWidth="200"
+                                    MinWidth="80"
                                   >
                             </ComboBox>
 
@@ -336,7 +337,7 @@
                             </AutoSuggestBox>
                           </StackPanel>
 
-                        </StackPanel>
+                        </controls:WrapPanel>
 
                         <Button HorizontalAlignment="Right" VerticalAlignment="Top"
                                 Flyout="{StaticResource FilterItemFlyout}"
@@ -380,18 +381,18 @@
 
                     <Button.Flyout>
                       <MenuFlyout>
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=StartTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=ViewCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=MylistCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=LikeCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=LengthSeconds}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=CommentCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=LastCommentTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=CategoryTags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=Tags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=TagsExact}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=Genre}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=GenreKeyword}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.StartTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.ViewCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.MylistCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LikeCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LengthSeconds}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CommentCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LastCommentTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CategoryTags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Tags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.TagsExact}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Genre}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
+                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.GenreKeyword}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
                       </MenuFlyout>
                     </Button.Flyout>
                   </Button>
@@ -628,6 +629,7 @@
                   <Button Content="{i18nExt:Localize Key=ExecuteExport}" Style="{ThemeResource AccentButtonStyle}" Command="{x:Bind ViewModel.ExportCommand}"
                         controls:DockPanel.Dock="Right"
                         MinWidth="120"
+                          VerticalAlignment="Bottom"
                         >
 
                   </Button>
@@ -679,6 +681,7 @@
                        MaxColumnWidth="320"
                        FontSize="12"
                        Sorting="DataGrid_Sorting"
+                             AlternatingRowBackground="{StaticResource SystemAltMediumColor}"
                        >
 
             <controls:DataGrid.Resources>
@@ -718,16 +721,21 @@
                 </StackPanel>
               </Flyout>
             </controls:DataGrid.Resources>
-
+            <controls:DataGrid.ColumnHeaderStyle>
+              <Style TargetType="tkControlsPrim:DataGridColumnHeader">
+                <Setter Property="Background" Value="{StaticResource ApplicationPageHeaderBackground}" />
+              </Style>
+            </controls:DataGrid.ColumnHeaderStyle>
             <controls:DataGrid.Columns>
               <controls:DataGridTextColumn 
                 Header="{i18nExt:Localize Key=CustomFieldType_Score}" 
                 Binding="{Binding Score, Mode=OneWay}" Tag="Score" 
-                Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Score, Mode=OneWay}"           
+                Visibility="{x:Bind ViewModel.VisibilityMap, Converter={StaticResource DictionaryVisibilityConverter}, ConverterParameter=Score, Mode=OneWay}"                           
                 >
                 <controls:DataGridTextColumn.HeaderStyle>
                   <Style TargetType="tkControlsPrim:DataGridColumnHeader">
                     <Setter Property="ContextFlyout" Value="{StaticResource ScoreResultItemFlyout}" />
+                    <Setter Property="Background" Value="{StaticResource ApplicationPageHeaderBackground}" />
                   </Style>
                 </controls:DataGridTextColumn.HeaderStyle>
               </controls:DataGridTextColumn>
