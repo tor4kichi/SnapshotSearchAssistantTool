@@ -15,6 +15,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.TemplateSele
         public DataTemplate TimeSpanTemplate { get; set; }
         public DataTemplate IntTemplate { get; set; }
         public DataTemplate StringTemplate { get; set; }
+        public DataTemplate ScoreTemplate { get; set; }
 
         protected override DataTemplate SelectTemplateCore(object item)
         {
@@ -28,6 +29,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.TemplateSele
                 TimeSpanSimpleFilterViewModel => TimeSpanTemplate,
                 IntSimpleFilterViewModel => IntTemplate,
                 StringSimpleFilterViewModel => StringTemplate,
+                ScoreSnapshotResultFilter => ScoreTemplate,
                 _ => base.SelectTemplateCore(item, container),
             };
         }

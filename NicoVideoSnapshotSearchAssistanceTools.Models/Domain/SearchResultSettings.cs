@@ -77,9 +77,13 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Models.Domain
     public sealed class SearchResultFilterItem
     {
         public string FieldName { get; set; }
-        public SimpleFilterComparison Comparison { get; set; } 
+        public string Comparison { get; set; } 
         public object Value { get; set; }
 
+        public SimpleFilterComparison GetSimpleFilterComparison()
+        {
+            return Enum.Parse<SimpleFilterComparison>(Comparison);
+        }
 
         public JsonElement GetValueAsJsonElement()
         {

@@ -230,6 +230,46 @@
           </Button>
         </DataTemplate>
       </ts:SimpleFilterTemplateSelector.StringTemplate>
+      <ts:SimpleFilterTemplateSelector.ScoreTemplate>
+        <DataTemplate x:DataType="viewModels:ScoreSnapshotResultFilter">
+          <Button>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="{i18nExt:Localize Key=CustomFieldType_Score}" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
+              <TextBlock Text="{x:Bind Value, Mode=OneWay}" />
+            </StackPanel>
+
+            <Button.Flyout>
+              <Flyout Placement="Bottom">
+                <Grid Margin="16 0">
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+
+                      <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                  SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
+                                    MinWidth="100"
+                                  >
+                      </ComboBox>
+
+                      <winui:NumberBox Value="{x:Bind Value, Mode=TwoWay}" Minimum="0" LargeChange="1000" SmallChange="100" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Flyout="{StaticResource FilterItemFlyout}"
+                                >
+                    <Button.Content>
+                      <SymbolIcon Symbol="More" />
+                    </Button.Content>
+                  </Button>
+                </Grid>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </DataTemplate>
+      </ts:SimpleFilterTemplateSelector.ScoreTemplate>
     </ts:SimpleFilterTemplateSelector>
 
 
@@ -289,6 +329,7 @@
           <DropDownButton>
             <DropDownButton.Flyout>
               <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=CustomFieldType_Score}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Score" />
                 <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.StartTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
                 <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.ViewCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
                 <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.MylistCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />

@@ -20,7 +20,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         object Value { get; set; }
     }
 
-    public interface ISnapshorResultComparable
+    public interface ISnapshorResultComparable : INotifyPropertyChanged
     {
 
         /// <summary>
@@ -33,12 +33,12 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
     public abstract class SimpleFilterViewModelBase : BindableBase, ISnapshorResultComparable
     {
-        private readonly SimpleFilterComparison[] _Comparisons = Enum.GetValues(typeof(SimpleFilterComparison)).Cast<SimpleFilterComparison>().ToArray();
-        private readonly Action<ISimpleFilterViewModel> _onRemove;
+        private readonly static SimpleFilterComparison[] _Comparisons = Enum.GetValues(typeof(SimpleFilterComparison)).Cast<SimpleFilterComparison>().ToArray();
+        private readonly Action<object> _onRemove;
 
         public SimpleFilterComparison[] Comparisons => _Comparisons;
 
-        public SimpleFilterViewModelBase(Action<ISimpleFilterViewModel> onRemove)
+        public SimpleFilterViewModelBase(Action<object> onRemove)
         {
             _onRemove = onRemove;
         }
@@ -49,7 +49,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         void ExecuteRemoveCommand()
         {
-            _onRemove(this as ISimpleFilterViewModel);
+            _onRemove(this);
         }
 
         public abstract bool Compare(SnapshotItemViewModel item);
@@ -58,7 +58,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
     public abstract class SimpleFilterViewModel<T> : SimpleFilterViewModelBase, ISimpleFilterViewModel
     {
-        public SimpleFilterViewModel(Action<ISimpleFilterViewModel> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, T value)
+        public SimpleFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, T value)
             : base(onRemove)
         {
             FieldType = searchFieldType;
@@ -91,7 +91,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
     public class DateTimeOffsetSimpleFilterViewModel : SimpleFilterViewModel<DateTimeOffset>
     {
-        public DateTimeOffsetSimpleFilterViewModel(Action<ISimpleFilterViewModel> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, DateTimeOffset value)
+        public DateTimeOffsetSimpleFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, DateTimeOffset value)
             : base(onRemove, searchFieldType, comparison, value)
         {
             _Date = new DateTimeOffset(value.Year, value.Month, value.Day, 0, 0, 0, value.Offset);
@@ -153,7 +153,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
     public class IntSimpleFilterViewModel : SimpleFilterViewModel<int>
     {
-        public IntSimpleFilterViewModel(Action<ISimpleFilterViewModel> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, int value)
+        public IntSimpleFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, int value)
             : base(onRemove, searchFieldType, comparison, value)
         {
         }
@@ -183,7 +183,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
     public class TimeSpanSimpleFilterViewModel : SimpleFilterViewModel<TimeSpan>
     {
-        public TimeSpanSimpleFilterViewModel(Action<ISimpleFilterViewModel> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, TimeSpan value)
+        public TimeSpanSimpleFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, TimeSpan value)
             : base(onRemove, searchFieldType, comparison, value)
         {
             _Hours = value.Hours;
@@ -258,7 +258,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
     public class StringSimpleFilterViewModel : SimpleFilterViewModel<string>
     {
-        public StringSimpleFilterViewModel(Action<ISimpleFilterViewModel> onRemove, SearchFieldType searchFieldType, string value, string[] suggestionItems = null)
+        public StringSimpleFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, string value, string[] suggestionItems = null)
             : base(onRemove, searchFieldType, SimpleFilterComparison.Equal, value)
         {
             SuggestionItems = suggestionItems;

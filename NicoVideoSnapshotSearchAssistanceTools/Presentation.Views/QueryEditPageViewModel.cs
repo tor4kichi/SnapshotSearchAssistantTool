@@ -199,9 +199,9 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             }
         }
 
-        private void RemoveSimpleFilterItem(ISimpleFilterViewModel filterVM)
+        private void RemoveSimpleFilterItem(object filterVM)
         {
-            SimpleFilters.Remove(filterVM);
+            SimpleFilters.Remove(filterVM as ISimpleFilterViewModel);
         }
 
         private DelegateCommand<ISimpleFilterViewModel> _RemoveSimpleFilterCommand;
