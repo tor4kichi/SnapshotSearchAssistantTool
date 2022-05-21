@@ -22,21 +22,241 @@
 
   <Page.Resources>
     <local:DictionaryVisibilityConverter x:Key="DictionaryVisibilityConverter" />
+
+    <Style TargetType="Grid" x:Key="MicaCardGirdStyle">
+      <Setter Property="Background" Value="{ThemeResource LayerFillColorDefaultBrush}" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Padding" Value="16 8" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+    </Style>
+
+    <MenuFlyout x:Key="FilterItemFlyout">
+      <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
+    </MenuFlyout>
+    
+    <ts:SimpleFilterTemplateSelector x:Key="SimpleFilterTemplateSelector">
+      <ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
+        <DataTemplate x:DataType="viewModels:DateTimeOffsetSimpleFilterViewModel">
+          <Button>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
+              <TextBlock Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
+            </StackPanel>
+
+            <Button.Flyout>
+              <Flyout Placement="Bottom">
+                <Grid Margin="16 0">
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+
+                      <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                  SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"         
+                                      MinWidth="80"
+                                  >
+                      </ComboBox>
+
+                      <TextBox Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" IsReadOnly="True" />
+                      <Button>
+                        <Button.Flyout>
+                          <DatePickerFlyout Date="{x:Bind Date, Mode=TwoWay}" />
+                        </Button.Flyout>
+                        <SymbolIcon Symbol="Calendar" />
+                      </Button>
+                      <Button>
+                        <Button.Flyout>
+                          <TimePickerFlyout Time="{x:Bind Time, Mode=TwoWay}" />
+                        </Button.Flyout>
+                        <SymbolIcon Symbol="Clock" />
+                      </Button>
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Flyout="{StaticResource FilterItemFlyout}"
+                                >
+                    <Button.Content>
+                      <SymbolIcon Symbol="More" />
+                    </Button.Content>
+                  </Button>
+                </Grid>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </DataTemplate>
+      </ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
+      <ts:SimpleFilterTemplateSelector.TimeSpanTemplate>
+        <DataTemplate x:DataType="viewModels:TimeSpanSimpleFilterViewModel">
+          <Button>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
+              <TextBlock Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
+            </StackPanel>
+
+            <Button.Flyout>
+              <Flyout Placement="Bottom">
+                <Grid Margin="16 0">
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+
+                      <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                  SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
+                                    MinWidth="80"
+                                  >
+                      </ComboBox>
+
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <winui:NumberBox Value="{x:Bind Hours, Mode=TwoWay}" Minimum="0" Maximum="24" SmallChange="1" ToolTipService.ToolTip="時" />
+                        <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
+                        <winui:NumberBox Value="{x:Bind Minutes, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="分" />
+                        <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
+                        <winui:NumberBox Value="{x:Bind Seconds, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="秒" />
+                      </StackPanel>
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Flyout="{StaticResource FilterItemFlyout}"
+                                >
+                    <Button.Content>
+                      <SymbolIcon Symbol="More" />
+                    </Button.Content>
+                  </Button>
+                </Grid>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </DataTemplate>
+      </ts:SimpleFilterTemplateSelector.TimeSpanTemplate>
+
+      <ts:SimpleFilterTemplateSelector.IntTemplate>
+        <DataTemplate x:DataType="viewModels:IntSimpleFilterViewModel">
+          <Button>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
+              <TextBlock Text="{x:Bind Value, Mode=OneWay}" />
+            </StackPanel>
+
+            <Button.Flyout>
+              <Flyout Placement="Bottom">
+                <Grid Margin="16 0">
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+
+                      <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                  SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
+                                    MinWidth="100"
+                                  >
+                      </ComboBox>
+
+                      <winui:NumberBox Value="{x:Bind Value, Mode=TwoWay}" Minimum="0" LargeChange="1000" SmallChange="100" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Flyout="{StaticResource FilterItemFlyout}"
+                                >
+                    <Button.Content>
+                      <SymbolIcon Symbol="More" />
+                    </Button.Content>
+                  </Button>
+                </Grid>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </DataTemplate>
+      </ts:SimpleFilterTemplateSelector.IntTemplate>
+      <ts:SimpleFilterTemplateSelector.StringTemplate>
+        <DataTemplate x:DataType="viewModels:StringSimpleFilterViewModel">
+          <Button>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
+              <TextBlock Text="{x:Bind Value, Mode=OneWay}" />
+            </StackPanel>
+
+            <Button.Flyout>
+              <Flyout Placement="Bottom">
+                <Grid Margin="16 0">
+                  <StackPanel >
+                    <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                      <ComboBox ItemsSource="{x:Bind Comparisons}"
+                                  SelectedItem="{x:Bind Comparison}"
+                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
+                                  IsEnabled="False"
+                                  
+                                    MinWidth="80"
+                                  >
+                      </ComboBox>
+
+                      <AutoSuggestBox Text="{x:Bind Value, Mode=TwoWay}"
+                                            ItemsSource="{x:Bind SuggestionItems}"
+                                            MinWidth="120"
+                                            >
+                        <i:Interaction.Behaviors>
+                          <core:EventTriggerBehavior EventName="GotFocus">
+                            <core:ChangePropertyAction PropertyName="IsSuggestionListOpen" Value="True" />
+                          </core:EventTriggerBehavior>
+                        </i:Interaction.Behaviors>
+                        <AutoSuggestBox.TextBoxStyle>
+                          <Style TargetType="TextBox"></Style>
+                        </AutoSuggestBox.TextBoxStyle>
+                      </AutoSuggestBox>
+                    </StackPanel>
+
+                  </StackPanel>
+
+                  <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Flyout="{StaticResource FilterItemFlyout}"
+                                >
+                    <Button.Content>
+                      <SymbolIcon Symbol="More" />
+                    </Button.Content>
+                  </Button>
+                </Grid>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </DataTemplate>
+      </ts:SimpleFilterTemplateSelector.StringTemplate>
+    </ts:SimpleFilterTemplateSelector>
+
+
+    <DataTemplate x:Key="ComparisonTemplate" x:DataType="nctkSnapshot:SimpleFilterComparison">
+      <TextBlock Text="{x:Bind Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
+    </DataTemplate>
   </Page.Resources>
   <Grid>
-
     <controls:DockPanel>
-
       <controls:DockPanel controls:DockPanel.Dock="Top" Background="{StaticResource ApplicationPageHeaderBackground}"
                           Padding="32 0"
                           >
+        <StackPanel x:Name="Header_InfoLayout" Orientation="Horizontal" controls:DockPanel.Dock="Left" Spacing="16">
+          <Button Content="{i18nExt:Localize Key=Export}" Style="{ThemeResource AccentButtonStyle}">
+            <i:Interaction.Behaviors>
+              <core:EventTriggerBehavior EventName="Tapped">
+                <core:GoToStateAction StateName="VS_ShowExportPane" />
+              </core:EventTriggerBehavior>
+            </i:Interaction.Behaviors>
+          </Button>
 
-        
-
-        <StackPanel Orientation="Horizontal" controls:DockPanel.Dock="Right" Spacing="16">
-          
           <TextBlock VerticalAlignment="Center">
             <Run Text="{x:Bind ViewModel.ResultMeta.TotalCount, Mode=OneWay}" />件
+          </TextBlock>
+
+          <TextBlock HorizontalTextAlignment="Right" VerticalAlignment="Center" Opacity="0.75" IsTextSelectionEnabled="True">
+                  <Run Text="{i18nExt:Localize Key=SnapshotAPIVersion}" /> <LineBreak /> <Run  Text="{x:Bind ViewModel.ResultMeta.SnapshotVersion, Converter={StaticResource HumanReadableDateTimeConverter}, Mode=OneWay}" />
           </TextBlock>
 
 
@@ -45,10 +265,6 @@
               <StackPanel Orientation="Horizontal" Spacing="16">
                 <TextBlock VerticalAlignment="Center" >
                   <Run Text="{i18nExt:Localize Key=SearchQueryCondition}" /> <LineBreak /> <Run Text="{x:Bind ViewModel.SearchQueryVM.Keyword, Mode=OneWay}" />
-                </TextBlock>
-
-                <TextBlock HorizontalTextAlignment="Right" VerticalAlignment="Center" Opacity="0.75">
-                  <Run Text="{i18nExt:Localize Key=SnapshotAPIVersion}" /> <LineBreak /> <Run  Text="{x:Bind ViewModel.ResultMeta.SnapshotVersion, Converter={StaticResource HumanReadableDateTimeConverter}, Mode=OneWay}" />
                 </TextBlock>
 
               </StackPanel>
@@ -67,117 +283,55 @@
               </Flyout>
             </Button.Flyout>
           </Button>
-
-          <Button Content="{i18nExt:Localize Key=Export}" >
-            <i:Interaction.Behaviors>
-              <core:EventTriggerBehavior EventName="Tapped">
-                <core:GoToStateAction StateName="VS_ShowExportPane" />
-              </core:EventTriggerBehavior>
-            </i:Interaction.Behaviors>
-          </Button>
         </StackPanel>
 
-
-        <controls:DockPanel>
-
-          <Panel.Resources>
-
-            <Style TargetType="Grid" x:Key="MicaCardGirdStyle">
-              <Setter Property="Background" Value="{ThemeResource LayerFillColorDefaultBrush}" />
-              <Setter Property="Margin" Value="0" />
-              <Setter Property="Padding" Value="16 8" />
-              <Setter Property="CornerRadius" Value="8" />
-              <Setter Property="BorderThickness" Value="1" />
-              <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-            </Style>
-
-            <DataTemplate x:Key="ComparisonTemplate" x:DataType="nctkSnapshot:SimpleFilterComparison">
-              <TextBlock Text="{x:Bind Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
-            </DataTemplate>
-
-            <ts:SimpleFilterTemplateSelector x:Key="SimpleFilterTemplateSelector">
-              <ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
-                <DataTemplate x:DataType="viewModels:DateTimeOffsetSimpleFilterViewModel">
-                  <Grid Style="{ThemeResource MicaCardGirdStyle}" >
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
-                      <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
-                      <TextBlock Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
-                    </StackPanel>
-                  </Grid>
-                </DataTemplate>
-              </ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
-              <ts:SimpleFilterTemplateSelector.TimeSpanTemplate>
-                <DataTemplate x:DataType="viewModels:TimeSpanSimpleFilterViewModel">
-                  <Grid Style="{ThemeResource MicaCardGirdStyle}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
-                      <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
-                      <TextBlock Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
-                    </StackPanel>
-                  </Grid>
-                </DataTemplate>
-              </ts:SimpleFilterTemplateSelector.TimeSpanTemplate>
-
-              <ts:SimpleFilterTemplateSelector.IntTemplate>
-                <DataTemplate x:DataType="viewModels:IntSimpleFilterViewModel">
-                  <Grid Style="{ThemeResource MicaCardGirdStyle}" >
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
-                      <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
-                      <TextBlock Text="{x:Bind Value, Mode=OneWay}" />
-                    </StackPanel>
-                  </Grid>
-                </DataTemplate>
-              </ts:SimpleFilterTemplateSelector.IntTemplate>
-              <ts:SimpleFilterTemplateSelector.StringTemplate>
-                <DataTemplate x:DataType="viewModels:StringSimpleFilterViewModel">
-                  <Grid Style="{ThemeResource MicaCardGirdStyle}" >
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
-                      <TextBlock Text="{x:Bind Comparison, Mode=OneWay, Converter={StaticResource ComparisonToCharacterSymbolConverter}}" />
-                      <TextBlock Text="{x:Bind Value, Mode=OneWay}" />
-                    </StackPanel>
-                  </Grid>
-                </DataTemplate>
-              </ts:SimpleFilterTemplateSelector.StringTemplate>
-            </ts:SimpleFilterTemplateSelector>
-          </Panel.Resources>
-
-          <StackPanel Orientation="Horizontal" Spacing="16" controls:DockPanel.Dock="Left" Margin="8">
-
-            <Button>
+        <StackPanel x:Name="Header_FilterLayout" Orientation="Vertical" Spacing="8" controls:DockPanel.Dock="Left" Margin="8">
+          <DropDownButton>
+            <DropDownButton.Flyout>
+              <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.StartTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.ViewCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.MylistCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LikeCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LengthSeconds}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CommentCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LastCommentTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CategoryTags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Tags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.TagsExact}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Genre}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
+                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.GenreKeyword}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
+              </MenuFlyout>
+            </DropDownButton.Flyout>
+            <!--
               <i:Interaction.Behaviors>
                 <core:EventTriggerBehavior EventName="Tapped">
                   <core:GoToStateAction StateName="VS_ShowFilterEditPane" />
                 </core:EventTriggerBehavior>
               </i:Interaction.Behaviors>
+              -->
 
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <SymbolIcon Symbol="Filter" />
-                <TextBlock Text="{i18nExt:Localize Key=SearchFilter}" VerticalAlignment="Center" />
-              </StackPanel>
-            </Button>
-          </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <SymbolIcon Symbol="Filter" />
+              <TextBlock Text="{i18nExt:Localize Key=SearchFilter}" VerticalAlignment="Center" />
+            </StackPanel>
+          </DropDownButton>
 
-
-          <ItemsControl ItemsSource="{Binding Filters}"
-                        ItemTemplateSelector="{StaticResource SimpleFilterTemplateSelector}"
-                                >
+          <ItemsControl x:Name="Header_FilterItems" ItemsSource="{Binding Filters}"
+                    ItemTemplateSelector="{StaticResource SimpleFilterTemplateSelector}"                      
+                      VerticalAlignment="Center"
+                    >
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
-                <controls:WrapPanel HorizontalSpacing="8" />
+                <controls:WrapPanel Orientation="Horizontal" HorizontalSpacing="8" VerticalSpacing="8" />
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
           </ItemsControl>
+        </StackPanel>
 
-        </controls:DockPanel>
-
-
-
+        
       </controls:DockPanel>
 
-           
       <SplitView x:Name="ScoringPaneSplitView" IsPaneOpen="False"
                  DisplayMode="Inline"
                  OpenPaneLength="420"
@@ -187,243 +341,13 @@
           <core:EventTriggerBehavior EventName="PaneClosed">
             <core:InvokeCommandAction Command="{x:Bind ViewModel.ScoringVM.SaveScoringSettingsCommand, Mode=OneWay}" />
             <core:InvokeCommandAction Command="{x:Bind ViewModel.ReCulcScoreCommand, Mode=OneWay}" />
-            <core:ChangePropertyAction TargetObject="{x:Bind FilterEdittingUIContainer}" PropertyName="Visibility" Value="Collapsed" />
             <core:ChangePropertyAction TargetObject="{x:Bind ScoreEdittingUIContainer}" PropertyName="Visibility" Value="Collapsed" />
             <core:ChangePropertyAction TargetObject="{x:Bind ExportUIContainer}" PropertyName="Visibility" Value="Collapsed" />
           </core:EventTriggerBehavior>
         </i:Interaction.Behaviors>
-        
+
         <SplitView.Pane>
-
           <Grid>
-            <Border x:Name="FilterEdittingUIContainer" Visibility="Collapsed">
-              <Border.Resources>
-
-                <MenuFlyout x:Key="FilterItemFlyout">
-                  <MenuFlyoutItem Text="{i18nExt:Localize Key=Delete}" Icon="Delete" Command="{Binding RemoveCommand}" />
-                </MenuFlyout>
-                
-                <ts:SimpleFilterTemplateSelector x:Key="SimpleFilterTemplateSelector">
-                  <ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
-                    <DataTemplate x:DataType="viewModels:DateTimeOffsetSimpleFilterViewModel">
-                      <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
-                        <controls:WrapPanel HorizontalSpacing="8">
-                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
-                          <StackPanel Orientation="Horizontal" Spacing="16">
-
-                            <ComboBox ItemsSource="{x:Bind Comparisons}"
-                                  SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
-                                      ItemTemplate="{StaticResource LocalizedTextBlock}"         
-                                      MinWidth="80"
-                                  >
-                            </ComboBox>
-
-                            <TextBox Text="{x:Bind Value, Mode=OneWay, Converter={StaticResource HumanReadableDateTimeConverter}, ConverterParameter=g}" />
-                            <Button>
-                              <Button.Flyout>
-                                <DatePickerFlyout Date="{x:Bind Date, Mode=TwoWay}" />
-                              </Button.Flyout>
-                              <SymbolIcon Symbol="Calendar" />
-                            </Button>
-                            <Button>
-                              <Button.Flyout>
-                                <TimePickerFlyout Time="{x:Bind Time, Mode=TwoWay}" />
-                              </Button.Flyout>
-                              <SymbolIcon Symbol="Clock" />
-                            </Button>
-                          </StackPanel>
-                        </controls:WrapPanel>
-
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Flyout="{StaticResource FilterItemFlyout}"
-                                >
-                          <Button.Content>
-                            <SymbolIcon Symbol="More" />
-                          </Button.Content>
-                        </Button>
-                      </Grid>
-                    </DataTemplate>
-                  </ts:SimpleFilterTemplateSelector.DateTimeOffsetTemplate>
-                  <ts:SimpleFilterTemplateSelector.TimeSpanTemplate>
-                    <DataTemplate x:DataType="viewModels:TimeSpanSimpleFilterViewModel">
-                      <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
-                        <controls:WrapPanel HorizontalSpacing="8">
-                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
-                          <StackPanel Orientation="Horizontal" Spacing="16">
-
-                            <ComboBox ItemsSource="{x:Bind Comparisons}"
-                                  SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
-                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
-                                    MinWidth="80"
-                                  >
-                            </ComboBox>
-
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                              <winui:NumberBox Value="{x:Bind Hours, Mode=TwoWay}" Minimum="0" Maximum="24" SmallChange="1" ToolTipService.ToolTip="時" />
-                              <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
-                              <winui:NumberBox Value="{x:Bind Minutes, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="分" />
-                              <TextBlock Text=":" FontSize="20" FontWeight="SemiBold" />
-                              <winui:NumberBox Value="{x:Bind Seconds, Mode=TwoWay}" Minimum="0" Maximum="59" SmallChange="1" ToolTipService.ToolTip="秒" />
-                            </StackPanel>
-                          </StackPanel>
-                        </controls:WrapPanel>
-
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Flyout="{StaticResource FilterItemFlyout}"
-                                >
-                          <Button.Content>
-                            <SymbolIcon Symbol="More" />
-                          </Button.Content>
-                        </Button>
-                      </Grid>
-                    </DataTemplate>
-                  </ts:SimpleFilterTemplateSelector.TimeSpanTemplate>
-
-                  <ts:SimpleFilterTemplateSelector.IntTemplate>
-                    <DataTemplate x:DataType="viewModels:IntSimpleFilterViewModel">
-                      <Grid Style="{ThemeResource MicaCardGirdStyle}"  Margin="16 0">
-                        <StackPanel Spacing="8">
-                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
-                          <StackPanel Orientation="Horizontal" Spacing="16">
-
-                            <ComboBox ItemsSource="{x:Bind Comparisons}"
-                                  SelectedItem="{x:Bind Comparison, Mode=TwoWay}"
-                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
-                                    MinWidth="100"
-                                  >
-                            </ComboBox>
-
-                            <winui:NumberBox Value="{x:Bind Value, Mode=TwoWay}" Minimum="0" LargeChange="1000" SmallChange="100" />
-                          </StackPanel>
-                        </StackPanel>
-
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Flyout="{StaticResource FilterItemFlyout}"
-                                >
-                          <Button.Content>
-                            <SymbolIcon Symbol="More" />
-                          </Button.Content>
-                        </Button>
-                      </Grid>
-                    </DataTemplate>
-                  </ts:SimpleFilterTemplateSelector.IntTemplate>
-                  <ts:SimpleFilterTemplateSelector.StringTemplate>
-                    <DataTemplate x:DataType="viewModels:StringSimpleFilterViewModel">
-                      <Grid Style="{ThemeResource MicaCardGirdStyle}" Margin="16 0">
-                        <controls:WrapPanel HorizontalSpacing="8">
-                          <TextBlock Text="{x:Bind FieldType, Converter={StaticResource LocalizeConverter}}" VerticalAlignment="Center" />
-                          <StackPanel Orientation="Horizontal" Spacing="16">
-                            <ComboBox ItemsSource="{x:Bind Comparisons}"
-                                  SelectedItem="{x:Bind Comparison}"
-                                      ItemTemplate="{StaticResource LocalizedTextBlock}"
-                                  IsEnabled="False"
-                                  
-                                    MinWidth="80"
-                                  >
-                            </ComboBox>
-
-                            <AutoSuggestBox Text="{x:Bind Value, Mode=TwoWay}"
-                                            ItemsSource="{x:Bind SuggestionItems}"
-                                            MinWidth="120"
-                                            >
-                              <i:Interaction.Behaviors>
-                                <core:EventTriggerBehavior EventName="GotFocus">
-                                  <core:ChangePropertyAction PropertyName="IsSuggestionListOpen" Value="True" />
-                                </core:EventTriggerBehavior>
-                              </i:Interaction.Behaviors>
-                              <AutoSuggestBox.TextBoxStyle>
-                                <Style TargetType="TextBox"></Style>
-                              </AutoSuggestBox.TextBoxStyle>
-                            </AutoSuggestBox>
-                          </StackPanel>
-
-                        </controls:WrapPanel>
-
-                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Flyout="{StaticResource FilterItemFlyout}"
-                                >
-                          <Button.Content>
-                            <SymbolIcon Symbol="More" />
-                          </Button.Content>
-                        </Button>
-                      </Grid>
-                    </DataTemplate>
-                  </ts:SimpleFilterTemplateSelector.StringTemplate>
-                </ts:SimpleFilterTemplateSelector>
-              </Border.Resources>
-
-              <controls:DockPanel>
-
-                <controls:DockPanel controls:DockPanel.Dock="Top" Margin="16 16 16 8">
-                  <Button controls:DockPanel.Dock="Right" Margin="0 0 0 0"
-                      ToolTipService.ToolTip="閉じる"
-                      >
-                    <Button.Content>
-                      <SymbolIcon Symbol="ClosePane" />
-                    </Button.Content>
-
-                    <i:Interaction.Behaviors>
-                      <core:EventTriggerBehavior EventName="Tapped">
-                        <core:GoToStateAction TargetObject="{x:Bind PageRoot}" StateName="VS_ClosePane" />
-                      </core:EventTriggerBehavior>
-                    </i:Interaction.Behaviors>
-                  </Button>
-
-                  <SymbolIcon Symbol="Filter" controls:DockPanel.Dock="Left" />
-                  <TextBlock Text="{i18nExt:Localize Key=SearchFilter}" Margin="4 0 0 0" Style="{StaticResource SubtitleTextBlockStyle}" />
-                </controls:DockPanel>
-                <controls:DockPanel controls:DockPanel.Dock="Top" Margin="16">
-
-                  <Button controls:DockPanel.Dock="Right">
-                    <Button.Content>
-                      <SymbolIcon Symbol="Add" />
-                    </Button.Content>
-
-                    <Button.Flyout>
-                      <MenuFlyout>
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.StartTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.ViewCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.MylistCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LikeCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LengthSeconds}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CommentCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LastCommentTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CategoryTags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Tags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.TagsExact}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Genre}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
-                        <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.GenreKeyword}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
-                      </MenuFlyout>
-                    </Button.Flyout>
-                  </Button>
-
-                  <Button controls:DockPanel.Dock="Right" Margin="0 0 8 0"
-                          Command="{Binding RefreshFilterCommand}"
-                      >
-                    <Button.Content>
-                      <SymbolIcon Symbol="Refresh" />
-                    </Button.Content>
-                  </Button>
-
-                  
-                  <Border />
-                </controls:DockPanel>
-
-
-                <ScrollViewer>
-                  <ItemsControl
-                        ItemsSource="{Binding Filters}"
-                        ItemTemplateSelector="{StaticResource SimpleFilterTemplateSelector}"
-                              HorizontalAlignment="Stretch"
-                              HorizontalContentAlignment="Stretch"
-                    >
-
-                  </ItemsControl>
-                </ScrollViewer>
-              </controls:DockPanel>
-              
-            </Border>
-
             <controls:DockPanel x:Name="ScoreEdittingUIContainer" Visibility="Collapsed">
 
               <controls:DockPanel controls:DockPanel.Dock="Top" Margin="16 16 16 8">
@@ -462,7 +386,7 @@
 
                 <TextBlock Text="{i18nExt:Localize Key=ScoreCulcExpression}" Margin="4 0 0 0" Style="{StaticResource SubtitleTextBlockStyle}" />
               </controls:DockPanel>
-                            
+
               <controls:DockPanel controls:DockPanel.Dock="Top" Padding="16">
 
 
@@ -478,7 +402,7 @@
                   </ComboBox.ItemTemplate>
                 </ComboBox>
 
-                
+
                 <Button controls:DockPanel.Dock="Right"
                       Command="{x:Bind ViewModel.ScoringVM.AddScoringExpressionCommand, Mode=OneWay}"
                         Margin="8 0 0 0"
@@ -646,7 +570,7 @@
               <ScrollViewer>
 
                 <StackPanel Spacing="16" Margin="16">
-                  
+
 
 
                   <StackPanel Spacing="8">
@@ -661,17 +585,14 @@
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
                   </StackPanel>
-                  
+
                 </StackPanel>
               </ScrollViewer>
-              
-              
+
+
             </controls:DockPanel>
           </Grid>
-          
         </SplitView.Pane>
-
-
 
         <SplitView.Content>
           <controls:DataGrid ItemsSource="{x:Bind ViewModel.ItemsView, Mode=OneWay}"
@@ -859,6 +780,29 @@
       <VisualStateGroup>
         <VisualState>
           <VisualState.StateTriggers>
+            <AdaptiveTrigger MinWindowWidth="900" />
+          </VisualState.StateTriggers>
+
+          <VisualState.Setters>
+          </VisualState.Setters>
+        </VisualState>
+
+        <VisualState>
+          <VisualState.StateTriggers>
+            <AdaptiveTrigger MinWindowWidth="0" />
+          </VisualState.StateTriggers>
+
+          <VisualState.Setters>
+            <Setter Target="Header_InfoLayout.(controls:DockPanel.Dock)" Value="Top" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+
+
+
+      <VisualStateGroup>
+        <VisualState>
+          <VisualState.StateTriggers>
             <StateTrigger IsActive="{Binding NowRefreshing.Value}" />
           </VisualState.StateTriggers>
 
@@ -870,12 +814,6 @@
 
 
       <VisualStateGroup x:Name="VSG_PaneDisplay">
-        <VisualState x:Name="VS_ShowFilterEditPane">
-          <VisualState.Setters>
-            <Setter Target="FilterEdittingUIContainer.Visibility" Value="Visible" />
-            <Setter Target="ScoringPaneSplitView.IsPaneOpen" Value="True" />
-          </VisualState.Setters>
-        </VisualState>
         <VisualState x:Name="VS_ShowScoreEditPane">
           <VisualState.Setters>
             <Setter Target="ScoreEdittingUIContainer.Visibility" Value="Visible" />
