@@ -1,4 +1,6 @@
-﻿using NiconicoToolkit.SnapshotSearch.Filters;
+﻿using I18NPortable;
+using NiconicoToolkit.SnapshotSearch.Filters;
+using NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;

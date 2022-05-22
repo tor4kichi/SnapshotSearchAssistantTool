@@ -12,23 +12,26 @@ using System.Threading.Tasks;
 
 namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 {
-    public interface ISimpleFilterViewModel : INotifyPropertyChanged
+    public interface ISearchResultViewModel : INotifyPropertyChanged
     {
-        SearchFieldType FieldType { get; }
-        SimpleFilterComparison Comparison { get; set; }
+        /// <summary>
+        /// SearchResultPage向けのフィルタ機能に用いる
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        bool Compare(SnapshotItemViewModel item);
+
+        string FieldType { get; }
+        string Comparison { get; set; }
 
         object Value { get; set; }
     }
 
-    
-    public abstract class SimpleFilterViewModelBase : BindableBase
+    public abstract class SearchResultFilterViewModelBase : BindableBase
     {
-        private readonly static SimpleFilterComparison[] _Comparisons = Enum.GetValues(typeof(SimpleFilterComparison)).Cast<SimpleFilterComparison>().ToArray();
         private readonly Action<object> _onRemove;
 
-        public SimpleFilterComparison[] Comparisons => _Comparisons;
-
-        public SimpleFilterViewModelBase(Action<object> onRemove)
+        public SearchResultFilterViewModelBase(Action<object> onRemove)
         {
             _onRemove = onRemove;
         }
@@ -46,9 +49,12 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
     }
 
 
-    public abstract class SimpleFilterViewModel<T> : SimpleFilterViewModelBase, ISimpleFilterViewModel
+    public abstract class SearchResultFilterViewModel<TValue, TComparison> : SearchResultFilterViewModelBase, ISearchResultViewModel where TComparison : struct, Enum
     {
-        public SimpleFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, T value)
+        private readonly static TComparison[] _Comparisons = Enum.GetValues(typeof(TComparison)).Cast<TComparison>().ToArray();
+        public TComparison[] Comparisons => _Comparisons;
+
+        public SearchResultFilterViewModel(Action<object> onRemove, string searchFieldType, TComparison comparison, TValue value)
             : base(onRemove)
         {
             FieldType = searchFieldType;
@@ -56,33 +62,39 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             _value = value;
         }
 
-        public SearchFieldType FieldType { get; }
+        public string FieldType { get; }
 
-        private SimpleFilterComparison _Comparison;
-        public SimpleFilterComparison Comparison
+        private TComparison _Comparison;
+        public TComparison Comparison
         {
             get { return _Comparison; }
             set { SetProperty(ref _Comparison, value); }
         }
 
-        private T _value;
-        public T Value
+        string ISearchResultViewModel.Comparison
+        {
+            get => _Comparison.ToString();
+            set => _Comparison = Enum.Parse<TComparison>(value);
+        }
+
+        private TValue _value;
+        public TValue Value
         {
             get { return _value; }
             set { SetProperty(ref _value, value); }
         }
 
-        object ISimpleFilterViewModel.Value
+        object ISearchResultViewModel.Value
         {
             get { return _value; }
-            set { Value = (T)value; }
+            set { Value = (TValue)value; }
         }
     }
 
-    public class DateTimeOffsetSimpleFilterViewModel : SimpleFilterViewModel<DateTimeOffset>
+    public class DateTimeOffsetSearchResultFilterViewModel : SearchResultFilterViewModel<DateTimeOffset, SimpleFilterComparison>
     {
-        public DateTimeOffsetSimpleFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, DateTimeOffset value)
-            : base(onRemove, searchFieldType, comparison, value)
+        public DateTimeOffsetSearchResultFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, DateTimeOffset value)
+            : base(onRemove, searchFieldType.ToString(), comparison, value)
         {
             _Date = new DateTimeOffset(value.Year, value.Month, value.Day, 0, 0, 0, value.Offset);
             _Time = new TimeSpan(value.Hour, value.Minute, 0);
@@ -124,8 +136,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         {
             DateTimeOffset rightValue = FieldType switch
             {
-                SearchFieldType.StartTime => item.StartTime.Value,
-                SearchFieldType.LastResBody => item.LastCommentTime.Value,
+                nameof(SearchFieldType.StartTime) => item.StartTime.Value,
+                nameof(SearchFieldType.LastResBody) => item.LastCommentTime.Value,
                 _ => throw new InvalidOperationException(),
             };
 
@@ -141,10 +153,10 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         }
     }
 
-    public class IntSimpleFilterViewModel : SimpleFilterViewModel<int>
+    public class IntSearchResultFilterViewModel : SearchResultFilterViewModel<int, SimpleFilterComparison>
     {
-        public IntSimpleFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, int value)
-            : base(onRemove, searchFieldType, comparison, value)
+        public IntSearchResultFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, int value)
+            : base(onRemove, searchFieldType.ToString(), comparison, value)
         {
         }
 
@@ -152,10 +164,10 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         {
             long rightValue = FieldType switch
             {
-                SearchFieldType.ViewCounter => item.ViewCounter.Value,
-                SearchFieldType.MylistCounter => item.MylistCounter.Value,
-                SearchFieldType.LikeCounter => item.LikeCounter.Value,
-                SearchFieldType.CommentCounter => item.CommentCounter.Value,
+                nameof(SearchFieldType.ViewCounter) => item.ViewCounter.Value,
+                nameof(SearchFieldType.MylistCounter) => item.MylistCounter.Value,
+                nameof(SearchFieldType.LikeCounter) => item.LikeCounter.Value,
+                nameof(SearchFieldType.CommentCounter) => item.CommentCounter.Value,
                 _ => throw new InvalidOperationException(),
             };
 
@@ -171,10 +183,10 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         }
     }
 
-    public class TimeSpanSimpleFilterViewModel : SimpleFilterViewModel<TimeSpan>
+    public class TimeSpanSearchResultFilterViewModel : SearchResultFilterViewModel<TimeSpan, SimpleFilterComparison>
     {
-        public TimeSpanSimpleFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, TimeSpan value)
-            : base(onRemove, searchFieldType, comparison, value)
+        public TimeSpanSearchResultFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, SimpleFilterComparison comparison, TimeSpan value)
+            : base(onRemove, searchFieldType.ToString(), comparison, value)
         {
             _Hours = value.Hours;
             _Minutes = value.Minutes;
@@ -230,7 +242,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         {
             TimeSpan rightValue = FieldType switch
             {
-                SearchFieldType.LengthSeconds => TimeSpan.FromSeconds(item.LengthSeconds.Value),
+                nameof(SearchFieldType.LengthSeconds) => TimeSpan.FromSeconds(item.LengthSeconds.Value),
                 _ => throw new InvalidOperationException(),
             };
 
@@ -246,57 +258,60 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
         }
     }
 
-    public class StringSimpleFilterViewModel : SimpleFilterViewModel<string>
+    public enum StringComparerMethod
     {
-        public StringSimpleFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, string value, string[] suggestionItems = null)
-            : base(onRemove, searchFieldType, SimpleFilterComparison.Equal, value)
+        Contains,
+        NotContains,
+    }
+
+    public class StringSearchResultFilterViewModel : SearchResultFilterViewModel<string, StringComparerMethod>
+    {
+        public StringSearchResultFilterViewModel(Action<object> onRemove, SearchFieldType searchFieldType, string value, StringComparerMethod comparerMethod, string[] suggestionItems = null)
+            : base(onRemove, searchFieldType.ToString(), comparerMethod, value)
         {
             SuggestionItems = suggestionItems;
-        }
-
-        private SimpleFilterComparison _Comparison;
-        new public SimpleFilterComparison Comparison
-        {
-            get { return _Comparison; }
-            private set
-            {
-                Guard.IsTrue(value != SimpleFilterComparison.Equal, "");
-                SetProperty(ref _Comparison, value);
-            }
         }
 
         public string[] SuggestionItems { get; }
 
         public override bool Compare(SnapshotItemViewModel item)
         {
-            if (string.IsNullOrWhiteSpace(Value)) { return false; }
+            if (string.IsNullOrWhiteSpace(Value)) { return true; }
 
-            if (FieldType is SearchFieldType.TagsExact)
+            if (FieldType is nameof(SearchFieldType.TagsExact))
             {
-                return item.Tags_Separated.Contains(Value);
+                if (Comparison == StringComparerMethod.Contains)
+                {
+                    return item.Tags_Separated.Contains(Value);
+                }
+                else
+                {
+                    return item.Tags_Separated.Contains(Value) is false;
+                }
             }
             else
             {
                 string rightValue = FieldType switch
                 {
-                    SearchFieldType.Title => item.Title,
-                    SearchFieldType.Description => item.Description,
-                    SearchFieldType.LastResBody => item.LastResBody,
-                    SearchFieldType.CategoryTags => item.CategoryTags,
-                    SearchFieldType.Tags => item.Tags,
-                    SearchFieldType.Genre => item.Genre,
-                    SearchFieldType.GenreKeyword => item.Genre,
+                    nameof(SearchFieldType.Title) => item.Title,
+                    nameof(SearchFieldType.Description) => item.Description,
+                    nameof(SearchFieldType.LastResBody) => item.LastResBody,
+                    nameof(SearchFieldType.CategoryTags) => item.CategoryTags,
+                    nameof(SearchFieldType.Tags) => item.Tags,
+                    nameof(SearchFieldType.Genre) => item.Genre,
+                    nameof(SearchFieldType.GenreKeyword) => item.Genre,
                     _ => throw new InvalidOperationException(),
                 };
 
-                if (FieldType is SearchFieldType.GenreKeyword)
-                {
-                    return rightValue == Value;
-                }
-                else
+                if (Comparison == StringComparerMethod.Contains)
                 {
                     return rightValue.Contains(Value);
                 }
+                else
+                {
+                    return rightValue.Contains(Value) is false;
+                }
+                
             }
         }
     }

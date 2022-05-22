@@ -36,6 +36,27 @@ SearchFieldType.TagsExact = タグ（完全一致）
 SearchFieldType.Genre = ジャンル
 SearchFieldType.GenreKeyword = ジャンル（完全一致）
 
+ContentId = コンテンツID
+Title = タイトル
+Description = 動画説明文
+UserId = ユーザーID
+ChannelId = チャンネルID
+ViewCounter = 再生数
+MylistCounter = マイリスト数
+LikeCounter = いいね！数
+LengthSeconds = 再生時間
+ThumbnailUrl = サムネイルURL
+StartTime = 投稿日時
+LastResBody = 最新の投稿コメント
+CommentCounter = コメント数
+LastCommentTime = 最終コメント時間
+CategoryTags = カテゴリタグ
+Tags = タグ
+TagsExact = タグ（完全一致）
+Genre = ジャンル
+GenreKeyword = ジャンル（完全一致）
+
+
 
 SimpleFilterComparison.Equal = 一致
 SimpleFilterComparison.GreaterThan = 以上
@@ -124,3 +145,7 @@ ExecuteExport = エクスポート
 
 ExportSupportType.Json = Json
 ExportSupportType.Csv = Csv
+
+
+StringComparerMethod.Contains = 含む
+StringComparerMethod.NotContains = 含まない

@@ -29,7 +29,13 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views.TemplateSele
                 TimeSpanSimpleFilterViewModel => TimeSpanTemplate,
                 IntSimpleFilterViewModel => IntTemplate,
                 StringSimpleFilterViewModel => StringTemplate,
-                ScoreSnapshotResultFilter => ScoreTemplate,
+                
+                StringSearchResultFilterViewModel => StringTemplate,
+                IntSearchResultFilterViewModel => IntTemplate,
+                DateTimeOffsetSearchResultFilterViewModel => DateTimeOffsetTemplate,
+                TimeSpanSearchResultFilterViewModel => TimeSpanTemplate,
+                ScoreSnapshotResultFilterViewModel => ScoreTemplate,
+
                 _ => base.SelectTemplateCore(item, container),
             };
         }

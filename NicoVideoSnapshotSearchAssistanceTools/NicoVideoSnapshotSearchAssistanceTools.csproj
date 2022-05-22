@@ -134,6 +134,7 @@
     <Compile Include="Presentation.Services\IDialogService.cs" />
     <Compile Include="Presentation.ViewModels\SearchQueryTemplateViewModel.cs" />
     <Compile Include="Presentation.ViewModels\SearchQueryViewModel.cs" />
+    <Compile Include="Presentation.ViewModels\SearchResultFilterViewModel.cs" />
     <Compile Include="Presentation.ViewModels\SimpleFilterViewModel.cs" />
     <Compile Include="Presentation.Views.Converters\ComparisonToCharacterSymbolConverter.cs" />
     <Compile Include="Presentation.Views.Converters\HumanReadbleDateTimeConverter.cs" />
