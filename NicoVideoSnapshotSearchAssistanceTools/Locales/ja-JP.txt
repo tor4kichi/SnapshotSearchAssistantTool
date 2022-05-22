@@ -149,3 +149,6 @@ ExportSupportType.Csv = Csv
 
 StringComparerMethod.Contains = 含む
 StringComparerMethod.NotContains = 含まない
+
+AutoRefreshEnabled = 自動更新する
+AutoRefreshDisabled = 自動更新しない

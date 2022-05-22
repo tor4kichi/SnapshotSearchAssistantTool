@@ -277,18 +277,13 @@
   </Page.Resources>
   <Grid>
     <controls:DockPanel>
-      <controls:DockPanel controls:DockPanel.Dock="Top" Background="{StaticResource ApplicationPageHeaderBackground}"
-                          Padding="32 0"
+      <controls:DockPanel controls:DockPanel.Dock="Top" 
+                          Padding="0 0"
+                          MaxWidth="1200"
                           >
-        <StackPanel x:Name="Header_InfoLayout" Orientation="Horizontal" controls:DockPanel.Dock="Left" Spacing="16">
-          <Button Content="{i18nExt:Localize Key=Export}" Style="{ThemeResource AccentButtonStyle}">
-            <i:Interaction.Behaviors>
-              <core:EventTriggerBehavior EventName="Tapped">
-                <core:GoToStateAction StateName="VS_ShowExportPane" />
-              </core:EventTriggerBehavior>
-            </i:Interaction.Behaviors>
-          </Button>
-
+        <StackPanel x:Name="Header_InfoLayout" Orientation="Horizontal" controls:DockPanel.Dock="Right" Spacing="16" Background="{StaticResource ApplicationPageHeaderBackground}"
+                    Padding="16 8"
+                    >
           <TextBlock VerticalAlignment="Center">
             <Run Text="{x:Bind ViewModel.ResultMeta.TotalCount, Mode=OneWay}" />件
           </TextBlock>
@@ -321,30 +316,42 @@
               </Flyout>
             </Button.Flyout>
           </Button>
+          <Button Content="{i18nExt:Localize Key=Export}" Style="{ThemeResource AccentButtonStyle}">
+            <i:Interaction.Behaviors>
+              <core:EventTriggerBehavior EventName="Tapped">
+                <core:GoToStateAction StateName="VS_ShowExportPane" />
+              </core:EventTriggerBehavior>
+            </i:Interaction.Behaviors>
+          </Button>
         </StackPanel>
 
-        <StackPanel x:Name="Header_FilterLayout" Orientation="Vertical" Spacing="8" controls:DockPanel.Dock="Left" Margin="8">
-          <DropDownButton>
-            <DropDownButton.Flyout>
-              <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=CustomFieldType_Score}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Score" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Title}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Title" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Description}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Description" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.StartTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.ViewCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.MylistCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LikeCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LengthSeconds}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CommentCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LastCommentTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CategoryTags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Tags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.TagsExact}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Genre}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
-                <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.GenreKeyword}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
-              </MenuFlyout>
-            </DropDownButton.Flyout>
-            <!--
+        <StackPanel x:Name="Header_FilterLayout" Orientation="Vertical" Spacing="8" controls:DockPanel.Dock="Left"
+                    Background="{StaticResource ApplicationPageHeaderBackground}"
+                    Padding="16 8"
+                    >
+
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <DropDownButton>
+              <DropDownButton.Flyout>
+                <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=CustomFieldType_Score}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Score" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Title}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Title" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Description}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Description" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.StartTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="StartTime" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.ViewCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="ViewCounter" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.MylistCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="MylistCounter" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LikeCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LikeCounter" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LengthSeconds}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LengthSeconds" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CommentCounter}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CommentCounter" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.LastCommentTime}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="LastCommentTime" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.CategoryTags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="CategoryTags" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Tags}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Tags" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.TagsExact}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="TagsExact" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.Genre}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="Genre" />
+                  <MenuFlyoutItem Text="{i18nExt:Localize Key=SearchFieldType.GenreKeyword}" Command="{Binding AddSimpleFilterCommand}" CommandParameter="GenreKeyword" />
+                </MenuFlyout>
+              </DropDownButton.Flyout>
+              <!--
               <i:Interaction.Behaviors>
                 <core:EventTriggerBehavior EventName="Tapped">
                   <core:GoToStateAction StateName="VS_ShowFilterEditPane" />
@@ -352,16 +359,30 @@
               </i:Interaction.Behaviors>
               -->
 
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <SymbolIcon Symbol="Filter" />
-              <TextBlock Text="{i18nExt:Localize Key=SearchFilter}" VerticalAlignment="Center" />
-            </StackPanel>
-          </DropDownButton>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <SymbolIcon Symbol="Filter" />
+                <TextBlock Text="{i18nExt:Localize Key=SearchFilter}" VerticalAlignment="Center" />
+              </StackPanel>
+            </DropDownButton>
+
+            <ToggleSwitch x:Name="AutoRefreshSwitch" IsOn="{Binding IsAutoRefreshEnabled.Value}" 
+                          OnContent="{i18nExt:Localize Key=AutoRefreshEnabled}"
+                          OffContent="{i18nExt:Localize Key=AutoRefreshDisabled}"
+                          Padding="0" Margin="0"
+                          />
+
+            <Button x:Name="RefreshButton" Command="{Binding RefreshFilterCommand}" IsEnabled="{Binding CanRefresh.Value}">
+              <SymbolIcon Symbol="Refresh" />
+            </Button>
+            
+          </StackPanel>
 
           <ItemsControl x:Name="Header_FilterItems" ItemsSource="{Binding Filters}"
                     ItemTemplateSelector="{StaticResource SimpleFilterTemplateSelector}"                      
                       VerticalAlignment="Center"
                         ContextFlyout="{StaticResource FilterItemFlyout}"
+                        MaxWidth="400"
+                        HorizontalAlignment="Left"
                     >
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>

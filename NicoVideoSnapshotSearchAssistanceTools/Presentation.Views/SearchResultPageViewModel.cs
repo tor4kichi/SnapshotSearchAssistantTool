@@ -142,6 +142,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 .ToDictionary(x => x, x => true);
 
         public ReactivePropertySlim<bool> NowRefreshing { get; } = new ReactivePropertySlim<bool>();
+        public ReactivePropertySlim<bool> IsAutoRefreshEnabled { get; } = new ReactivePropertySlim<bool>(true);
+        public ReactivePropertySlim<bool> CanRefresh { get; } = new ReactivePropertySlim<bool>();
 
         public ObservableCollection<ISearchResultViewModel> Filters { get; } = new ObservableCollection<ISearchResultViewModel>();
 
@@ -202,6 +204,8 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
 
         void ExecuteRefreshFilterCommand()
         {
+            CanRefresh.Value = false;
+
             SaveFilterSettings();
 
             var tempItemsView = ItemsView;
@@ -434,8 +438,16 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 .Merge()
                 .Subscribe(x => 
                 {
-                    SaveFilterSettings();
-                    ItemsView.RefreshFilter();
+                    if (IsAutoRefreshEnabled.Value)
+                    {
+                        SaveFilterSettings();
+                        ItemsView.RefreshFilter();
+                        CanRefresh.Value = false;
+                    }
+                    else
+                    {
+                        CanRefresh.Value = true;
+                    }
                 })
                 .AddTo(_navigationDisposable);
             }
