@@ -302,11 +302,11 @@
             <StackPanel Style="{StaticResource StatusUIContainerStackPanelStyle}">
               <TextBlock Text="処理中" Style="{StaticResource SubtitleTextBlockStyle}" />
 
-              <uwpControls:RadialProgressBar Maximum="{Binding ResultMeta.TotalCount}"
-                                             Minimum="0"
-                                             Value="{Binding ProcessedCount}"
-                                             Height="160"
-                                             Width="180"
+              <ProgressBar 
+                Maximum="{Binding ResultMeta.TotalCount}"
+                Minimum="0"
+                Value="{Binding ProcessedCount}"
+                MaxWidth="600"
                 />
 
               <TextBlock>
