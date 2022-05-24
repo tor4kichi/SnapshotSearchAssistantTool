@@ -75,14 +75,6 @@
                       </Button>
                     </StackPanel>
                   </StackPanel>
-
-                  <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Flyout="{StaticResource FilterItemFlyout}"
-                                >
-                    <Button.Content>
-                      <SymbolIcon Symbol="More" />
-                    </Button.Content>
-                  </Button>
                 </Grid>
               </Flyout>
             </Button.Flyout>
@@ -121,14 +113,6 @@
                       </StackPanel>
                     </StackPanel>
                   </StackPanel>
-
-                  <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Flyout="{StaticResource FilterItemFlyout}"
-                                >
-                    <Button.Content>
-                      <SymbolIcon Symbol="More" />
-                    </Button.Content>
-                  </Button>
                 </Grid>
               </Flyout>
             </Button.Flyout>
@@ -162,14 +146,6 @@
                       <winui:NumberBox Value="{x:Bind Value, Mode=TwoWay}" Minimum="0" LargeChange="1000" SmallChange="100" />
                     </StackPanel>
                   </StackPanel>
-
-                  <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Flyout="{StaticResource FilterItemFlyout}"
-                                >
-                    <Button.Content>
-                      <SymbolIcon Symbol="More" />
-                    </Button.Content>
-                  </Button>
                 </Grid>
               </Flyout>
             </Button.Flyout>
@@ -212,16 +188,7 @@
                         </AutoSuggestBox.TextBoxStyle>
                       </AutoSuggestBox>
                     </StackPanel>
-
                   </StackPanel>
-
-                  <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Flyout="{StaticResource FilterItemFlyout}"
-                                >
-                    <Button.Content>
-                      <SymbolIcon Symbol="More" />
-                    </Button.Content>
-                  </Button>
                 </Grid>
               </Flyout>
             </Button.Flyout>
@@ -254,14 +221,6 @@
                       <winui:NumberBox Value="{x:Bind Value, Mode=TwoWay}" Minimum="0" LargeChange="1000" SmallChange="100" />
                     </StackPanel>
                   </StackPanel>
-
-                  <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Flyout="{StaticResource FilterItemFlyout}"
-                                >
-                    <Button.Content>
-                      <SymbolIcon Symbol="More" />
-                    </Button.Content>
-                  </Button>
                 </Grid>
               </Flyout>
             </Button.Flyout>
