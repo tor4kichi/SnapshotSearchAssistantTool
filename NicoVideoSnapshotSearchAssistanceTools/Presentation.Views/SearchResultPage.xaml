@@ -244,7 +244,8 @@
                     Padding="16 8"
                     >
           <TextBlock VerticalAlignment="Center">
-            <Run Text="{x:Bind ViewModel.ResultMeta.TotalCount, Mode=OneWay}" />件
+            合計：<Run Text="{x:Bind ViewModel.ResultMeta.TotalCount, Mode=OneWay}" />件<LineBreak />
+            表示：<Run Text="{x:Bind ViewModel.ItemsView.Count, Mode=OneWay}" />件
           </TextBlock>
 
           <TextBlock HorizontalTextAlignment="Right" VerticalAlignment="Center" Opacity="0.75" IsTextSelectionEnabled="True">
@@ -559,42 +560,28 @@
               <Border controls:DockPanel.Dock="Bottom" Padding="16"
                 BorderThickness="0 1 0 0" BorderBrush="{ThemeResource ButtonDisabledBorderThemeBrush}"
                 >
-                <controls:DockPanel 
-                                  
-                                  >
-
+                <controls:DockPanel>
                   <ComboBox ItemsSource="{Binding ExportSupportTypeItems}"
                         SelectedItem="{Binding ExportSupportType, Mode=TwoWay}"
                         ItemTemplate="{StaticResource LocalizedTextBlock}"
                         Header="{i18nExt:Localize Key=ExportFormatTitle}"
                           controls:DockPanel.Dock="Left"
                         >
-
                   </ComboBox>
 
                   <Button Content="{i18nExt:Localize Key=ExecuteExport}" Style="{ThemeResource AccentButtonStyle}" Command="{x:Bind ViewModel.ExportCommand}"
                         controls:DockPanel.Dock="Right"
                         MinWidth="120"
-                          VerticalAlignment="Bottom"
+                        VerticalAlignment="Bottom"
                         >
-
                   </Button>
 
                   <Border />
-
-
                 </controls:DockPanel>
-
               </Border>
 
-
-
               <ScrollViewer>
-
                 <StackPanel Spacing="16" Margin="16">
-
-
-
                   <StackPanel Spacing="8">
                     <TextBlock Text="{i18nExt:Localize Key=ExportFieldNameTitle}" />
                     <ItemsControl ItemsSource="{Binding ExportSettingItems}" Margin="16 0 0 0">
@@ -607,11 +594,8 @@
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
                   </StackPanel>
-
                 </StackPanel>
               </ScrollViewer>
-
-
             </controls:DockPanel>
           </Grid>
         </SplitView.Pane>
