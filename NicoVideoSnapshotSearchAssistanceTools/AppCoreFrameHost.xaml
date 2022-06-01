@@ -12,7 +12,7 @@
 
   <Grid>
     <muxc:NavigationView PaneDisplayMode="Top"
-                         IsSettingsVisible="True"
+                         IsSettingsVisible="False"
                          >
       <muxc:NavigationView.Resources>
         <!-- 

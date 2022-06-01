@@ -7,15 +7,15 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="b6b9dddc-46c5-4cfd-9208-d02a91e11b3b"
-    Publisher="CN=tor4k"
+    Name="18803tor4kichi.138483E9D7FB0"
+    Publisher="CN=DFF1CEA0-5963-4197-8676-6105C5E8CE4B"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="b6b9dddc-46c5-4cfd-9208-d02a91e11b3b" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="a4037ce9-d58f-4454-a369-722e5ebb5728" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>NicoVideoSnapshotSearchAssistanceTools</DisplayName>
-    <PublisherDisplayName>tor4k</PublisherDisplayName>
+    <DisplayName>NicoVideoSSST</DisplayName>
+    <PublisherDisplayName>tor4kichi</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -32,13 +32,18 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="NicoVideoSnapshotSearchAssistanceTools.App">
       <uap:VisualElements
-        DisplayName="NicoVideoSnapshotSearchAssistanceTools"
+        DisplayName="ニコ動SS検索"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="NicoVideoSnapshotSearchAssistanceTools"
-        BackgroundColor="transparent">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
-        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        BackgroundColor="transparent" Description="ニコニコ動画のスナップショット検索APIを利用したデータの取得と表示、エクスポートをサポートします。">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" ShortName="ニコ動SS検索" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png">
+        </uap:DefaultTile >
+        <uap:SplashScreen Image="Assets\SplashScreen.png"  BackgroundColor="#1D417A"/>
+        <uap:InitialRotationPreference>
+          <uap:Rotation Preference="landscape"/>
+          <uap:Rotation Preference="portrait"/>
+          <uap:Rotation Preference="landscapeFlipped"/>
+          <uap:Rotation Preference="portraitFlipped"/></uap:InitialRotationPreference>
       </uap:VisualElements>
     </Application>
   </Applications>

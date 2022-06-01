@@ -106,7 +106,7 @@ CopyQueryParametersToClipboard = クエリ文字列をコピー
 SearchQuery_Context_Title = コンテキスト文字列
 SearchQuery_Context_Description = 検索パラメータの _context に指定する文字列です
 
-SearchQuery_Keyword_Title = キーワード
+SearchQuery_Keyword_Title = キーワード（省略可）
 SearchQuery_Keyword_Description = 空欄も可
 
 SearchQuery_Target_Title = 検索対象（一つ以上選択）
