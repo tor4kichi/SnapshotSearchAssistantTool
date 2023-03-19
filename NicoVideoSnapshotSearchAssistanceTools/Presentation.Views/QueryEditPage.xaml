@@ -84,6 +84,31 @@
             </Style>
           </StackPanel.Resources>
 
+          <winui:Expander Margin="16 0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+
+            <i:Interaction.Behaviors>
+              <core:DataTriggerBehavior Binding="{Binding IsInvalidContext.Value}" Value="True" ComparisonCondition="Equal">
+                <core:ChangePropertyAction PropertyName="IsExpanded" Value="True" />
+              </core:DataTriggerBehavior>
+            </i:Interaction.Behaviors>
+
+            <winui:Expander.Header>
+              <StackPanel>
+                <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Context_Title}" 
+                        />
+              </StackPanel>
+            </winui:Expander.Header>
+            <winui:Expander.Content>
+              <StackPanel Spacing="16">
+                <TextBox Text="{Binding ContextQueryParameter.Value, Mode=TwoWay}" MaxLength="40"
+                      PlaceholderText=""
+                      x:Name="ContextTextBox"
+                      />
+                <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Context_Description}" />
+              </StackPanel>
+            </winui:Expander.Content>
+          </winui:Expander>
+
           <StackPanel>
             <Border Margin="16 0">
               <TextBlock Text="{i18nExt:Localize Key=SearchQuery_Keyword_Title}" Style="{StaticResource SubtitleTextBlockStyle}" />

@@ -654,9 +654,9 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
             .Subscribe(_ => RefreshFilterConditions())
             .AddTo(_searchQueryVMDisposables);
 
-            IsInvalidTargets = SearchQueryVM.GetValidTargetsObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_searchQueryVMDisposables);
-            IsInvalidSort = SearchQueryVM.GetValidSortObservable().Select(x => !x).ToReadOnlyReactivePropertySlim().AddTo(_searchQueryVMDisposables);
-            IsInvalidContext = ContextQueryParameter.Select(x => string.IsNullOrWhiteSpace(x)).ToReadOnlyReactivePropertySlim().AddTo(_searchQueryVMDisposables);
+            IsInvalidTargets = SearchQueryVM.GetValidTargetsObservable().Select(x => !x).ToReadOnlyReactiveProperty().AddTo(_searchQueryVMDisposables);
+            IsInvalidSort = SearchQueryVM.GetValidSortObservable().Select(x => !x).ToReadOnlyReactiveProperty().AddTo(_searchQueryVMDisposables);
+            IsInvalidContext = ContextQueryParameter.Select(x => string.IsNullOrWhiteSpace(x)).ToReadOnlyReactiveProperty().AddTo(_searchQueryVMDisposables);
 
             StartSearchProcessCommand = new[]
             {
@@ -664,7 +664,7 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 IsInvalidSort,
                 IsInvalidContext,
             }
-            .CombineLatestValuesAreAllFalse()
+            .CombineLatestValuesAreAllFalse()            
             .ToReactiveCommand()
             .AddTo(_searchQueryVMDisposables);
 
