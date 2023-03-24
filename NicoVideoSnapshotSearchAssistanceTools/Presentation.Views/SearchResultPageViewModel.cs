@@ -141,9 +141,9 @@ namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.ViewModels
                 )
                 .ToDictionary(x => x, x => true);
 
-        public ReactivePropertySlim<bool> NowRefreshing { get; } = new ReactivePropertySlim<bool>();
-        public ReactivePropertySlim<bool> IsAutoRefreshEnabled { get; } = new ReactivePropertySlim<bool>(true);
-        public ReactivePropertySlim<bool> CanRefresh { get; } = new ReactivePropertySlim<bool>();
+        public ReactiveProperty<bool> NowRefreshing { get; } = new ReactiveProperty<bool>();
+        public ReactiveProperty<bool> IsAutoRefreshEnabled { get; } = new ReactiveProperty<bool>(true);
+        public ReactiveProperty<bool> CanRefresh { get; } = new ReactiveProperty<bool>();
 
         public ObservableCollection<ISearchResultViewModel> Filters { get; } = new ObservableCollection<ISearchResultViewModel>();
 

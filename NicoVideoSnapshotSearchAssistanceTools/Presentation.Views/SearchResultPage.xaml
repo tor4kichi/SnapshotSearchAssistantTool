@@ -325,13 +325,15 @@
               </StackPanel>
             </DropDownButton>
 
-            <ToggleSwitch x:Name="AutoRefreshSwitch" IsOn="{Binding IsAutoRefreshEnabled.Value}" 
+            <ToggleSwitch x:Name="AutoRefreshSwitch" IsOn="{Binding IsAutoRefreshEnabled.Value, Mode=TwoWay}" 
                           OnContent="{i18nExt:Localize Key=AutoRefreshEnabled}"
                           OffContent="{i18nExt:Localize Key=AutoRefreshDisabled}"
                           Padding="0" Margin="0"
                           />
 
-            <Button x:Name="RefreshButton" Command="{Binding RefreshFilterCommand}" IsEnabled="{Binding CanRefresh.Value}">
+            <Button x:Name="RefreshButton" Command="{Binding RefreshFilterCommand}" IsEnabled="{Binding CanRefresh.Value}"
+                    Style="{ThemeResource AccentButtonStyle}"
+                    >
               <SymbolIcon Symbol="Refresh" />
             </Button>
             
