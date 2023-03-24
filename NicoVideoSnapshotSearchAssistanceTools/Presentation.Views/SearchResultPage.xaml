@@ -634,13 +634,15 @@
                     </ComboBox.ItemTemplate>
                   </ComboBox>
 
-                  <Button Content="{i18nExt:Localize Key=ScoreCulcExpression_Edit}">
-                    <i:Interaction.Behaviors>
+                  <Button x:Name="Button_ScoreCulcExpression_Edit" Content="{i18nExt:Localize Key=ScoreCulcExpression_Edit}" Tapped="Button_ScoreCulcExpression_Edit_Tapped">
+
+                    <!-- リリースビルド時に CallMethodAction の部分でエラーが出るのでTappedで表示している -->
+                    <!--<i:Interaction.Behaviors>
                       <core:EventTriggerBehavior EventName="Tapped">
                         <core:CallMethodAction TargetObject="{x:Bind ScoreResultItemFlyout}" MethodName="Hide"/>
                         <core:GoToStateAction TargetObject="{x:Bind PageRoot}" StateName="VS_ShowScoreEditPane" />
                       </core:EventTriggerBehavior>
-                    </i:Interaction.Behaviors>
+                    </i:Interaction.Behaviors>-->
                   </Button>
 
                   <TextBlock Text="{i18nExt:Localize Key=ScoreCulcExprettion_ReCulcWhenPopupClosed}" TextWrapping="Wrap" MaxWidth="120" Opacity="0.75" />

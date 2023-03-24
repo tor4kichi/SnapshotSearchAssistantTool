@@ -21,140 +21,145 @@ using AdvancedCollectionView = Microsoft.Toolkit.Uwp.UI.Custom.AdvancedCollectio
 
 // 空白ページの項目テンプレートについては、https://go.microsoft.com/fwlink/?LinkId=234238 を参照してください
 
-namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views
+namespace NicoVideoSnapshotSearchAssistanceTools.Presentation.Views;
+
+/// <summary>
+/// それ自体で使用できる空白ページまたはフレーム内に移動できる空白ページ。
+/// </summary>
+public sealed partial class SearchResultPage : Page
 {
-    /// <summary>
-    /// それ自体で使用できる空白ページまたはフレーム内に移動できる空白ページ。
-    /// </summary>
-    public sealed partial class SearchResultPage : Page
+    public SearchResultPage()
     {
-        public SearchResultPage()
-        {
-            this.InitializeComponent();
+        this.InitializeComponent();
 
-            DataContextChanged += SearchResultPage_DataContextChanged;
+        DataContextChanged += SearchResultPage_DataContextChanged;
+    }
+
+    private void SearchResultPage_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+    {
+        ViewModel = args.NewValue as SearchResultPageViewModel;
+    }
+
+
+
+    public SearchResultPageViewModel ViewModel
+    {
+        get { return (SearchResultPageViewModel)GetValue(ViewModelProperty); }
+        set { SetValue(ViewModelProperty, value); }
+    }
+
+    // Using a DependencyProperty as the backing store for ViewModel.  This enables animation, styling, binding, etc...
+    public static readonly DependencyProperty ViewModelProperty =
+        DependencyProperty.Register("ViewModel", typeof(SearchResultPageViewModel), typeof(SearchResultPage), new PropertyMetadata(null));
+
+
+    private void DataGrid_Sorting(object sender, Microsoft.Toolkit.Uwp.UI.Controls.DataGridColumnEventArgs e)
+    {
+        var dataGrid = sender as DataGrid;
+        var acv = dataGrid.ItemsSource as AdvancedCollectionView;
+
+        static bool IsSnapshotItemViewModelClassMemberPropertyName(string propertyName)
+        {
+            var members = typeof(SnapshotItemViewModel).GetMember(propertyName);
+            return members != null && members.Any();
         }
 
-        private void SearchResultPage_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+        var propertyName = e.Column.Tag as string;
+        if (propertyName == null
+            || !IsSnapshotItemViewModelClassMemberPropertyName(propertyName)
+            )
         {
-            ViewModel = args.NewValue as SearchResultPageViewModel;
+            return;
         }
 
-
-
-        public SearchResultPageViewModel ViewModel
+        using (acv.DeferRefresh())
         {
-            get { return (SearchResultPageViewModel)GetValue(ViewModelProperty); }
-            set { SetValue(ViewModelProperty, value); }
-        }
+            acv.SortDescriptions.Clear();
 
-        // Using a DependencyProperty as the backing store for ViewModel.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ViewModelProperty =
-            DependencyProperty.Register("ViewModel", typeof(SearchResultPageViewModel), typeof(SearchResultPage), new PropertyMetadata(null));
+            var sortDirection = e.Column.SortDirection;
 
-
-        private void DataGrid_Sorting(object sender, Microsoft.Toolkit.Uwp.UI.Controls.DataGridColumnEventArgs e)
-        {
-            var dataGrid = sender as DataGrid;
-            var acv = dataGrid.ItemsSource as AdvancedCollectionView;
-
-            static bool IsSnapshotItemViewModelClassMemberPropertyName(string propertyName)
+            if (propertyName == nameof(SnapshotItemViewModel.Index))
             {
-                var members = typeof(SnapshotItemViewModel).GetMember(propertyName);
-                return members != null && members.Any();
-            }
-
-            var propertyName = e.Column.Tag as string;
-            if (propertyName == null
-                || !IsSnapshotItemViewModelClassMemberPropertyName(propertyName)
-                )
-            {
-                return;
-            }
-
-            using (acv.DeferRefresh())
-            {
-                acv.SortDescriptions.Clear();
-
-                var sortDirection = e.Column.SortDirection;
-
-                if (propertyName == nameof(SnapshotItemViewModel.Index))
+                bool isSortChanged = false;
+                foreach (var column in dataGrid.Columns)
                 {
-                    bool isSortChanged = false;
-                    foreach (var column in dataGrid.Columns)
+                    if (column.Tag as string == nameof(SnapshotItemViewModel.Index)) { continue; }
+
+                    if (column.SortDirection != null)
                     {
-                        if (column.Tag as string == nameof(SnapshotItemViewModel.Index)) { continue; }
-
-                        if (column.SortDirection != null)
-                        {
-                            isSortChanged = true;
-                        }
-                        column.SortDirection = null;
+                        isSortChanged = true;
                     }
-
-                    e.Column.SortDirection = !isSortChanged ? sortDirection switch
-                    {
-                        null => DataGridSortDirection.Descending,
-                        DataGridSortDirection.Descending => null,
-                        _ => throw new NotSupportedException(sortDirection?.ToString()),
-                    }
-                    : null;
-
-                    static SortDirection ToAcvSortDirection(DataGridSortDirection? value)
-                    {
-                        return value == null ? SortDirection.Ascending : SortDirection.Descending;
-                    }
-
-                    acv.SortDescriptions.Add(new SortDescription(propertyName, ToAcvSortDirection(e.Column.SortDirection)));
+                    column.SortDirection = null;
                 }
-                else
+
+                e.Column.SortDirection = !isSortChanged ? sortDirection switch
                 {
-                    foreach (var column in dataGrid.Columns)
-                    {
-                        column.SortDirection = null;
-                    }
-
-                    e.Column.SortDirection = sortDirection switch
-                    {
-                        null => DataGridSortDirection.Descending,
-                        DataGridSortDirection.Descending => DataGridSortDirection.Ascending,
-                        DataGridSortDirection.Ascending => null,
-                        _ => throw new NotSupportedException(sortDirection?.ToString()),
-                    };
-
-                    if (e.Column.SortDirection == null)
-                    {
-                        return;
-                    }
-
-                    static SortDirection ToAcvSortDirection(DataGridSortDirection value)
-                    {
-                        return value == DataGridSortDirection.Ascending ? SortDirection.Ascending : SortDirection.Descending;
-                    }
-
-                    acv.SortDescriptions.Add(new SortDescription(propertyName, ToAcvSortDirection(e.Column.SortDirection.Value)));
+                    null => DataGridSortDirection.Descending,
+                    DataGridSortDirection.Descending => null,
+                    _ => throw new NotSupportedException(sortDirection?.ToString()),
                 }
+                : null;
+
+                static SortDirection ToAcvSortDirection(DataGridSortDirection? value)
+                {
+                    return value == null ? SortDirection.Ascending : SortDirection.Descending;
+                }
+
+                acv.SortDescriptions.Add(new SortDescription(propertyName, ToAcvSortDirection(e.Column.SortDirection)));
+            }
+            else
+            {
+                foreach (var column in dataGrid.Columns)
+                {
+                    column.SortDirection = null;
+                }
+
+                e.Column.SortDirection = sortDirection switch
+                {
+                    null => DataGridSortDirection.Descending,
+                    DataGridSortDirection.Descending => DataGridSortDirection.Ascending,
+                    DataGridSortDirection.Ascending => null,
+                    _ => throw new NotSupportedException(sortDirection?.ToString()),
+                };
+
+                if (e.Column.SortDirection == null)
+                {
+                    return;
+                }
+
+                static SortDirection ToAcvSortDirection(DataGridSortDirection value)
+                {
+                    return value == DataGridSortDirection.Ascending ? SortDirection.Ascending : SortDirection.Descending;
+                }
+
+                acv.SortDescriptions.Add(new SortDescription(propertyName, ToAcvSortDirection(e.Column.SortDirection.Value)));
             }
         }
     }
 
-    public sealed class DictionaryVisibilityConverter : IValueConverter
+    private void Button_ScoreCulcExpression_Edit_Tapped(object sender, TappedRoutedEventArgs e)
     {
-        public object Convert(object value, Type targetType, object parameter, string language)
-        {
-            if (value is Dictionary<string, bool> dict)
-            {
-                var b = (bool)dict[parameter as string];
-                return b ? Visibility.Visible : Visibility.Collapsed;
-            }
-
-            throw new NotSupportedException();
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, string language)
-        {
-            throw new NotSupportedException();
-        }
-
+        ScoreResultItemFlyout.Hide();
+        VisualStateManager.GoToState(PageRoot, "VS_ShowScoreEditPane", useTransitions: true);
     }
+}
+
+public sealed class DictionaryVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is Dictionary<string, bool> dict)
+        {
+            var b = (bool)dict[parameter as string];
+            return b ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        throw new NotSupportedException();
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotSupportedException();
+    }
+
 }
