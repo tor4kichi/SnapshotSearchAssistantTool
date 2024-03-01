@@ -80,7 +80,7 @@ namespace UnitTest
             var meta = new SearchQueryResultMeta() { TotalCount = result.Meta.TotalCount };
 
             var originalPlan = _searchPlanFactory.GetSearchPlanOrigin(meta, searchQuery);
-            var splited = await _searchPlanFactory.MakeSplitSearchPlanAsync(meta, searchQuery);
+            var splited = await _searchPlanFactory.MakeSplitSearchPlanAsync(meta, searchQuery, default);
 
 
         }
@@ -111,7 +111,7 @@ namespace UnitTest
             var meta = new SearchQueryResultMeta() { TotalCount = result.Meta.TotalCount };
 
             var originalPlan = _searchPlanFactory.GetSearchPlanOrigin(meta, searchQuery);
-            var splited = await _searchPlanFactory.MakeSplitSearchPlanAsync(meta, searchQuery);
+            var splited = await _searchPlanFactory.MakeSplitSearchPlanAsync(meta, searchQuery, default);
 
 
         }
